@@ -1,31 +1,37 @@
+from azure.identity import DefaultAzureCredential
+import pyodbc
+
 import os
+os.environ["AZURE_SUBSCRIPTION_ID"] = "deb58934-a5b1-41b2-b7e6-d87c359af07d"
+os.environ["AZURE_TENANT_ID"] = "8acbc2c5-c8ed-42c7-8169-ba438a0dbe2f"
+os.environ["AZURE_CLIENT_ID"] = "bba51d91-1ffe-48ba-9704-9569246ee081"
+os.environ["AZURE_CLIENT_SECRET"] = "oSfJu980jd"
 
-import pandas as pd
-from sqlalchemy import create_engine
 
-server = 'wms-uni.database.windows.net'
-database = 'WMS_UNI'
-driver= '{ODBC Driver 18 for SQL Server}'
 
-username = os.getenv('wms_admin')
-password = os.getenv('AZURE!log')
+# Use the default managed identity credential
+credential = DefaultAzureCredential()
 
-odbc_params = f'DRIVER={driver};SERVER=tcp:{server};PORT=1433;DATABASE={database};UID={username};PWD={password}'
+# Set up the connection string with the Azure SQL Database details
+server_name = "wms-uni.database.windows.net"
+database_name = "WMS_UNI"
 
-connection_string = f'mssql+pyodbc:///?odbc_connect={odbc_params}'
+# Construct the connection string
 
-engine = create_engine(connection_string)
+connection_string = (
+    f"Driver={{SQL Server Native Client 11.0}};"
+    f"Server=tcp:{server_name},1433;"
+    f"Database={database_name};"
+    "Encrypt=yes;"
+    "TrustServerCertificate=no;"
+)
 
-# query sys.databases view
 
-query = '''
-        SELECT
-               [name]
-              ,[database_id]
-       FROM [sys].[databases];
-'''
-
-df = pd.read_sql(query, engine)
-print(df.head())
-
-engine.dispose()
+# Create a connection using pyodbc and the managed identity credential
+with pyodbc.connect(connection_string, attrs_before={0: b"Set_AZURE_AD_INTERACTIVE=true"}, autocommit=True, timeout=10) as conn:
+    # Now you can use 'conn' to interact with the Azure SQL Database
+    cursor = conn.cursor()
+    cursor.execute("SELECT 1")
+    rows = cursor.fetchall()
+    for row in rows:
+        print(row)
