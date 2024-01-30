@@ -1,21 +1,24 @@
-class Project:
-    def __init__(self, name, completion=0, status='Open'):
-        self.name = name
-        self.completion = completion
-        self.status = status
-        self.subtasks = []
 
-    def __str__(self):
-        return f"{self.name} (Completion: {self.completion}%, Status: {self.status})"
+from ClassBase import Base
+
+from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from datetime import datetime
 
 
-# Subtask Class (inherits from Project)
-class Subtask(Project):
-    def __init__(self, project_name, task_name, task_completion=0):
-        super().__init__(task_name, task_completion)
-        self.project = project_name
+class Project(Base):
+    __tablename__ = 'PROJECT'  # Adjusted table name
 
-    def __str__(self):
-        return f"{self.task_name} (Parent Project: {self.project.name}, Completion: {self.completion}%)"
+    project_pkey = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(255), nullable=False)
+    desc = Column(String, nullable=False)
+    status = Column(String(100), nullable=False)
+    start_date = Column(DateTime, default=datetime.utcnow, nullable=False)
+    end_date = Column(DateTime)
+    due_date = Column(DateTime)
+    owner_fkey = Column(Integer, ForeignKey('USER.user_pkey'), nullable=False)
 
+    # Define the relationships
+    owner = relationship('User', back_populates='projects')
+    tasks = relationship('Task', back_populates='project')
 
