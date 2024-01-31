@@ -9,8 +9,8 @@ def dbInitalise():
     # Get env variable
     server = os.getenv('AZURE_SQL_SERVER')
     database = os.getenv('AZURE_SQL_DB')
-    #driver = '{ODBC Driver 18 for SQL Server}'
-    driver = '{SQL Server Native Client 11.0}'
+    driver = '{ODBC Driver 18 for SQL Server}'
+    #driver = '{SQL Server Native Client 11.0}'
     user = os.getenv('AZURE_SQL_USER')
     password = os.getenv('AZURE_SQL_PASS')
 

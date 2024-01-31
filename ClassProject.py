@@ -7,7 +7,7 @@ from datetime import datetime
 
 
 class Project(Base):
-    __tablename__ = 'PROJECT'  # Adjusted table name
+    __tablename__ = 'PROJECT'
 
     project_pkey = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False)
@@ -22,3 +22,16 @@ class Project(Base):
     owner = relationship('User', back_populates='projects')
     tasks = relationship('Task', back_populates='project')
 
+    def update_status(self, new_status, session):
+        """Update the status of the project."""
+        if self.status == new_status:
+            raise UserWarning(f'the status is already set to {new_status}')
+        else:
+            # Print the current status
+            print("Current Project Status:", self.status)
+
+            # Update the status
+            self.status = new_status
+
+            # Commit the changes
+            #session.commit()

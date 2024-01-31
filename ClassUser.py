@@ -5,7 +5,7 @@ from datetime import datetime
 
 
 class User(Base):
-    __tablename__ = 'USER'  # Adjusted table name
+    __tablename__ = 'USER'
 
     user_pkey = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(50), nullable=False)
