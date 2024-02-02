@@ -1,6 +1,4 @@
-
 from ClassBase import Base
-
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from datetime import datetime
@@ -24,4 +22,6 @@ class Task(Base):
     project = relationship('Project', back_populates='tasks')
     assignee = relationship('User', back_populates='assigned_tasks', foreign_keys=[assignee_fkey])
     assigner = relationship('User', back_populates='assigner_of_tasks', foreign_keys=[assigner_fkey])
+    communication_log = relationship('CommunicationLog', back_populates='task')
+
 
