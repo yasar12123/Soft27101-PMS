@@ -1,12 +1,14 @@
 from dbConnection import dbInitalise
-from ClassUser import User
-from ClassUserRole import UserRole
-from ClassProject import Project
-from ClassProjectTeam import ProjectTeam
-from ClassTeam import Team
-from ClassCommunicationLog import CommunicationLog
-from ClassAttachment import Attachment
-from ClassTask import Task
+from src.ClassUser import User
+from src.ClassUserRole import UserRole
+from src.ClassProject import Project
+from src.ClassTask import Task
+from src.ClassProjectTeam import ProjectTeam
+from src.ClassTeam import Team
+from src.ClassCommunicationLog import CommunicationLog
+from src.ClassAttachment import Attachment
+
+
 from sqlalchemy.orm import sessionmaker
 
 

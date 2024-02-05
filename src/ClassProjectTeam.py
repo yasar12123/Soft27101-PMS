@@ -1,4 +1,4 @@
-from ClassBase import Base
+from src.ClassBase import Base
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, DateTime, ForeignKey
 from datetime import datetime

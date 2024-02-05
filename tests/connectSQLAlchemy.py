@@ -22,7 +22,7 @@ class User:
         self.username = username
         self.password = password
 
-# Create the Tkinter GUI
+# Create the Tkinter ui
 class App:
     def __init__(self, root):
         self.root = root
