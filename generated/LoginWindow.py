@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'ui\Mainwindow.ui'
+# Form implementation generated from reading ui file 'ui\LoginWindow.ui'
 #
 # Created by: PyQt6 UI code generator 6.4.2
 #
@@ -9,59 +9,61 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 
-class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(513, 448)
-        self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
+class Ui_LoginWindow(object):
+    def setupUi(self, LoginWindow):
+        LoginWindow.setObjectName("LoginWindow")
+        LoginWindow.resize(510, 467)
+        self.centralwidget = QtWidgets.QWidget(parent=LoginWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.signInGroupBox = QtWidgets.QGroupBox(parent=self.centralwidget)
-        self.signInGroupBox.setGeometry(QtCore.QRect(120, 120, 281, 151))
+        self.signInGroupBox.setGeometry(QtCore.QRect(120, 110, 281, 181))
         self.signInGroupBox.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.signInGroupBox.setObjectName("signInGroupBox")
-        self.verticalLayout = QtWidgets.QVBoxLayout(self.signInGroupBox)
-        self.verticalLayout.setObjectName("verticalLayout")
         self.usernameLE = QtWidgets.QLineEdit(parent=self.signInGroupBox)
+        self.usernameLE.setGeometry(QtCore.QRect(10, 30, 261, 22))
         self.usernameLE.setAutoFillBackground(False)
         self.usernameLE.setInputMask("")
         self.usernameLE.setText("")
         self.usernameLE.setClearButtonEnabled(True)
         self.usernameLE.setObjectName("usernameLE")
-        self.verticalLayout.addWidget(self.usernameLE)
         self.passwordLE = QtWidgets.QLineEdit(parent=self.signInGroupBox)
+        self.passwordLE.setGeometry(QtCore.QRect(10, 60, 261, 22))
         self.passwordLE.setInputMask("")
         self.passwordLE.setClearButtonEnabled(True)
         self.passwordLE.setObjectName("passwordLE")
-        self.verticalLayout.addWidget(self.passwordLE)
         self.loginButton = QtWidgets.QPushButton(parent=self.signInGroupBox)
+        self.loginButton.setGeometry(QtCore.QRect(10, 100, 261, 31))
         self.loginButton.setObjectName("loginButton")
-        self.verticalLayout.addWidget(self.loginButton)
+        self.signInLabel = QtWidgets.QLabel(parent=self.signInGroupBox)
+        self.signInLabel.setGeometry(QtCore.QRect(10, 140, 261, 21))
+        self.signInLabel.setText("")
+        self.signInLabel.setObjectName("signInLabel")
         self.registerGroupBox = QtWidgets.QGroupBox(parent=self.centralwidget)
         self.registerGroupBox.setGeometry(QtCore.QRect(180, 320, 156, 44))
         self.registerGroupBox.setTitle("")
         self.registerGroupBox.setObjectName("registerGroupBox")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.registerGroupBox)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.label = QtWidgets.QLabel(parent=self.registerGroupBox)
-        self.label.setObjectName("label")
-        self.horizontalLayout.addWidget(self.label)
+        self.labelNU = QtWidgets.QLabel(parent=self.registerGroupBox)
+        self.labelNU.setObjectName("labelNU")
+        self.horizontalLayout.addWidget(self.labelNU)
         self.registerButton = QtWidgets.QPushButton(parent=self.registerGroupBox)
         self.registerButton.setObjectName("registerButton")
         self.horizontalLayout.addWidget(self.registerButton)
-        MainWindow.setCentralWidget(self.centralwidget)
-        self.statusbar = QtWidgets.QStatusBar(parent=MainWindow)
+        LoginWindow.setCentralWidget(self.centralwidget)
+        self.statusbar = QtWidgets.QStatusBar(parent=LoginWindow)
         self.statusbar.setObjectName("statusbar")
-        MainWindow.setStatusBar(self.statusbar)
+        LoginWindow.setStatusBar(self.statusbar)
 
-        self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        self.retranslateUi(LoginWindow)
+        QtCore.QMetaObject.connectSlotsByName(LoginWindow)
 
-    def retranslateUi(self, MainWindow):
+    def retranslateUi(self, LoginWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.signInGroupBox.setTitle(_translate("MainWindow", "Sign In"))
-        self.usernameLE.setPlaceholderText(_translate("MainWindow", "Username"))
-        self.passwordLE.setPlaceholderText(_translate("MainWindow", "Password"))
-        self.loginButton.setText(_translate("MainWindow", "Sign In"))
-        self.label.setText(_translate("MainWindow", "New User?"))
-        self.registerButton.setText(_translate("MainWindow", "Register"))
+        LoginWindow.setWindowTitle(_translate("LoginWindow", "LoginWindow"))
+        self.signInGroupBox.setTitle(_translate("LoginWindow", "Sign In"))
+        self.usernameLE.setPlaceholderText(_translate("LoginWindow", "Username"))
+        self.passwordLE.setPlaceholderText(_translate("LoginWindow", "Password"))
+        self.loginButton.setText(_translate("LoginWindow", "Sign In"))
+        self.labelNU.setText(_translate("LoginWindow", "New User?"))
+        self.registerButton.setText(_translate("LoginWindow", "Register"))

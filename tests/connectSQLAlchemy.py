@@ -1,6 +1,6 @@
-from dbConnection import dbInitalise
+from src.ClassDatabaseConnection import dbInitalise
 import tkinter as tk
-from sqlalchemy import create_engine, Column, Integer, String, MetaData, Table
+from sqlalchemy import Column, Integer, String, Table
 
 
 

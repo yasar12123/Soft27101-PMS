@@ -1,7 +1,9 @@
 from PyQt6.QtWidgets import QApplication, QMainWindow
-from generated.MainWindow import Ui_MainWindow
+from generated.LoginWindow import Ui_LoginWindow
+from src.ClassUser import User  # Import your User class
 
-class MyMainWindow(QMainWindow, Ui_MainWindow):
+
+class LoginWindow(QMainWindow, Ui_LoginWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)  # Setup the UI
@@ -10,25 +12,32 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         self.loginButton.clicked.connect(self.on_login)
         #self.registerButton.clicked.connect(self.on_login())
 
-    def authenticate(self, username, password):
-        # Replace with your authentication logic (e.g., check credentials against a database)
-        # Return True if authentication succeeds, False otherwise
-        return username == 'admin' and password == 'adminpass'
+        # Instantiate user
+        self.user = User()
+
 
     def on_login(self):
-        username = self.username_edit.text()
-        password = self.password_edit.text()
+        username = self.usernameLE.text()
+        password = self.passwordLE.text()
+        userAuthentication = self.user.authenticate(username, password)
 
-        # Perform login logic (replace with your authentication logic)
-        if self.authenticate(username, password):
-            self.label.setText(f'Welcome, {username}! You are logged in.')
+        if userAuthentication == 'Login Successful':
+            self.signInLabel.setText(f'Welcome, {username}! You have now logged in.')
         else:
-            self.label.setText('Login failed. Please try again.')
+            self.signInLabel.setText(userAuthentication)
 
+
+        # # Perform login logic (replace with your authentication logic)
+        # if self.user.authenticate(username, password):
+        #     self.label.setText(f'Welcome, {username}! You are logged in.')
+        # else:
+        #     self.label.setText('Login failed. Please try again.')
 
 
 if __name__ == '__main__':
     app = QApplication([])
-    window = MyMainWindow()
+    window = LoginWindow()
     window.show()
     app.exec()
+
+
