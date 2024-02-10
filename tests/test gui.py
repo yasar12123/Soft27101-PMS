@@ -1,20 +1,20 @@
 from PyQt6.QtWidgets import QApplication, QMainWindow
 from generated.LoginWindow import Ui_LoginWindow
+from generated.RegisterWindow import Ui_RegisterWindow
 from src.ClassUser import User  # Import your User class
 
 
 class LoginWindow(QMainWindow, Ui_LoginWindow):
     def __init__(self):
         super().__init__()
-        self.setupUi(self)  # Setup the UI
+        self.setupUi(self)
 
         # Connect signals to slots
         self.loginButton.clicked.connect(self.on_login)
-        #self.registerButton.clicked.connect(self.on_login())
+        self.registerButton.clicked.connect(self.open_register_window)
 
         # Instantiate user
         self.user = User()
-
 
     def on_login(self):
         username = self.usernameLE.text()
@@ -26,12 +26,21 @@ class LoginWindow(QMainWindow, Ui_LoginWindow):
         else:
             self.signInLabel.setText(userAuthentication)
 
+    def open_register_window(self):
+        self.register_window = RegisterWindow()
+        self.register_window.show()
 
-        # # Perform login logic (replace with your authentication logic)
-        # if self.user.authenticate(username, password):
-        #     self.label.setText(f'Welcome, {username}! You are logged in.')
-        # else:
-        #     self.label.setText('Login failed. Please try again.')
+
+
+
+class RegisterWindow(QMainWindow, Ui_RegisterWindow):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+
+
+
+
 
 
 if __name__ == '__main__':

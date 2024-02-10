@@ -86,18 +86,46 @@
       <string>Sign In</string>
      </property>
     </widget>
-    <widget class="QLabel" name="signInLabel">
+    <widget class="QScrollArea" name="scrollArea">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>150</y>
+       <x>9</x>
+       <y>149</y>
        <width>261</width>
-       <height>41</height>
+       <height>61</height>
       </rect>
      </property>
-     <property name="text">
-      <string/>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
      </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>0</number>
+     </property>
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>261</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QLabel" name="signInLabel">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </widget>
    <widget class="QGroupBox" name="registerGroupBox">

@@ -20,7 +20,7 @@
       <x>150</x>
       <y>110</y>
       <width>501</width>
-      <height>471</height>
+      <height>501</height>
      </rect>
     </property>
     <property name="title">
@@ -117,7 +117,7 @@
           <x>0</x>
           <y>0</y>
           <width>479</width>
-          <height>185</height>
+          <height>189</height>
          </rect>
         </property>
         <widget class="QTextEdit" name="textEdit">
@@ -125,8 +125,8 @@
           <rect>
            <x>10</x>
            <y>10</y>
-           <width>471</width>
-           <height>161</height>
+           <width>461</width>
+           <height>171</height>
           </rect>
          </property>
          <property name="html">
@@ -171,6 +171,13 @@ li.checked::marker { content: &quot;\2612&quot;; }
       <widget class="QRadioButton" name="radioButton">
        <property name="text">
         <string>Accept terms and conditions</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="radioButton_2">
+       <property name="text">
+        <string>Do not accept terms and conditions</string>
        </property>
       </widget>
      </item>

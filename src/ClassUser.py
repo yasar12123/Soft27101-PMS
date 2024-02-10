@@ -39,7 +39,7 @@ class User(Base):
         return hashed_password
 
     def authenticate(self, username, password):
-        # Hash the provided password
+        # Hash the password
         hashed_password = self.hash_password(password)
 
         # Create session to db
@@ -47,8 +47,7 @@ class User(Base):
         engine = db.get_engine()
         session = sessionmaker(bind=engine)
 
-
-        #try to establish connection to db
+        # Try to establish connection to db
         try:
             # Create a session
             with session() as session:
