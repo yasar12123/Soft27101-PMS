@@ -1,25 +1,25 @@
 
-from src.ClassUser import User  # Import your User class
-
-from sqlalchemy.orm import sessionmaker
 from src.ClassDatabaseConnection import DatabaseConnection
+from src.ClassUser import User
+from src.ClassUser import User
+from src.ClassUserRole import UserRole
+from src.ClassProject import Project
+from src.ClassProjectTeam import ProjectTeam
+from src.ClassTeam import Team
+from src.ClassTask import Task
+from src.ClassCommunicationLog import CommunicationLog
+from src.ClassAttachment import Attachment
 
 
+# input from window
+fullname = 'test user'
+email = 'test@mail.com'
+username = 'test12'
+password = '12345'
 
- # Create a sessionmaker bound to the engine
-db = DatabaseConnection()
-engine = db.get_engine()
-session = sessionmaker(bind=engine)
-
-session = session()
-# Query the database for the user with the given username
-username = 'tst'
-passw = '12345'
-
-user = User()
-#user = session.query(User).filter_by(username=username).first()
-
-
-a = user.authenticate(username, passw)
-
-print(a)
+# db session
+dbCon = DatabaseConnection()
+session = dbCon.get_session()
+# Create a new user instance
+new_user = User(username=username, password_hashed=password, email_address=email, full_name=fullname)
+new_user.register(session)

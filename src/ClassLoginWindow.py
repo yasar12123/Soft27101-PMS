@@ -1,7 +1,16 @@
+from src.ClassDatabaseConnection import DatabaseConnection
+from src.ClassUser import User
+from src.ClassUserRole import UserRole
+from src.ClassProject import Project
+from src.ClassProjectTeam import ProjectTeam
+from src.ClassTeam import Team
+from src.ClassTask import Task
+from src.ClassCommunicationLog import CommunicationLog
+from src.ClassAttachment import Attachment
+
 from PyQt6.QtWidgets import QApplication, QMainWindow
 from generated.LoginWindow import Ui_LoginWindow
-from generated.RegisterWindow import Ui_RegisterWindow
-from src.ClassUser import User  # Import your User class
+from src.ClassRegisterWindow import RegisterWindow
 
 
 class LoginWindow(QMainWindow, Ui_LoginWindow):
@@ -13,13 +22,19 @@ class LoginWindow(QMainWindow, Ui_LoginWindow):
         self.loginButton.clicked.connect(self.on_login)
         self.registerButton.clicked.connect(self.open_register_window)
 
-        # Instantiate user
-        self.user = User()
 
     def on_login(self):
+        # input from window
         username = self.usernameLE.text()
         password = self.passwordLE.text()
-        userAuthentication = self.user.authenticate(username, password)
+
+        #db connection
+        dbCon = DatabaseConnection()
+        session = dbCon.get_session()
+        # Class user to query
+        user = User()
+        # authenticate user
+        userAuthentication = user.authenticate(session, username, password)
 
         if userAuthentication == 'Login Successful':
             self.signInLabel.setText(f'Welcome, {username}! You have now logged in.')
@@ -31,22 +46,5 @@ class LoginWindow(QMainWindow, Ui_LoginWindow):
         self.register_window.show()
 
 
-
-
-class RegisterWindow(QMainWindow, Ui_RegisterWindow):
-    def __init__(self):
-        super().__init__()
-        self.setupUi(self)
-
-
-
-
-
-
-if __name__ == '__main__':
-    app = QApplication([])
-    window = LoginWindow()
-    window.show()
-    app.exec()
 
 

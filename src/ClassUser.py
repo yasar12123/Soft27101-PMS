@@ -1,18 +1,10 @@
 from src.ClassBase import Base
-from src.ClassUserRole import UserRole
-from src.ClassProject import Project
-from src.ClassProjectTeam import ProjectTeam
-from src.ClassTeam import Team
-from src.ClassTask import Task
-from src.ClassCommunicationLog import CommunicationLog
-from src.ClassAttachment import Attachment
-
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
-from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
-from src.ClassDatabaseConnection import DatabaseConnection
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import SQLAlchemyError
+
+
 
 class User(Base):
     __tablename__ = 'USER'
@@ -38,14 +30,9 @@ class User(Base):
         hashed_password = password
         return hashed_password
 
-    def authenticate(self, username, password):
+    def authenticate(self, session, username, password):
         # Hash the password
         hashed_password = self.hash_password(password)
-
-        # Create session to db
-        db = DatabaseConnection()
-        engine = db.get_engine()
-        session = sessionmaker(bind=engine)
 
         # Try to establish connection to db
         try:
@@ -68,7 +55,30 @@ class User(Base):
             # Log or handle the exception
             return f'Error during authentication: {e}'
 
+    def register(self, session):
 
+        # check if fields are null
+        if self.password_hashed == '':
+            return 'password is null'
+
+        else:
+            # Try to establish connection to db
+            try:
+                # Create a session
+                with session() as session:
+                    # query db for the user
+                    user = session.query(User).filter_by(username=self.username).first()
+                    # if the user already exists in the database
+                    if user:
+                        return f'Error!, the username: {self.username} already exists'
+                    # if username is not in the database
+                    if user is None:
+                        session.add(self)
+                        session.commit()
+                        return 'Registration Successful'
+            except SQLAlchemyError as e:
+                # Log or handle the exception
+                return f'Error during registration: {e}'
 
 
 class UserAdmin(User):

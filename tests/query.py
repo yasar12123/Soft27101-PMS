@@ -1,4 +1,4 @@
-from src.ClassDatabaseConnection import dbInitalise
+from src.ClassDatabaseConnection import DatabaseConnection
 from src.ClassUser import User
 from src.ClassProject import Project
 from src.ClassProjectTeam import ProjectTeam
@@ -8,7 +8,9 @@ from sqlalchemy.orm import sessionmaker
 
 
 # Define the SQLAlchemy engine and metadata
-engine, metadata = dbInitalise()
+db = DatabaseConnection()
+engine = db.get_engine()
+metadata = db.get_metadata()
 
 
 # create a session to manage the connection to the database
@@ -17,9 +19,9 @@ session = Session()
 
 
 users = session.query(User).all()
-projects = session.query(Project).all()
-projectTeams = session.query(ProjectTeam).all()
-teams = session.query(Team).all()
+#projects = session.query(Project).all()
+#projectTeams = session.query(ProjectTeam).all()
+#teams = session.query(Team).all()
 # tasks = session.query(Task).all()
 
 # Assuming you have a User instance
