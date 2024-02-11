@@ -58,8 +58,14 @@ class User(Base):
     def register(self, session):
 
         # check if fields are null
-        if self.password_hashed == '':
-            return 'password is null'
+        dictToCheck = {"Fullname": self.full_name,
+                       "Email": self.email_address,
+                       "Username": self.username,
+                       "Password": self.password_hashed}
+
+        for attribute, val in dictToCheck.items():
+            if val == '':
+                return f'the field {attribute} can not be empty'
 
         else:
             # Try to establish connection to db

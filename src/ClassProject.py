@@ -23,16 +23,4 @@ class Project(Base):
     communication_log = relationship('CommunicationLog', back_populates='project')
 
 
-    def update_status(self, new_status, session):
-        """Update the status of the project."""
-        if self.status == new_status:
-            raise UserWarning(f'the status is already set to {new_status}')
-        else:
-            # Print the current status
-            print("Current Project Status:", self.status)
 
-            # Update the status
-            self.status = new_status
-
-            # Commit the changes
-            #session.commit()

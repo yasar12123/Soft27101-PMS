@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'ui\LoginWindow.ui'
+# Form implementation generated from reading ui file 'ui/loginWindow.ui'
 #
 # Created by: PyQt6 UI code generator 6.4.2
 #
@@ -15,8 +15,14 @@ class Ui_LoginWindow(object):
         LoginWindow.resize(510, 467)
         self.centralwidget = QtWidgets.QWidget(parent=LoginWindow)
         self.centralwidget.setObjectName("centralwidget")
-        self.signInGroupBox = QtWidgets.QGroupBox(parent=self.centralwidget)
-        self.signInGroupBox.setGeometry(QtCore.QRect(120, 90, 281, 211))
+        self.frame = QtWidgets.QFrame(parent=self.centralwidget)
+        self.frame.setGeometry(QtCore.QRect(110, 90, 301, 241))
+        self.frame.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
+        self.frame.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
+        self.frame.setObjectName("frame")
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.frame)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.signInGroupBox = QtWidgets.QGroupBox(parent=self.frame)
         self.signInGroupBox.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.signInGroupBox.setObjectName("signInGroupBox")
         self.usernameLE = QtWidgets.QLineEdit(parent=self.signInGroupBox)
@@ -51,8 +57,15 @@ class Ui_LoginWindow(object):
         self.signInLabel.setObjectName("signInLabel")
         self.verticalLayout.addWidget(self.signInLabel)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-        self.registerGroupBox = QtWidgets.QGroupBox(parent=self.centralwidget)
-        self.registerGroupBox.setGeometry(QtCore.QRect(180, 320, 156, 44))
+        self.verticalLayout_2.addWidget(self.signInGroupBox)
+        self.frame_2 = QtWidgets.QFrame(parent=self.centralwidget)
+        self.frame_2.setGeometry(QtCore.QRect(170, 340, 178, 64))
+        self.frame_2.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
+        self.frame_2.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
+        self.frame_2.setObjectName("frame_2")
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.frame_2)
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.registerGroupBox = QtWidgets.QGroupBox(parent=self.frame_2)
         self.registerGroupBox.setTitle("")
         self.registerGroupBox.setObjectName("registerGroupBox")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.registerGroupBox)
@@ -63,6 +76,7 @@ class Ui_LoginWindow(object):
         self.registerButton = QtWidgets.QPushButton(parent=self.registerGroupBox)
         self.registerButton.setObjectName("registerButton")
         self.horizontalLayout.addWidget(self.registerButton)
+        self.horizontalLayout_2.addWidget(self.registerGroupBox)
         LoginWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(parent=LoginWindow)
         self.statusbar.setObjectName("statusbar")
