@@ -11,12 +11,14 @@ from src.ClassAttachment import Attachment
 from PyQt6.QtWidgets import QApplication, QMainWindow
 from generated.LoginWindow import Ui_LoginWindow
 from src.ClassRegisterWindow import RegisterWindow
+from src.ClassHomeWindow import HomeWindow
 
 
 class LoginWindow(QMainWindow, Ui_LoginWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.activeUser = None
 
         # Connect signals to slots
         self.loginButton.clicked.connect(self.on_login)
@@ -38,6 +40,8 @@ class LoginWindow(QMainWindow, Ui_LoginWindow):
 
         if userAuthentication == 'Login Successful':
             self.signInLabel.setText(f'Welcome, {username}! You have now logged in.')
+            self.activeUser = username
+            self.open_home_window()
         else:
             self.signInLabel.setText(userAuthentication)
 
@@ -45,6 +49,9 @@ class LoginWindow(QMainWindow, Ui_LoginWindow):
         self.register_window = RegisterWindow()
         self.register_window.show()
 
+    def open_home_window(self):
+        self.home_window = HomeWindow(activeUser=self.activeUser)
+        self.home_window.show()
 
 
 

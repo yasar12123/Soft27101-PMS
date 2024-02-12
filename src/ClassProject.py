@@ -1,7 +1,14 @@
 from src.ClassBase import Base
+from src.ClassUser import User
+from src.ClassProjectTeam import ProjectTeam
+
+from src.ClassDatabaseConnection import DatabaseConnection
+
 from sqlalchemy.orm import relationship
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from datetime import datetime
+
 
 
 class Project(Base):
@@ -21,6 +28,25 @@ class Project(Base):
     tasks = relationship('Task', back_populates='project')
     project_team_members = relationship('ProjectTeam', back_populates='project')
     communication_log = relationship('CommunicationLog', back_populates='project')
+
+
+    def get_projects_for_team_member(self, session, team_member_username):
+        # Try to establish connection to db
+        try:
+            # Create a session
+            with session() as session:
+                query = (
+                    session.query(Project)
+                    .join(Project.project_team_members)
+                    .join(User, ProjectTeam.user_fkey == User.user_pkey)
+                    .filter(User.username == team_member_username)
+                )
+                return query.all()
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error retrieving data: {e}'
+
 
 
 
