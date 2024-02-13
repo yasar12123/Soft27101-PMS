@@ -4,7 +4,7 @@ from src.ClassProjectTeam import ProjectTeam
 
 from src.ClassDatabaseConnection import DatabaseConnection
 
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, aliased, joinedload
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from datetime import datetime
@@ -35,11 +35,14 @@ class Project(Base):
         try:
             # Create a session
             with session() as session:
+                teamUser = aliased(User)
                 query = (
                     session.query(Project)
+                    .join(Project.owner)
                     .join(Project.project_team_members)
-                    .join(User, ProjectTeam.user_fkey == User.user_pkey)
-                    .filter(User.username == team_member_username)
+                    .join(teamUser, ProjectTeam.user_fkey == teamUser.user_pkey)
+                    .filter(teamUser.username == team_member_username)
+                    .options(joinedload(Project.owner))
                 )
                 return query.all()
 

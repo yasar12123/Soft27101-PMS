@@ -8,6 +8,8 @@ from src.ClassTask import Task
 from src.ClassCommunicationLog import CommunicationLog
 from src.ClassAttachment import Attachment
 
+import matplotlib.pyplot as plt
+from datetime import datetime
 
 
 
@@ -19,26 +21,15 @@ if __name__ == '__main__':
 
 
     # Get the ID of the team member (replace 1 with the actual ID)
-    team_member_username = 'po1'
+    team_member_username = 'tm1'
 
-    # Query all projects for the team member
-    # a = Project()
-    # projects = a.get_projects_for_team_member(session, team_member_username)
-    # for project in projects:
-    #     print(project)
+    #Query all projects for the team member
+    a = Project()
+    projects = a.get_projects_for_team_member(session, team_member_username)
+    # Iterate over the projects and print the project name and owner
+    for project in projects:
+        print(project.owner.full_name)
+        #print(f"Project Name: {project.name}, Owner: {owner.full_name}")
 
-    with session() as session:
-        query = (
-            session.query(Project)
-            .join(Project.project_team_members)
-            .join(User, ProjectTeam.user_fkey == User.user_pkey)
-            .filter(User.username == team_member_username)
-        )
-        projects = query.all()
 
-        for project in projects:
-            print(f"Project Name: {project.name}")
-            print(f"Start Date: {project.start_date}")
-            print(f"Due Date: {project.due_date}")
-            print()  # Print an empty line for separation
 

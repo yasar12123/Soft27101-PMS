@@ -1,6 +1,9 @@
 from src.ClassBase import Base
+from src.ClassUser import User
+from src.ClassProject import Project
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 
 
@@ -24,4 +27,24 @@ class Task(Base):
     assigner = relationship('User', back_populates='assigner_of_tasks', foreign_keys=[assigner_fkey])
     communication_log = relationship('CommunicationLog', back_populates='task')
 
+    def get_tasks_for_team_member(self, session, team_member_username, projects=None):
+        # Try to establish connection to db
+        try:
+            # Create a session
+            with session() as session:
+                query = (
+                    session.query(Task)
+                    .join(User, Task.assignee_fkey == User.user_pkey)
+                    .join(Project, Task.project_fkey == Project.project_pkey)
+                    .filter(User.username == team_member_username)
+                )
+                # If project is specified, filter tasks based on the project
+                if projects:
+                    query = query.filter(Project.name == projects)
+
+                return query.all()
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error retrieving data: {e}'
 

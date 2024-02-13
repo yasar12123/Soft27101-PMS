@@ -21,7 +21,7 @@ class DatabaseConnection:
         conn_str = 'mssql+pyodbc:///?autocommit=true&odbc_connect={}'.format(params)
 
         self.engine = create_engine(conn_str, echo=True)
-        self.metadata = MetaData()
+        #self.metadata = MetaData()
         self.session = sessionmaker(bind=self.engine)
 
     def execute_query(self, query, params=None):
@@ -41,8 +41,8 @@ class DatabaseConnection:
     def get_engine(self):
         return self.engine
 
-    def get_metadata(self):
-        return self.metadata
+    # def get_metadata(self):
+    #     return self.metadata
 
     def get_session(self):
         return self.session
