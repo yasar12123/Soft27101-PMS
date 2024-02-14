@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>947</width>
-    <height>547</height>
+    <width>1134</width>
+    <height>550</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,7 +27,7 @@
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -52,7 +52,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_11">
+          <widget class="QPushButton" name="tasksButton">
            <property name="text">
             <string>Tasks</string>
            </property>
@@ -110,7 +110,7 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_2">
               <item>
-               <widget class="QTableWidget" name="ProjectsTable">
+               <widget class="QTableWidget" name="ProjectsOngoingTable">
                 <property name="sizeAdjustPolicy">
                  <enum>QAbstractScrollArea::AdjustToContents</enum>
                 </property>
@@ -127,6 +127,11 @@
                 <column>
                  <property name="text">
                   <string>Due Date</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Status</string>
                  </property>
                 </column>
                 <column>
@@ -162,7 +167,7 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_3">
               <item>
-               <widget class="QTableWidget" name="TasksTable">
+               <widget class="QTableWidget" name="TasksOngoingTable">
                 <column>
                  <property name="text">
                   <string>Task</string>
@@ -176,6 +181,11 @@
                 <column>
                  <property name="text">
                   <string>Due Date</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Status</string>
                  </property>
                 </column>
                </widget>
@@ -237,7 +247,7 @@
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_7">
                 <item>
-                 <widget class="QTableWidget" name="ProjectsTable_2">
+                 <widget class="QTableWidget" name="ProjectsAllTable">
                   <property name="sizeAdjustPolicy">
                    <enum>QAbstractScrollArea::AdjustToContents</enum>
                   </property>
@@ -271,14 +281,14 @@
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_4">
                   <item>
-                   <widget class="QPushButton" name="pushButton_2">
+                   <widget class="QPushButton" name="ViewProjectButton">
                     <property name="text">
                      <string>View Project</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="pushButton">
+                   <widget class="QPushButton" name="AddProjectButton">
                     <property name="text">
                      <string>Add Project</string>
                     </property>
@@ -298,7 +308,7 @@
                 <item>
                  <layout class="QVBoxLayout" name="verticalLayout_8">
                   <item>
-                   <widget class="QTableWidget" name="TasksTable_2">
+                   <widget class="QTableWidget" name="TeamMembersTable">
                     <column>
                      <property name="text">
                       <string>Username</string>
@@ -319,14 +329,14 @@
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_6">
                     <item>
-                     <widget class="QPushButton" name="pushButton_4">
+                     <widget class="QPushButton" name="ViewMemberButton">
                       <property name="text">
                        <string>View Member</string>
                       </property>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QPushButton" name="pushButton_3">
+                     <widget class="QPushButton" name="AddMemberButton">
                       <property name="text">
                        <string>Add Member</string>
                       </property>
@@ -345,6 +355,150 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="page">
+        <layout class="QVBoxLayout" name="verticalLayout_16">
+         <item>
+          <widget class="QFrame" name="frame_4">
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_15">
+            <item>
+             <widget class="QLabel" name="label_3">
+              <property name="font">
+               <font>
+                <pointsize>20</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Tasks</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_8">
+           <item>
+            <widget class="QGroupBox" name="groupBox_6">
+             <property name="title">
+              <string>Tasks</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_14">
+              <item>
+               <widget class="QTableWidget" name="TaskAllTable">
+                <property name="sizeAdjustPolicy">
+                 <enum>QAbstractScrollArea::AdjustToContents</enum>
+                </property>
+                <column>
+                 <property name="text">
+                  <string>Project</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Start Date</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Due Date</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>End Date</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Status</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <item>
+                 <widget class="QPushButton" name="ViewProjectButton_2">
+                  <property name="text">
+                   <string>View Project</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="AddProjectButton_2">
+                  <property name="text">
+                   <string>Add Project</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_5">
+             <property name="title">
+              <string>Team Members</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_12">
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_13">
+                <item>
+                 <widget class="QTableWidget" name="TeamMemberTable1">
+                  <column>
+                   <property name="text">
+                    <string>Username</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Name</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Start Date</string>
+                   </property>
+                  </column>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_7">
+                  <item>
+                   <widget class="QPushButton" name="ViewMemberButton_2">
+                    <property name="text">
+                     <string>View Member</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="AddMemberButton_2">
+                    <property name="text">
+                     <string>Add Member</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </widget>
     </item>
@@ -355,7 +509,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>947</width>
+     <width>1134</width>
      <height>22</height>
     </rect>
    </property>

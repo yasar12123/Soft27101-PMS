@@ -11,8 +11,8 @@ class DatabaseConnection:
         load_dotenv()
         server = os.getenv('AZURE_SQL_SERVER')
         database = os.getenv('AZURE_SQL_DB')
-        #driver = '{ODBC Driver 18 for SQL Server}' ##pc with driver
-        driver = '{SQL Server Native Client 11.0}' ##laptop with ssms
+        driver = '{ODBC Driver 18 for SQL Server}' ##pc with driver
+        #driver = '{SQL Server Native Client 11.0}' ##laptop with ssms
         user = os.getenv('AZURE_SQL_USER')
         password = os.getenv('AZURE_SQL_PASS')
 

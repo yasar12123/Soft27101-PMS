@@ -27,20 +27,23 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         super().__init__()
         self.setupUi(self)
         self.activeUser = activeUser
-        self.populate_projects_table()
-        self.populate_tasks_table()
-        #self.ProjectsTable.setEditTriggers(QtWidgets.QAbstractItemView.editTriggers.NoEditTriggers)
+        self.populate_projects_ongoing_table()
+        self.populate_tasks_ongoing_table()
 
-        #self.TasksTable.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.ProjectsTable.itemClicked.connect(self.on_project_table_item_clicked)
+        self.ProjectsOngoingTable.itemClicked.connect(self.on_project_ongoing_table_item_clicked)
+
         self.dashButton.clicked.connect(self.on_dash_button)
         self.projectsButton.clicked.connect(self.on_projects_button)
+        self.tasksButton.clicked.connect(self.on_tasks_button)
 
+        self.ProjectsAllTable.itemClicked.connect(self.on_project_all_table_item_clicked)
         self.plot_project_gantt_chart()
+        self.ProjectsOngoingTable.itemClicked.connect(self.populate_projects_ongoing_table)
 
 
 
-    def populate_projects_table(self):
+
+    def populate_projects_ongoing_table(self):
         # Create a database connection
         db = DatabaseConnection()
         session = db.get_session()
@@ -51,18 +54,18 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # Populate the projects table
         row = 0
         if projects:
-            self.ProjectsTable.setRowCount(0)
+            self.ProjectsOngoingTable.setRowCount(0)
             for project in projects:
-                self.ProjectsTable.insertRow(row)
-                self.ProjectsTable.setItem(row, 0, QtWidgets.QTableWidgetItem(project.name))
-                self.ProjectsTable.setItem(row, 1, QtWidgets.QTableWidgetItem(str(project.start_date)))
-                self.ProjectsTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(project.due_date)))
-                self.ProjectsTable.setItem(row, 3, QtWidgets.QTableWidgetItem(str(project.owner.full_name)))
-
+                self.ProjectsOngoingTable.insertRow(row)
+                self.ProjectsOngoingTable.setItem(row, 0, QtWidgets.QTableWidgetItem(project.name))
+                self.ProjectsOngoingTable.setItem(row, 1, QtWidgets.QTableWidgetItem(str(project.start_date)))
+                self.ProjectsOngoingTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(project.due_date)))
+                self.ProjectsOngoingTable.setItem(row, 3, QtWidgets.QTableWidgetItem(str(project.status)))
+                self.ProjectsOngoingTable.setItem(row, 4, QtWidgets.QTableWidgetItem(str(project.owner.full_name)))
                 row += 1
 
 
-    def populate_tasks_table(self):
+    def populate_tasks_ongoing_table(self):
         # Create a database connection
         db = DatabaseConnection()
         session = db.get_session()
@@ -72,36 +75,43 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # Populate the projects table
         row = 0
         if tasks:
-            self.TasksTable.setRowCount(0)
+            self.TasksOngoingTable.setRowCount(0)
             for task in tasks:
-                self.TasksTable.insertRow(row)
-                self.TasksTable.setItem(row, 0, QtWidgets.QTableWidgetItem(task.name))
-                self.TasksTable.setItem(row, 1, QtWidgets.QTableWidgetItem(str(task.start_date)))
-                self.TasksTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(task.due_date)))
+                self.TasksOngoingTable.insertRow(row)
+                self.TasksOngoingTable.setItem(row, 0, QtWidgets.QTableWidgetItem(task.name))
+                self.TasksOngoingTable.setItem(row, 1, QtWidgets.QTableWidgetItem(str(task.start_date)))
+                self.TasksOngoingTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(task.due_date)))
+                self.TasksOngoingTable.setItem(row, 3, QtWidgets.QTableWidgetItem(str(task.status)))
                 row += 1
 
 
-    def on_project_table_item_clicked(self, item):
-        # get project name
-        row = item.row()
-        project = self.ProjectsTable.item(row, 0).text()
+    def on_project_ongoing_table_item_clicked(self, item):
+        if item is None:
+            self.populate_tasks_ongoing_table()
 
-        # Create a database connection
-        db = DatabaseConnection()
-        session = db.get_session()
-        # project instance
-        t = Task()
-        tasks = t.get_tasks_for_team_member(session, self.activeUser, project)
-        # Populate the projects table
-        row = 0
-        if tasks:
-            self.TasksTable.setRowCount(0)
-            for task in tasks:
-                self.TasksTable.insertRow(row)
-                self.TasksTable.setItem(row, 0, QtWidgets.QTableWidgetItem(task.name))
-                self.TasksTable.setItem(row, 1, QtWidgets.QTableWidgetItem(str(task.start_date)))
-                self.TasksTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(task.due_date)))
-                row += 1
+        else:
+            # get project name
+            row = item.row()
+            project = self.ProjectsOngoingTable.item(row, 0).text()
+
+            # Create a database connection
+            db = DatabaseConnection()
+            session = db.get_session()
+            # project instance
+            t = Task()
+            tasks = t.get_tasks_for_team_member(session, self.activeUser, project)
+            # Populate the projects table
+            row = 0
+            if tasks:
+                self.TasksOngoingTable.setRowCount(0)
+                for task in tasks:
+                    self.TasksOngoingTable.insertRow(row)
+                    self.TasksOngoingTable.setItem(row, 0, QtWidgets.QTableWidgetItem(task.name))
+                    self.TasksOngoingTable.setItem(row, 1, QtWidgets.QTableWidgetItem(str(task.start_date)))
+                    self.TasksOngoingTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(task.due_date)))
+                    self.TasksOngoingTable.setItem(row, 3, QtWidgets.QTableWidgetItem(str(task.status)))
+                    row += 1
+
 
     def plot_project_gantt_chart(self):
         # Create a database connection
@@ -134,12 +144,67 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
 
 
+    def populate_projects_all_table(self):
+        # Create a database connection
+        db = DatabaseConnection()
+        session = db.get_session()
+        # project instance
+        p = Project()
+        projects = p.get_projects(session)
+
+        # Populate the projects table
+        row = 0
+        if projects:
+            self.ProjectsAllTable.setRowCount(0)
+            for project in projects:
+                self.ProjectsAllTable.insertRow(row)
+                self.ProjectsAllTable.setItem(row, 0, QtWidgets.QTableWidgetItem(project.name))
+                self.ProjectsAllTable.setItem(row, 1, QtWidgets.QTableWidgetItem(str(project.start_date)))
+                self.ProjectsAllTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(project.due_date)))
+                self.ProjectsAllTable.setItem(row, 3, QtWidgets.QTableWidgetItem(str(project.status)))
+                self.ProjectsAllTable.setItem(row, 4, QtWidgets.QTableWidgetItem(str(project.owner.full_name)))
+                row += 1
+
+    def populate_team_members_table(self, projectName):
+        # Create a database connection
+        db = DatabaseConnection()
+        session = db.get_session()
+        # project team instance
+        pt = ProjectTeam()
+        teamMembers = pt.get_team_of_project(session, projectName)
+
+        # Populate the projects table
+        row = 0
+        if teamMembers:
+            self.TeamMembersTable.setRowCount(0)
+            for teamMember in teamMembers:
+                self.TeamMembersTable.insertRow(row)
+                self.TeamMembersTable.setItem(row, 0, QtWidgets.QTableWidgetItem(teamMember.user.username))
+                self.TeamMembersTable.setItem(row, 1, QtWidgets.QTableWidgetItem(teamMember.user.full_name))
+                self.TeamMembersTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(teamMember.start_date)))
+                row += 1
+
+    def on_project_all_table_item_clicked(self, item):
+        # get project name
+        row = item.row()
+        project = self.ProjectsAllTable.item(row, 0).text()
+        self.populate_team_members_table(project)
+
+
     def on_dash_button(self):
         self.stackedWidget.setCurrentIndex(0)
+        self.populate_projects_ongoing_table()
+        self.populate_tasks_ongoing_table()
+        self.plot_project_gantt_chart()
+
 
     def on_projects_button(self):
         self.stackedWidget.setCurrentIndex(1)
+        self.TeamMembersTable.setRowCount(0)
+        self.populate_projects_all_table()
 
+    def on_tasks_button(self):
+        self.stackedWidget.setCurrentIndex(2)
 
 
 

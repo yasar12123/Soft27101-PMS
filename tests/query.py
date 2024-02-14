@@ -22,13 +22,14 @@ if __name__ == '__main__':
 
     # Get the ID of the team member (replace 1 with the actual ID)
     team_member_username = 'tm1'
+    projectn = 'project B'
 
     #Query all projects for the team member
-    a = Project()
-    projects = a.get_projects_for_team_member(session, team_member_username)
+    a = ProjectTeam()
+    projectTeam = a.get_team_of_project(session, projectn)
     # Iterate over the projects and print the project name and owner
-    for project in projects:
-        print(project.owner.full_name)
+    for pt in projectTeam:
+        print(pt.user.full_name)
         #print(f"Project Name: {project.name}, Owner: {owner.full_name}")
 
 

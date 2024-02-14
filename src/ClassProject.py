@@ -51,5 +51,21 @@ class Project(Base):
             return f'Error retrieving data: {e}'
 
 
+    def get_projects(self, session):
+        # Try to establish connection to db
+        try:
+            # Create a session
+            with session() as session:
+                query = (
+                    session.query(Project)
+                    .join(Project.owner)
+                    .join(Project.project_team_members)
+                    .options(joinedload(Project.owner))
+                )
+                return query.all()
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error retrieving data: {e}'
 
 
