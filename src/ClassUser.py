@@ -87,6 +87,20 @@ class User(Base):
                 return f'Error during registration: {e}'
 
 
+    def get_user_fkey(self, session, usernameP):
+        # Try to establish connection to db
+        try:
+            # Create a session
+            with session() as session:
+                # query db for the user
+                user = session.query(User).filter_by(username=usernameP).first()
+                return user.user_pkey
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error connecting: {e}'
+
+
 class UserAdmin(User):
     __tablename__ = 'USER_ADMIN'
 

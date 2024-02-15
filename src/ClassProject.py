@@ -59,7 +59,6 @@ class Project(Base):
                 query = (
                     session.query(Project)
                     .join(Project.owner)
-                    .join(Project.project_team_members)
                     .options(joinedload(Project.owner))
                 )
                 return query.all()
@@ -69,3 +68,35 @@ class Project(Base):
             return f'Error retrieving data: {e}'
 
 
+
+    def add_project(self, session):
+
+        # check if fields are null
+        dictToCheck = {"Project Name": self.name,
+                       "Project Description": self.desc,
+                       "Project Status": self.status,
+                       "Project Stat Date": self.start_date,
+                       "Project Due Date": self.due_date}
+
+        for attribute, val in dictToCheck.items():
+            if val == '':
+                return f'the field {attribute} can not be empty'
+
+        else:
+            # Try to establish connection to db
+            try:
+                # Create a session
+                with session() as session:
+                    # query db for the project
+                    project = session.query(Project).filter_by(name=self.name).first()
+                    # if the project already exists in the database
+                    if project:
+                        return f'Error!, the project: {self.name} already exists'
+                    # if username is not in the database
+                    if project is None:
+                        session.add(self)
+                        session.commit()
+                        return 'successful'
+            except SQLAlchemyError as e:
+                # Log or handle the exception
+                return f'Error during adding project: {e}'

@@ -12,6 +12,10 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 
 
+import datetime
+
+date_str = '09-19-2022'
+
 
 # Example usage
 if __name__ == '__main__':
@@ -21,16 +25,11 @@ if __name__ == '__main__':
 
 
     # Get the ID of the team member (replace 1 with the actual ID)
-    team_member_username = 'tm1'
-    projectn = 'project B'
 
-    #Query all projects for the team member
-    a = ProjectTeam()
-    projectTeam = a.get_team_of_project(session, projectn)
-    # Iterate over the projects and print the project name and owner
-    for pt in projectTeam:
-        print(pt.user.full_name)
-        #print(f"Project Name: {project.name}, Owner: {owner.full_name}")
+    P = Project()
+    projects = P.get_projects(session)
 
+    for project in projects:
+        print(project.name)
 
 

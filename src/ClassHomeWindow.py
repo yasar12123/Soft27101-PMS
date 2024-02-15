@@ -15,7 +15,7 @@ from generated.HomeWindow import Ui_HomeWindow
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-
+from src.ClassAddProject import AddProject
 
 
 import sys
@@ -40,6 +40,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.plot_project_gantt_chart()
         self.ProjectsOngoingTable.itemClicked.connect(self.populate_projects_ongoing_table)
 
+        self.AddProjectButton.clicked.connect(self.on_add_project_button)
 
 
 
@@ -161,8 +162,9 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 self.ProjectsAllTable.setItem(row, 0, QtWidgets.QTableWidgetItem(project.name))
                 self.ProjectsAllTable.setItem(row, 1, QtWidgets.QTableWidgetItem(str(project.start_date)))
                 self.ProjectsAllTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(project.due_date)))
-                self.ProjectsAllTable.setItem(row, 3, QtWidgets.QTableWidgetItem(str(project.status)))
-                self.ProjectsAllTable.setItem(row, 4, QtWidgets.QTableWidgetItem(str(project.owner.full_name)))
+                self.ProjectsAllTable.setItem(row, 3, QtWidgets.QTableWidgetItem(str(project.end_date)))
+                self.ProjectsAllTable.setItem(row, 4, QtWidgets.QTableWidgetItem(str(project.status)))
+                self.ProjectsAllTable.setItem(row, 5, QtWidgets.QTableWidgetItem(str(project.owner.full_name)))
                 row += 1
 
     def populate_team_members_table(self, projectName):
@@ -206,16 +208,19 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
     def on_tasks_button(self):
         self.stackedWidget.setCurrentIndex(2)
 
+    def on_add_project_button(self):
+        self.add_project_window = AddProject(activeUser=self.activeUser)
+        self.add_project_window.show()
 
 
 
 
-def main():
-    app = QApplication(sys.argv)
-    window = HomeWindow(activeUser='tm1')
-    window.show()
-    sys.exit(app.exec())
-
-
-if __name__ == "__main__":
-    main()
+# def main():
+#     app = QApplication(sys.argv)
+#     window = HomeWindow(activeUser='tm1')
+#     window.show()
+#     sys.exit(app.exec())
+#
+#
+# if __name__ == "__main__":
+#     main()
