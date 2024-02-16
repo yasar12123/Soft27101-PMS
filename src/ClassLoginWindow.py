@@ -42,6 +42,8 @@ class LoginWindow(QMainWindow, Ui_LoginWindow):
             self.signInLabel.setText(f'Welcome, {username}! You have now logged in.')
             self.activeUser = username
             self.open_home_window()
+            self.close()
+
         else:
             self.signInLabel.setText(userAuthentication)
 

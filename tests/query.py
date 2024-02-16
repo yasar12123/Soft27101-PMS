@@ -19,17 +19,16 @@ date_str = '09-19-2022'
 
 # Example usage
 if __name__ == '__main__':
-    # Create a session
+    # Create a DatabaseConnection instance
     db = DatabaseConnection()
+    # Obtain a session using the get_session() method
     session = db.get_session()
-
-
-    # Get the ID of the team member (replace 1 with the actual ID)
-
-    P = Project()
-    projects = P.get_projects(session)
-
+    # Use the obtained session to call the get_projects method
+    p = Project()
+    projects = p.get_projects(session)
+    # Iterate over the returned projects and print their details
     for project in projects:
-        print(project.name)
+        print(f"Project Name: {project.name}, Owner: {project.owner.username}")
+
 
 

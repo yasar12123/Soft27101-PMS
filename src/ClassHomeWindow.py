@@ -215,6 +215,23 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # def main():
 #     app = QApplication(sys.argv)
 #     window = HomeWindow(activeUser='tm1')
