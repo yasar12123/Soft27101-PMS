@@ -9,16 +9,17 @@ from src.ClassCommunicationLog import CommunicationLog
 from src.ClassAttachment import Attachment
 
 from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout
+from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QDialog
+from generated.AddProjectDialog import Ui_AddProjectDialog
 from generated.HomeWindow import Ui_HomeWindow
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-from src.ClassAddProject import AddProject
 
 
 import sys
+import datetime
 
 
 
@@ -144,7 +145,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         layout.addWidget(canvas)
 
 
-
     def populate_projects_all_table(self):
         # Create a database connection
         db = DatabaseConnection()
@@ -214,8 +214,52 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
 
 
+class AddProject(QDialog, Ui_AddProjectDialog):
+    def __init__(self, activeUser):
+        super().__init__()
+        self.setupUi(self)
+        self.activeUser = activeUser
+        self.addProjectButton.clicked.connect(self.on_add_project_button)
 
+    def on_add_project_button(self):
+        # input from window
+        Pname = self.projectNameLE.text()
+        Pdesc = self.projectDescTE.toPlainText()
+        Pstatus = self.projectStatusCB.currentText()
 
+        startDate = self.projectStartDE.date()
+        startDateDT = datetime.date(startDate.year(), startDate.month(), startDate.day())
+        Pstart = datetime.datetime.strptime(str(startDateDT), '%Y-%m-%d')
+
+        dueDate = self.projectDueDE.date()
+        dueDateDT = datetime.date(dueDate.year(), dueDate.month(), dueDate.day())
+        Pdue = datetime.datetime.strptime(str(dueDateDT), '%Y-%m-%d')
+
+        # Create a session
+        db = DatabaseConnection()
+        session = db.get_session()
+        # get owner fkey
+        owner = User()
+        ownerfkey = owner.get_user_fkey(session, self.activeUser)
+
+        # db session
+        dbCon = DatabaseConnection()
+        session = dbCon.get_session()
+
+        # Create a new user instance
+        new_project = Project(name=Pname, desc=Pdesc, start_date=Pstart, due_date=Pdue, status=Pstatus,
+                              owner_fkey=ownerfkey)
+        # register user
+        addProject = new_project.add_project(session)
+
+        if addProject == 'successful':
+            self.addProjectStatusLabel.setText(f'The project, {Pname}! has now been added.')
+            hw = HomeWindow(activeUser=self.activeUser)
+            hw.populate_projects_all_table()
+            print(self.activeUser)
+
+        else:
+            self.addProjectStatusLabel.setText(addProject)
 
 
 

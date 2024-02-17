@@ -129,9 +129,9 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="discardProjectButton">
+         <widget class="QPushButton" name="exitProjectButton">
           <property name="text">
-           <string>Discard</string>
+           <string>Exit (without saving)</string>
           </property>
          </widget>
         </item>

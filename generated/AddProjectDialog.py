@@ -75,9 +75,9 @@ class Ui_AddProjectDialog(object):
         self.addProjectButton = QtWidgets.QPushButton(parent=self.frame_3)
         self.addProjectButton.setObjectName("addProjectButton")
         self.horizontalLayout.addWidget(self.addProjectButton)
-        self.discardProjectButton = QtWidgets.QPushButton(parent=self.frame_3)
-        self.discardProjectButton.setObjectName("discardProjectButton")
-        self.horizontalLayout.addWidget(self.discardProjectButton)
+        self.exitProjectButton = QtWidgets.QPushButton(parent=self.frame_3)
+        self.exitProjectButton.setObjectName("exitProjectButton")
+        self.horizontalLayout.addWidget(self.exitProjectButton)
         self.horizontalLayout_2.addLayout(self.horizontalLayout)
         self.verticalLayout.addWidget(self.frame_3)
 
@@ -96,4 +96,4 @@ class Ui_AddProjectDialog(object):
         self.label_2.setText(_translate("AddProjectDialog", "Project Description: "))
         self.label.setText(_translate("AddProjectDialog", "Project Name: "))
         self.addProjectButton.setText(_translate("AddProjectDialog", "Add Project"))
-        self.discardProjectButton.setText(_translate("AddProjectDialog", "Discard"))
+        self.exitProjectButton.setText(_translate("AddProjectDialog", "Exit (without saving)"))
