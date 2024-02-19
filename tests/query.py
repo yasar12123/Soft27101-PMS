@@ -25,10 +25,10 @@ if __name__ == '__main__':
     session = db.get_session()
     # Use the obtained session to call the get_projects method
     p = Project()
-    projects = p.get_projects(session)
+    projects = p.get_project(session, 'Project A')
     # Iterate over the returned projects and print their details
     for project in projects:
-        print(f"Project Name: {project.name}, Owner: {project.owner.username}")
+        print(f"Project Name: {project.name}, Owner: {project.owner.full_name}")
 
 
 

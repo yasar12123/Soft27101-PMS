@@ -100,3 +100,24 @@ class Project(Base):
             except SQLAlchemyError as e:
                 # Log or handle the exception
                 return f'Error during adding project: {e}'
+
+
+    def get_project(self, session, projectName):
+        # Try to establish connection to db
+        try:
+            # Create a session
+            with session() as session:
+                query = (
+                    session.query(Project)
+                    .join(Project.owner)
+                    .options(joinedload(Project.owner))
+                    .filter(Project.name == projectName)
+
+                )
+                return query.all()
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error retrieving data: {e}'
+
+

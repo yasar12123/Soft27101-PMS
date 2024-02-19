@@ -287,6 +287,9 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_4">
                   <item>
                    <widget class="QPushButton" name="ViewProjectButton">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="text">
                      <string>View Project</string>
                     </property>
@@ -335,6 +338,9 @@
                    <layout class="QHBoxLayout" name="horizontalLayout_6">
                     <item>
                      <widget class="QPushButton" name="ViewMemberButton">
+                      <property name="enabled">
+                       <bool>false</bool>
+                      </property>
                       <property name="text">
                        <string>View Member</string>
                       </property>

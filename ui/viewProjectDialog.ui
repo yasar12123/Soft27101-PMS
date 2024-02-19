@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>480</width>
-    <height>635</height>
+    <height>686</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -35,9 +35,6 @@
       </item>
       <item>
        <layout class="QGridLayout" name="gridLayout">
-        <item row="0" column="2">
-         <widget class="QLineEdit" name="projectNameLE"/>
-        </item>
         <item row="2" column="0">
          <widget class="QLabel" name="label_3">
           <property name="text">
@@ -45,24 +42,10 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="2">
-         <widget class="QDateEdit" name="projectDueDE">
+        <item row="5" column="2">
+         <widget class="QDateEdit" name="projectEndDE">
           <property name="calendarPopup">
            <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="2">
-         <widget class="QDateEdit" name="projectStartDE">
-          <property name="calendarPopup">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Project Start Date: </string>
           </property>
          </widget>
         </item>
@@ -70,23 +53,6 @@
          <widget class="QLabel" name="label_5">
           <property name="text">
            <string>Project Due Date: </string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QTextEdit" name="projectDescTE"/>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>Project Name: </string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Project Description: </string>
           </property>
          </widget>
         </item>
@@ -106,6 +72,64 @@
            </property>
           </item>
          </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Project Name: </string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QLineEdit" name="projectNameLE"/>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Project Start Date: </string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QTextEdit" name="projectDescTE"/>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_7">
+          <property name="text">
+           <string>Project End Date</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="2">
+         <widget class="QDateEdit" name="projectDueDE">
+          <property name="calendarPopup">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Project Description: </string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="2">
+         <widget class="QDateEdit" name="projectStartDE">
+          <property name="calendarPopup">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="label_8">
+          <property name="text">
+           <string>Owner</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="2">
+         <widget class="QLineEdit" name="projectOwnerLE"/>
         </item>
        </layout>
       </item>

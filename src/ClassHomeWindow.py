@@ -10,8 +10,10 @@ from src.ClassAttachment import Attachment
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QDialog
+from PyQt6.QtCore import QDate
 from generated.AddProjectDialog import Ui_AddProjectDialog
 from generated.HomeWindow import Ui_HomeWindow
+from generated.ViewProjectDialog import Ui_ViewProjectDialog
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -28,6 +30,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         super().__init__()
         self.setupUi(self)
         self.activeUser = activeUser
+        self.projectAllTableItemSelected = None
         self.populate_projects_ongoing_table()
         self.populate_tasks_ongoing_table()
 
@@ -42,6 +45,9 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.ProjectsOngoingTable.itemClicked.connect(self.populate_projects_ongoing_table)
 
         self.AddProjectButton.clicked.connect(self.on_add_project_button)
+        self.ViewProjectButton.clicked.connect(self.on_view_project_button)
+
+
 
 
 
@@ -190,7 +196,12 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # get project name
         row = item.row()
         project = self.ProjectsAllTable.item(row, 0).text()
+        self.projectAllTableItemSelected = project
+        self.TeamMembersTable.setRowCount(0)
         self.populate_team_members_table(project)
+
+        # set button to enable
+        self.ViewProjectButton.setEnabled(True)
 
 
     def on_dash_button(self):
@@ -211,6 +222,11 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
     def on_add_project_button(self):
         self.add_project_window = AddProject(activeUser=self.activeUser)
         self.add_project_window.show()
+
+    def on_view_project_button(self):
+        project = self.projectAllTableItemSelected
+        self.view_project_window = ViewProject(projectName=project)
+        self.view_project_window.show()
 
 
 
@@ -256,13 +272,38 @@ class AddProject(QDialog, Ui_AddProjectDialog):
             self.addProjectStatusLabel.setText(f'The project, {Pname}! has now been added.')
             hw = HomeWindow(activeUser=self.activeUser)
             hw.populate_projects_all_table()
-            print(self.activeUser)
 
         else:
             self.addProjectStatusLabel.setText(addProject)
 
 
 
+class ViewProject(QDialog, Ui_ViewProjectDialog):
+    def __init__(self, projectName):
+        super().__init__()
+        self.setupUi(self)
+        self.projectName = projectName
+        self.populate_project()
+
+    def populate_project(self):
+        # Create a database connection
+        db = DatabaseConnection()
+        session = db.get_session()
+        # project instance
+        p = Project()
+        projectSelected = p.get_project(session, self.projectName)
+        for project in projectSelected:
+            self.projectNameLE.setText(project.name)
+            self.projectDescTE.setText(project.desc)
+            self.projectStatusCB.setCurrentText(project.status)
+            self.projectStartDE.setDate(project.start_date)
+            self.projectDueDE.setDate(project.due_date)
+            if project.end_date:
+                self.projectEndDE.setDate(project.end_date)
+            else:
+                self.projectEndDE.setDate(QDate())
+            self.projectOwnerLE.setText(project.owner.full_name)
+            #print(project.owner.full_name)
 
 
 
@@ -275,13 +316,12 @@ class AddProject(QDialog, Ui_AddProjectDialog):
 
 
 
+def main():
+    app = QApplication(sys.argv)
+    window = HomeWindow(activeUser='tm1')
+    window.show()
+    sys.exit(app.exec())
 
-# def main():
-#     app = QApplication(sys.argv)
-#     window = HomeWindow(activeUser='tm1')
-#     window.show()
-#     sys.exit(app.exec())
-#
-#
-# if __name__ == "__main__":
-#     main()
+
+if __name__ == "__main__":
+    main()
