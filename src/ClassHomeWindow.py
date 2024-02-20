@@ -288,10 +288,10 @@ class AddProject(QDialog, Ui_AddProjectDialog):
         dbCon = DatabaseConnection()
         session = dbCon.get_session()
 
-        # Create a new user instance
+        # Create a new project instance
         new_project = Project(name=Pname, desc=Pdesc, start_date=Pstart, due_date=Pdue, status=Pstatus,
-                              owner_fkey=ownerfkey)
-        # register user
+                              owner_fkey=ownerfkey, is_removed=0)
+        # add project to db
         addProject = new_project.add_project(session)
 
         if addProject == 'successful':
@@ -312,6 +312,7 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         self.activeUser = activeUser
         self.populate_project()
         self.populate_team_members_table()
+        self.deleteProjectButton.clicked.connect(self.on_delete_project)
 
     def populate_project(self):
         # Create a database connection
@@ -351,9 +352,19 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
                 self.TeamMembersTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(teamMember.start_date)))
                 row += 1
 
-
-
-
+    def on_delete_project(self):
+        # Create a database connection
+        db = DatabaseConnection()
+        session = db.get_session()
+        # project instance
+        project = Project()
+        projectDelete = project.delete_project(session, self.projectName)
+        if projectDelete == 'Project deleted successfully':
+            self.projectChangesLabel.setText(f'The project, {self.projectName}! has now been removed.')
+            HW = HomeWindow(activeUser=self.activeUser)
+            HW.populate_projects_all_table()
+        else:
+            return projectDelete
 
 
 

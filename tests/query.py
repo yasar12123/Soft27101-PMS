@@ -24,23 +24,14 @@ if __name__ == '__main__':
     # Obtain a session using the get_session() method
     session = db.get_session()
 
-    # get user fkey
-    user = User()
-    userFkey = user.get_user_fkey(session, 'po1')
-    # get project fkey
-    project = Project()
-    projectFkey = project.get_project_fkey(session, 'project A')
+    with session() as session:
+        project = (
+            session.query(Project)
+            .filter(Project.name == 'sfs')  # Filter by project name
+            .filter(Project.is_removed == 0)  # Filter by is_removed status
+            .first()
+        )
 
-    commentToAdd = 'new comment'
-
-    db = DatabaseConnection()
-    session = db.get_session()
-    # Create a new comment instance
-    new_comment = CommunicationLog(user_fkey=userFkey, project_fkey=projectFkey, task_fkey=-1, comment=commentToAdd,
-                                   timestamp=datetime.datetime.now())
-    # register user
-    new_comment.add_project_comment(session)
-    #print(new_comment.comment, new_comment.timestamp, new_comment.user_fkey)
-
+        print(project)
 
 

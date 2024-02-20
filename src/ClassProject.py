@@ -22,6 +22,7 @@ class Project(Base):
     end_date = Column(DateTime)
     due_date = Column(DateTime)
     owner_fkey = Column(Integer, ForeignKey('USER.user_pkey'), nullable=False)
+    is_removed = Column(Integer, default=0)
 
     # Define the relationships
     owner = relationship('User', back_populates='owner_of_projects')
@@ -42,6 +43,7 @@ class Project(Base):
                     .join(Project.project_team_members)
                     .join(teamUser, ProjectTeam.user_fkey == teamUser.user_pkey)
                     .filter(teamUser.username == team_member_username)
+                    .filter(Project.is_removed == 0)
                     .options(joinedload(Project.owner))
                 )
                 return query.all()
@@ -59,6 +61,7 @@ class Project(Base):
                 query = (
                     session.query(Project)
                     .join(Project.owner)
+                    .filter(Project.is_removed == 0)
                     .options(joinedload(Project.owner))
                 )
                 return query.all()
@@ -88,11 +91,16 @@ class Project(Base):
                 # Create a session
                 with session() as session:
                     # query db for the project
-                    project = session.query(Project).filter_by(name=self.name).first()
+                    project = (
+                        session.query(Project)
+                        .filter(Project.name == self.name)  # Filter by project name
+                        .filter(Project.is_removed == 0)  # Filter by is_removed status
+                        .first()
+                    )
                     # if the project already exists in the database
                     if project:
                         return f'Error!, the project: {self.name} already exists'
-                    # if username is not in the database
+                    # if project is not in the database
                     if project is None:
                         session.add(self)
                         session.commit()
@@ -133,4 +141,18 @@ class Project(Base):
             # Log or handle the exception
             return f'Error connecting: {e}'
 
+    def delete_project(self, session, projectName):
+        try:
+            # Create a session
+            with session() as session:
+                project = session.query(Project).filter_by(name=projectName).first()
+                if project:
+                    project.is_removed = 1
+                    session.commit()
+                    return 'Project deleted successfully'
+                else:
+                    return 'Project not found'
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error deleting project: {e}'
 
