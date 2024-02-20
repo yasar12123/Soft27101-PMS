@@ -45,8 +45,8 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.ProjectsOngoingTable.itemClicked.connect(self.populate_projects_ongoing_table)
 
         self.AddProjectButton.clicked.connect(self.on_add_project_button)
+        self.addCommentButton.clicked.connect(self.on_add_comment_button)
         self.ViewProjectButton.clicked.connect(self.on_view_project_button)
-
 
 
 
@@ -173,32 +173,58 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 self.ProjectsAllTable.setItem(row, 5, QtWidgets.QTableWidgetItem(str(project.owner.full_name)))
                 row += 1
 
-    def populate_team_members_table(self, projectName):
+
+
+    def populate_project_comments(self, projectName):
         # Create a database connection
         db = DatabaseConnection()
         session = db.get_session()
-        # project team instance
-        pt = ProjectTeam()
-        teamMembers = pt.get_team_of_project(session, projectName)
+        comLog = CommunicationLog()
+        projectLog = comLog.get_project_communication_log(session, projectName)
+        self.commentListWidget.clear()
+        for log in projectLog:
+            self.commentListWidget.addItem('')
+            self.commentListWidget.addItem(f'Posted: {log.timestamp}, User: {log.user.full_name} \n {log.comment} ')
 
-        # Populate the projects table
-        row = 0
-        if teamMembers:
-            self.TeamMembersTable.setRowCount(0)
-            for teamMember in teamMembers:
-                self.TeamMembersTable.insertRow(row)
-                self.TeamMembersTable.setItem(row, 0, QtWidgets.QTableWidgetItem(teamMember.user.username))
-                self.TeamMembersTable.setItem(row, 1, QtWidgets.QTableWidgetItem(teamMember.user.full_name))
-                self.TeamMembersTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(teamMember.start_date)))
-                row += 1
+
+    def on_add_comment_button(self):
+        # Create a session
+        db = DatabaseConnection()
+        session = db.get_session()
+
+        # get user fkey
+        user = User()
+        userFkey = user.get_user_fkey(session, self.activeUser)
+
+        # get project fkey
+        project = Project()
+        projectFkey = project.get_project_fkey(session, self.projectAllTableItemSelected)
+
+        commentToAdd = self.newCommentTE.toPlainText()
+
+        # add comment
+        new_comment = CommunicationLog(user_fkey=userFkey, project_fkey=projectFkey, task_fkey=-1, comment=commentToAdd,
+                                       timestamp=datetime.datetime.now())
+        addComment = new_comment.add_project_comment(session)
+
+        if addComment == 'successful':
+            #self.addProjectStatusLabel.setText(f'The project, {Pname}! has now been added.')
+            self.populate_project_comments(projectName=self.projectAllTableItemSelected)
+            self.newCommentTE.clear()
+
+        else:
+            print(addComment)
+            #self.addProjectStatusLabel.setText(addProject)
+
+
+
 
     def on_project_all_table_item_clicked(self, item):
         # get project name
         row = item.row()
         project = self.ProjectsAllTable.item(row, 0).text()
         self.projectAllTableItemSelected = project
-        self.TeamMembersTable.setRowCount(0)
-        self.populate_team_members_table(project)
+        self.populate_project_comments(project)
 
         # set button to enable
         self.ViewProjectButton.setEnabled(True)
@@ -213,7 +239,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
     def on_projects_button(self):
         self.stackedWidget.setCurrentIndex(1)
-        self.TeamMembersTable.setRowCount(0)
+        self.commentListWidget.clear()
         self.populate_projects_all_table()
 
     def on_tasks_button(self):
@@ -225,7 +251,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
     def on_view_project_button(self):
         project = self.projectAllTableItemSelected
-        self.view_project_window = ViewProject(projectName=project)
+        self.view_project_window = ViewProject(projectName=project, activeUser=self.activeUser)
         self.view_project_window.show()
 
 
@@ -279,11 +305,13 @@ class AddProject(QDialog, Ui_AddProjectDialog):
 
 
 class ViewProject(QDialog, Ui_ViewProjectDialog):
-    def __init__(self, projectName):
+    def __init__(self, projectName, activeUser):
         super().__init__()
         self.setupUi(self)
         self.projectName = projectName
+        self.activeUser = activeUser
         self.populate_project()
+        self.populate_team_members_table()
 
     def populate_project(self):
         # Create a database connection
@@ -303,8 +331,25 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
             else:
                 self.projectEndDE.setDate(QDate())
             self.projectOwnerLE.setText(project.owner.full_name)
-            #print(project.owner.full_name)
 
+    def populate_team_members_table(self):
+        # Create a database connection
+        db = DatabaseConnection()
+        session = db.get_session()
+        # project team instance
+        pt = ProjectTeam()
+        teamMembers = pt.get_team_of_project(session, self.projectName)
+
+        # Populate the projects table
+        row = 0
+        if teamMembers:
+            self.TeamMembersTable.setRowCount(0)
+            for teamMember in teamMembers:
+                self.TeamMembersTable.insertRow(row)
+                self.TeamMembersTable.setItem(row, 0, QtWidgets.QTableWidgetItem(teamMember.user.username))
+                self.TeamMembersTable.setItem(row, 1, QtWidgets.QTableWidgetItem(teamMember.user.full_name))
+                self.TeamMembersTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(teamMember.start_date)))
+                row += 1
 
 
 

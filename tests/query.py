@@ -23,12 +23,24 @@ if __name__ == '__main__':
     db = DatabaseConnection()
     # Obtain a session using the get_session() method
     session = db.get_session()
-    # Use the obtained session to call the get_projects method
-    p = Project()
-    projects = p.get_project(session, 'Project A')
-    # Iterate over the returned projects and print their details
-    for project in projects:
-        print(f"Project Name: {project.name}, Owner: {project.owner.full_name}")
+
+    # get user fkey
+    user = User()
+    userFkey = user.get_user_fkey(session, 'po1')
+    # get project fkey
+    project = Project()
+    projectFkey = project.get_project_fkey(session, 'project A')
+
+    commentToAdd = 'new comment'
+
+    db = DatabaseConnection()
+    session = db.get_session()
+    # Create a new comment instance
+    new_comment = CommunicationLog(user_fkey=userFkey, project_fkey=projectFkey, task_fkey=-1, comment=commentToAdd,
+                                   timestamp=datetime.datetime.now())
+    # register user
+    new_comment.add_project_comment(session)
+    #print(new_comment.comment, new_comment.timestamp, new_comment.user_fkey)
 
 
 

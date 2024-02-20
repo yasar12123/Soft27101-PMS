@@ -112,12 +112,25 @@ class Project(Base):
                     .join(Project.owner)
                     .options(joinedload(Project.owner))
                     .filter(Project.name == projectName)
-
                 )
                 return query.all()
 
         except SQLAlchemyError as e:
             # Log or handle the exception
             return f'Error retrieving data: {e}'
+
+
+    def get_project_fkey(self, session, projectName):
+        # Try to establish connection to db
+        try:
+            # Create a session
+            with session() as session:
+                # query db for the user
+                project = session.query(Project).filter_by(name=projectName).first()
+                return project.project_pkey
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error connecting: {e}'
 
 

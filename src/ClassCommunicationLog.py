@@ -1,7 +1,12 @@
 from src.ClassBase import Base
+from src.ClassProject import Project
+from src.ClassUser import User
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, DateTime, ForeignKey, Text
 from datetime import datetime
+
+from sqlalchemy.orm import relationship, joinedload
+from sqlalchemy.exc import SQLAlchemyError
 
 class CommunicationLog(Base):
     __tablename__ = 'COMMUNICATION_LOG'
@@ -19,3 +24,38 @@ class CommunicationLog(Base):
     task = relationship('Task', back_populates='communication_log')
     attachments = relationship('Attachment', back_populates='communication_log')
 
+
+    def get_project_communication_log(self, session, projectName):
+        # Try to establish connection to db
+        try:
+            # Create a session
+            with session() as session:
+                query = (
+                    session.query(CommunicationLog)
+                    .join(CommunicationLog.project)
+                    .join(CommunicationLog.user)
+                    .options(joinedload(CommunicationLog.project))
+                    .options(joinedload(CommunicationLog.user))
+                    .filter(Project.name == projectName)
+                )
+            return query.all()
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error retrieving data: {e}'
+
+
+    def add_project_comment(self, session):
+        # check if fields are null
+        if self.comment == '':
+            return f'the field comment can not be empty'
+        else:
+            try:
+                # Create a session
+                with session() as session:
+                    session.add(self)
+                    session.commit()
+                    return 'successful'
+            except SQLAlchemyError as e:
+                # Log or handle the exception
+                return f'Error during adding comment: {e}'
