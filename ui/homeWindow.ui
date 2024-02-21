@@ -116,6 +116,11 @@
                 </property>
                 <column>
                  <property name="text">
+                  <string>Project PKEY</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
                   <string>Project</string>
                  </property>
                 </column>
@@ -168,6 +173,11 @@
              <layout class="QVBoxLayout" name="verticalLayout_3">
               <item>
                <widget class="QTableWidget" name="TasksOngoingTable">
+                <column>
+                 <property name="text">
+                  <string>Task PKEY</string>
+                 </property>
+                </column>
                 <column>
                  <property name="text">
                   <string>Task</string>
@@ -251,6 +261,11 @@
                   <property name="sizeAdjustPolicy">
                    <enum>QAbstractScrollArea::AdjustToContents</enum>
                   </property>
+                  <column>
+                   <property name="text">
+                    <string>Project PKEY</string>
+                   </property>
+                  </column>
                   <column>
                    <property name="text">
                     <string>Project</string>

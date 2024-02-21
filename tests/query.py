@@ -24,14 +24,11 @@ if __name__ == '__main__':
     # Obtain a session using the get_session() method
     session = db.get_session()
 
-    with session() as session:
-        project = (
-            session.query(Project)
-            .filter(Project.name == 'sfs')  # Filter by project name
-            .filter(Project.is_removed == 0)  # Filter by is_removed status
-            .first()
-        )
 
-        print(project)
+    p = Project()
+    updateProject = p.set_project(session, 21, 'changename', 'changeStat', 'Not Started')
+
+    if updateProject:
+        print('updated')
 
 

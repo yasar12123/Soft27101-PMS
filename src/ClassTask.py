@@ -27,7 +27,8 @@ class Task(Base):
     assigner = relationship('User', back_populates='assigner_of_tasks', foreign_keys=[assigner_fkey])
     communication_log = relationship('CommunicationLog', back_populates='task')
 
-    def get_tasks_for_team_member(self, session, team_member_username, projects=None):
+
+    def get_tasks_for_team_member(self, session, team_member_username, projectPkey=None):
         # Try to establish connection to db
         try:
             # Create a session
@@ -39,8 +40,8 @@ class Task(Base):
                     .filter(User.username == team_member_username)
                 )
                 # If project is specified, filter tasks based on the project
-                if projects:
-                    query = query.filter(Project.name == projects)
+                if projectPkey:
+                    query = query.filter(Project.project_pkey == projectPkey)
 
                 return query.all()
 

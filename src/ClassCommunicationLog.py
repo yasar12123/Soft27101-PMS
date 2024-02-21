@@ -25,7 +25,7 @@ class CommunicationLog(Base):
     attachments = relationship('Attachment', back_populates='communication_log')
 
 
-    def get_project_communication_log(self, session, projectName):
+    def get_project_communication_log(self, session, projectPkey):
         # Try to establish connection to db
         try:
             # Create a session
@@ -36,7 +36,7 @@ class CommunicationLog(Base):
                     .join(CommunicationLog.user)
                     .options(joinedload(CommunicationLog.project))
                     .options(joinedload(CommunicationLog.user))
-                    .filter(Project.name == projectName)
+                    .filter(Project.project_pkey == projectPkey)
                 )
             return query.all()
 

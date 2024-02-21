@@ -22,7 +22,7 @@ class ProjectTeam(Base):
     project = relationship('Project', back_populates='project_team_members')
     team = relationship('Team', back_populates='project_associations')
 
-    def get_team_of_project(self, session, projectName=None):
+    def get_team_of_project(self, session, projectPkey=None):
         # Try to establish connection to db
         try:
             # Create a session
@@ -36,10 +36,10 @@ class ProjectTeam(Base):
                 )
 
                 # If project is specified, filter on project name
-                if projectName:
+                if projectPkey:
                     query = (
                         query.join(ProjectTeam.project)
-                        .filter(ProjectTeam.project.has(name=projectName))
+                        .filter(ProjectTeam.project.has(project_pkey=projectPkey))
                     )
 
                 return query.all()

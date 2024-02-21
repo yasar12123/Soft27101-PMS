@@ -110,7 +110,7 @@ class Project(Base):
                 return f'Error during adding project: {e}'
 
 
-    def get_project(self, session, projectName):
+    def get_project(self, session, projectPkey):
         # Try to establish connection to db
         try:
             # Create a session
@@ -119,7 +119,7 @@ class Project(Base):
                     session.query(Project)
                     .join(Project.owner)
                     .options(joinedload(Project.owner))
-                    .filter(Project.name == projectName)
+                    .filter(Project.project_pkey == projectPkey)
                 )
                 return query.all()
 
@@ -128,24 +128,36 @@ class Project(Base):
             return f'Error retrieving data: {e}'
 
 
-    def get_project_fkey(self, session, projectName):
+    def set_project(self, session, projectPkey, setName, setDesc, setStatus, setStartDate, setEndDate, setDueDate):
         # Try to establish connection to db
         try:
             # Create a session
             with session() as session:
-                # query db for the user
-                project = session.query(Project).filter_by(name=projectName).first()
-                return project.project_pkey
+                project = session.query(Project).filter_by(project_pkey=projectPkey).first()
+                if project is None:
+                    return 'Project does not exist'
+
+                else:
+                    project.name = setName
+                    project.desc = setDesc
+                    project.status = setStatus
+                    project.start_date = setStartDate
+                    project.end_date = setEndDate
+                    project.due_date = setDueDate
+                    session.commit()
+                return 'Project updated'
 
         except SQLAlchemyError as e:
             # Log or handle the exception
-            return f'Error connecting: {e}'
+            return f'Error setting data: {e}'
 
-    def delete_project(self, session, projectName):
+
+
+    def delete_project(self, session, projectPkey):
         try:
             # Create a session
             with session() as session:
-                project = session.query(Project).filter_by(name=projectName).first()
+                project = session.query(Project).filter_by(project_pkey=projectPkey).first()
                 if project:
                     project.is_removed = 1
                     session.commit()
