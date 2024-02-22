@@ -1,5 +1,6 @@
 from src.ClassBase import Base
 from src.ClassProject import Project
+from src.ClassTask import Task
 from src.ClassUser import User
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, DateTime, ForeignKey, Text
@@ -45,7 +46,7 @@ class CommunicationLog(Base):
             return f'Error retrieving data: {e}'
 
 
-    def add_project_comment(self, session):
+    def add_comment(self, session):
         # check if fields are null
         if self.comment == '':
             return f'the field comment can not be empty'
@@ -59,3 +60,25 @@ class CommunicationLog(Base):
             except SQLAlchemyError as e:
                 # Log or handle the exception
                 return f'Error during adding comment: {e}'
+
+
+    def get_task_communication_log(self, session, taskPkey):
+        # Try to establish connection to db
+        try:
+            # Create a session
+            with session() as session:
+                query = (
+                    session.query(CommunicationLog)
+                    .join(CommunicationLog.project)
+                    .join(CommunicationLog.task)
+                    .join(CommunicationLog.user)
+                    .options(joinedload(CommunicationLog.project))
+                    .options(joinedload(CommunicationLog.user))
+                    .filter(Task.task_pkey == taskPkey)
+                )
+            return query.all()
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error retrieving data: {e}'
+

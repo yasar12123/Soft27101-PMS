@@ -126,6 +126,9 @@
                 <property name="editTriggers">
                  <set>QAbstractItemView::NoEditTriggers</set>
                 </property>
+                <property name="sortingEnabled">
+                 <bool>true</bool>
+                </property>
                 <column>
                  <property name="text">
                   <string>Project PKEY</string>
@@ -187,6 +190,9 @@
                <widget class="QTableWidget" name="TasksOngoingTable">
                 <property name="editTriggers">
                  <set>QAbstractItemView::NoEditTriggers</set>
+                </property>
+                <property name="sortingEnabled">
+                 <bool>true</bool>
                 </property>
                 <column>
                  <property name="text">
@@ -290,6 +296,9 @@
                   </property>
                   <property name="editTriggers">
                    <set>QAbstractItemView::NoEditTriggers</set>
+                  </property>
+                  <property name="sortingEnabled">
+                   <bool>true</bool>
                   </property>
                   <column>
                    <property name="text">
@@ -481,26 +490,20 @@
              <property name="title">
               <string>Tasks</string>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_14">
+             <layout class="QHBoxLayout" name="horizontalLayout_6">
               <item>
-               <widget class="QTableWidget" name="TaskAllTable">
+               <widget class="QTableWidget" name="taskProjectTable">
                 <property name="minimumSize">
                  <size>
-                  <width>0</width>
+                  <width>200</width>
                   <height>0</height>
                  </size>
                 </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="sizeAdjustPolicy">
-                 <enum>QAbstractScrollArea::AdjustToContents</enum>
-                </property>
                 <property name="editTriggers">
                  <set>QAbstractItemView::NoEditTriggers</set>
+                </property>
+                <property name="sortingEnabled">
+                 <bool>true</bool>
                 </property>
                 <column>
                  <property name="text">
@@ -512,68 +515,102 @@
                   <string>Project Name</string>
                  </property>
                 </column>
-                <column>
-                 <property name="text">
-                  <string>Task PKEY</string>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Task Name</string>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Task Desc</string>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Start Date</string>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Status</string>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Due Date</string>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>End Date</string>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Assignee</string>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Assigner</string>
-                 </property>
-                </column>
                </widget>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_5">
+               <layout class="QVBoxLayout" name="verticalLayout_14">
                 <item>
-                 <widget class="QPushButton" name="ViewTaskButton">
-                  <property name="text">
-                   <string>View Task</string>
+                 <widget class="QTableWidget" name="TaskAllTable">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
                   </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="sizeAdjustPolicy">
+                   <enum>QAbstractScrollArea::AdjustToContents</enum>
+                  </property>
+                  <property name="editTriggers">
+                   <set>QAbstractItemView::NoEditTriggers</set>
+                  </property>
+                  <property name="sortingEnabled">
+                   <bool>true</bool>
+                  </property>
+                  <column>
+                   <property name="text">
+                    <string>Project PKEY</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Project Name</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Task PKEY</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Task Name</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Start Date</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Status</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Due Date</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>End Date</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Assignee</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Assigner</string>
+                   </property>
+                  </column>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="AddTaskButton">
-                  <property name="text">
-                   <string>Add Task</string>
-                  </property>
-                 </widget>
+                 <layout class="QHBoxLayout" name="horizontalLayout_5">
+                  <item>
+                   <widget class="QPushButton" name="ViewTaskButton">
+                    <property name="text">
+                     <string>View Task</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="AddTaskButton">
+                    <property name="text">
+                     <string>Add Task</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </item>
                </layout>
               </item>

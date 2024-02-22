@@ -30,12 +30,16 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         super().__init__()
         self.setupUi(self)
         self.activeUser = activeUser
-        self.projectAllTableItemSelected = None
+        self.projectItemSelected = None
+        self.taskItemSelected = None
 
         # Hide pkey for tables
         self.ProjectsOngoingTable.setColumnHidden(0, True)
         self.ProjectsAllTable.setColumnHidden(0, True)
         self.TasksOngoingTable.setColumnHidden(0, True)
+        self.TaskAllTable.setColumnHidden(0, True)
+        self.TaskAllTable.setColumnHidden(2, True)
+        self.taskProjectTable.setColumnHidden(0, True)
 
         # Run functions on start
         self.populate_projects_ongoing_table()
@@ -44,18 +48,18 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
         # On button click
         self.dashButton.clicked.connect(self.on_dash_button)
-
         self.projectsButton.clicked.connect(self.on_projects_button)
         self.AddProjectButton.clicked.connect(self.on_add_project_button)
-        self.addCommentButton.clicked.connect(self.on_add_comment_button)
+        self.addCommentButton.clicked.connect(self.on_add_project_comment_button)
         self.ViewProjectButton.clicked.connect(self.on_view_project_button)
-
         self.tasksButton.clicked.connect(self.on_tasks_button)
+        self.addTaskCommentButton.clicked.connect(self.on_add_task_comment_button)
 
         # on table click
         self.ProjectsAllTable.itemClicked.connect(self.on_project_all_table_item_clicked)
         self.ProjectsOngoingTable.itemClicked.connect(self.on_project_ongoing_table_item_clicked)
-        self.ProjectsOngoingTable.itemClicked.connect(self.populate_projects_ongoing_table)
+        self.taskProjectTable.itemClicked.connect(self.on_task_project_all_table_item_clicked)
+        self.TaskAllTable.itemClicked.connect(self.on_task_table_item_clicked)
 
 
 
@@ -82,13 +86,19 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 row += 1
 
 
-    def populate_tasks_ongoing_table(self):
+    def populate_tasks_ongoing_table(self, projectPkey=None):
+        #clear table
+        self.TasksOngoingTable.setRowCount(0)
+
         # Create a database connection
         db = DatabaseConnection()
         session = db.get_session()
         # project instance
         t = Task()
-        tasks = t.get_tasks_for_team_member(session, self.activeUser)
+        if projectPkey:
+            tasks = t.get_tasks_for_team_member(session, self.activeUser, projectPkey=projectPkey)
+        else:
+            tasks = t.get_tasks_for_team_member(session, self.activeUser)
         # Populate the projects table
         row = 0
         if tasks:
@@ -111,25 +121,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             # get project
             row = item.row()
             projectPkey = self.ProjectsOngoingTable.item(row, 0).text()
-
-            #Create a database connection
-            db = DatabaseConnection()
-            session = db.get_session()
-            # project instance
-            t = Task()
-            tasks = t.get_tasks_for_team_member(session, self.activeUser, int(projectPkey))
-            # Populate the projects table
-            row = 0
-            if tasks:
-                self.TasksOngoingTable.setRowCount(0)
-                for task in tasks:
-                    self.TasksOngoingTable.insertRow(row)
-                    self.TasksOngoingTable.setItem(row, 0, QtWidgets.QTableWidgetItem(str(task.task_pkey)))
-                    self.TasksOngoingTable.setItem(row, 1, QtWidgets.QTableWidgetItem(task.name))
-                    self.TasksOngoingTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(task.start_date)))
-                    self.TasksOngoingTable.setItem(row, 3, QtWidgets.QTableWidgetItem(str(task.due_date)))
-                    self.TasksOngoingTable.setItem(row, 4, QtWidgets.QTableWidgetItem(str(task.status)))
-                    row += 1
+            self.populate_tasks_ongoing_table(projectPkey=int(projectPkey))
 
 
     def plot_project_gantt_chart(self):
@@ -199,7 +191,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             self.commentListWidget.addItem(f'Posted: {log.timestamp}, User: {log.user.full_name} \n {log.comment} ')
 
 
-    def on_add_comment_button(self):
+    def on_add_project_comment_button(self):
         # get comment
         commentToAdd = self.newCommentTE.toPlainText()
 
@@ -210,12 +202,12 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         user = User()
         userFkey = user.get_user_fkey(session, self.activeUser)
         # get project fkey
-        projectFkey = self.projectAllTableItemSelected
+        projectFkey = self.projectItemSelected
 
         # add comment
         new_comment = CommunicationLog(user_fkey=userFkey, project_fkey=projectFkey, task_fkey=-1, comment=commentToAdd,
                                        timestamp=datetime.datetime.now())
-        addComment = new_comment.add_project_comment(session)
+        addComment = new_comment.add_comment(session)
 
         if addComment == 'successful':
             self.populate_project_comments(projectPkey=projectFkey)
@@ -227,7 +219,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # get project name
         row = item.row()
         project = self.ProjectsAllTable.item(row, 0).text()
-        self.projectAllTableItemSelected = int(project)
+        self.projectItemSelected = int(project)
         self.populate_project_comments(int(project))
 
         # set button to enable
@@ -244,15 +236,131 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.commentListWidget.clear()
         self.populate_projects_all_table()
 
+    ####tasks dashboard
     def on_tasks_button(self):
         self.stackedWidget.setCurrentIndex(2)
+        self.populate_task_project_table()
+        self.populate_task_all_table()
+
+    def populate_task_project_table(self):
+        # Create a database connection
+        db = DatabaseConnection()
+        session = db.get_session()
+        # project instance
+        p = Project()
+        projects = p.get_projects(session)
+
+        # Populate the projects table
+        row = 0
+        if projects:
+            self.taskProjectTable.setRowCount(0)
+            for project in projects:
+                self.taskProjectTable.insertRow(row)
+                self.taskProjectTable.setItem(row, 0, QtWidgets.QTableWidgetItem(str(project.project_pkey)))
+                self.taskProjectTable.setItem(row, 1, QtWidgets.QTableWidgetItem(project.name))
+
+
+    def populate_task_all_table(self, projectPKEY = None):
+        #clear table
+        self.TaskAllTable.setRowCount(0)
+
+        # Create a database connection
+        db = DatabaseConnection()
+        session = db.get_session()
+        # task instance
+        t = Task()
+        if projectPKEY:
+            tasks = t.get_tasks(session, projectPKEY)
+        else:
+            tasks = t.get_tasks(session)
+
+        # Populate the tasks table
+        row = 0
+        if tasks:
+            self.TaskAllTable.setRowCount(0)
+            for task in tasks:
+                self.TaskAllTable.insertRow(row)
+                self.TaskAllTable.setItem(row, 0, QtWidgets.QTableWidgetItem(str(task.project_fkey)))
+                self.TaskAllTable.setItem(row, 1, QtWidgets.QTableWidgetItem(task.project.name))
+                self.TaskAllTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(task.task_pkey)))
+                self.TaskAllTable.setItem(row, 3, QtWidgets.QTableWidgetItem(task.name))
+                self.TaskAllTable.setItem(row, 4, QtWidgets.QTableWidgetItem(str(task.start_date)))
+                self.TaskAllTable.setItem(row, 5, QtWidgets.QTableWidgetItem(task.status))
+                self.TaskAllTable.setItem(row, 6, QtWidgets.QTableWidgetItem(str(task.due_date)))
+                self.TaskAllTable.setItem(row, 7, QtWidgets.QTableWidgetItem(str(task.end_date)))
+                self.TaskAllTable.setItem(row, 8, QtWidgets.QTableWidgetItem(task.assignee.full_name))
+                self.TaskAllTable.setItem(row, 9, QtWidgets.QTableWidgetItem(task.assigner.full_name))
+                row += 1
+
+    def on_task_project_all_table_item_clicked(self, item):
+        if item is None:
+            self.populate_task_all_table()
+
+        else:
+            self.taskCommentListWidget.clear()
+            row = item.row()
+            project = self.taskProjectTable.item(row, 0).text()
+            self.populate_task_all_table(projectPKEY=int(project))
+
+
+    def populate_task_comments(self, taskPkey):
+        # Create a database connection
+        db = DatabaseConnection()
+        session = db.get_session()
+        comLog = CommunicationLog()
+        taskLog = comLog.get_task_communication_log(session, taskPkey)
+        self.taskCommentListWidget.clear()
+        for log in taskLog:
+            self.taskCommentListWidget.addItem('')
+            self.taskCommentListWidget.addItem(f'Posted: {log.timestamp}, User: {log.user.full_name} \n {log.comment} ')
+
+
+    def on_task_table_item_clicked(self, item):
+        if item is None:
+            self.populate_task_all_table()
+        else:
+            # get project name
+            row = item.row()
+            project = self.TaskAllTable.item(row, 0).text()
+            task = self.TaskAllTable.item(row, 2).text()
+            self.projectItemSelected = int(project)
+            self.taskItemSelected = int(task)
+            self.populate_task_comments(taskPkey=int(task))
+
+    def on_add_task_comment_button(self):
+        # get comment
+        commentToAdd = self.newTaskCommentTE.toPlainText()
+
+        # Create a session
+        db = DatabaseConnection()
+        session = db.get_session()
+        # get user fkey
+        user = User()
+        userFkey = user.get_user_fkey(session, self.activeUser)
+        # get project fkey
+        projectFkey = self.projectItemSelected
+        # get task fkey
+        taskFkey = self.taskItemSelected
+
+        # add comment
+        new_comment = CommunicationLog(user_fkey=userFkey, project_fkey=projectFkey, task_fkey=taskFkey, comment=commentToAdd,
+                                       timestamp=datetime.datetime.now())
+        addComment = new_comment.add_comment(session)
+
+        if addComment == 'successful':
+            self.populate_task_comments(taskPkey=taskFkey)
+            self.newTaskCommentTE.clear()
+        else:
+            print(addComment)
+
+
 
     def on_add_project_button(self):
         self.add_project_window = AddProject(self, activeUser=self.activeUser)
         self.add_project_window.show()
 
     def on_view_project_button(self):
-        projectPk = self.projectAllTableItemSelected
+        projectPk = self.projectItemSelected
         self.view_project_window = ViewProject(self, projectPkey=projectPk, activeUser=self.activeUser)
         self.view_project_window.show()
 

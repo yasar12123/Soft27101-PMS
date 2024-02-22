@@ -24,12 +24,11 @@ if __name__ == '__main__':
     # Obtain a session using the get_session() method
     session = db.get_session()
 
+    t = Task()
+    tasks = t.get_tasks(session, 16)
 
-    p = Project()
-    projects = p.get_project(session, 2)
+    for task in tasks:
+        print(task.assigner.full_name, task.project.name)
 
-    for project in projects:
-        if project.end_date:
-            print(project.end_date)
 
 
