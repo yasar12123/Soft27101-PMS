@@ -37,23 +37,25 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.ProjectsAllTable.setColumnHidden(0, True)
         self.TasksOngoingTable.setColumnHidden(0, True)
 
+        # Run functions on start
         self.populate_projects_ongoing_table()
         self.populate_tasks_ongoing_table()
-
-        self.ProjectsOngoingTable.itemClicked.connect(self.on_project_ongoing_table_item_clicked)
-
-        self.dashButton.clicked.connect(self.on_dash_button)
-        self.projectsButton.clicked.connect(self.on_projects_button)
-        self.tasksButton.clicked.connect(self.on_tasks_button)
-
-        self.ProjectsAllTable.itemClicked.connect(self.on_project_all_table_item_clicked)
         self.plot_project_gantt_chart()
-        self.ProjectsOngoingTable.itemClicked.connect(self.populate_projects_ongoing_table)
 
+        # On button click
+        self.dashButton.clicked.connect(self.on_dash_button)
+
+        self.projectsButton.clicked.connect(self.on_projects_button)
         self.AddProjectButton.clicked.connect(self.on_add_project_button)
         self.addCommentButton.clicked.connect(self.on_add_comment_button)
         self.ViewProjectButton.clicked.connect(self.on_view_project_button)
 
+        self.tasksButton.clicked.connect(self.on_tasks_button)
+
+        # on table click
+        self.ProjectsAllTable.itemClicked.connect(self.on_project_all_table_item_clicked)
+        self.ProjectsOngoingTable.itemClicked.connect(self.on_project_ongoing_table_item_clicked)
+        self.ProjectsOngoingTable.itemClicked.connect(self.populate_projects_ongoing_table)
 
 
 
@@ -198,18 +200,17 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
 
     def on_add_comment_button(self):
+        # get comment
+        commentToAdd = self.newCommentTE.toPlainText()
+
         # Create a session
         db = DatabaseConnection()
         session = db.get_session()
-
         # get user fkey
         user = User()
         userFkey = user.get_user_fkey(session, self.activeUser)
-
         # get project fkey
         projectFkey = self.projectAllTableItemSelected
-
-        commentToAdd = self.newCommentTE.toPlainText()
 
         # add comment
         new_comment = CommunicationLog(user_fkey=userFkey, project_fkey=projectFkey, task_fkey=-1, comment=commentToAdd,
@@ -217,15 +218,10 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         addComment = new_comment.add_project_comment(session)
 
         if addComment == 'successful':
-            #self.addProjectStatusLabel.setText(f'The project, {Pname}! has now been added.')
             self.populate_project_comments(projectPkey=projectFkey)
             self.newCommentTE.clear()
-
         else:
             print(addComment)
-            #self.addProjectStatusLabel.setText(addProject)
-
-
 
     def on_project_all_table_item_clicked(self, item):
         # get project name
@@ -237,13 +233,11 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # set button to enable
         self.ViewProjectButton.setEnabled(True)
 
-
     def on_dash_button(self):
         self.stackedWidget.setCurrentIndex(0)
         self.populate_projects_ongoing_table()
         self.populate_tasks_ongoing_table()
         self.plot_project_gantt_chart()
-
 
     def on_projects_button(self):
         self.stackedWidget.setCurrentIndex(1)
@@ -264,28 +258,41 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
 
 
+
 class AddProject(QDialog, Ui_AddProjectDialog):
     def __init__(self, home_window_instance, activeUser):
         super().__init__()
         self.setupUi(self)
         self.activeUser = activeUser
+        self.field_changed = False
         self.home_window_instance = home_window_instance
+
+        # buttons
         self.addProjectButton.clicked.connect(self.on_add_project_button)
+        self.exitProjectButton.clicked.connect(self.on_exit_without_save)
 
         #set date defaults
         self.projectStartDE.setDate(QDate.currentDate())
         self.projectDueDE.setDate(QDate.currentDate())
+
+        #check if fields have changed
+        self.projectNameLE.textChanged.connect(self.on_field_changed)
+        self.projectDescTE.textChanged.connect(self.on_field_changed)
+        self.projectStatusCB.currentTextChanged.connect(self.on_field_changed)
+        self.projectStartDE.dateChanged.connect(self.on_field_changed)
+        self.projectDueDE.dateChanged.connect(self.on_field_changed)
+
+        # disable button
+        self.addProjectButton.setEnabled(False)
 
     def on_add_project_button(self):
         # input from window
         Pname = self.projectNameLE.text()
         Pdesc = self.projectDescTE.toPlainText()
         Pstatus = self.projectStatusCB.currentText()
-
         startDate = self.projectStartDE.date()
         startDateDT = datetime.date(startDate.year(), startDate.month(), startDate.day())
         Pstart = datetime.datetime.strptime(str(startDateDT), '%Y-%m-%d')
-
         dueDate = self.projectDueDE.date()
         dueDateDT = datetime.date(dueDate.year(), dueDate.month(), dueDate.day())
         Pdue = datetime.datetime.strptime(str(dueDateDT), '%Y-%m-%d')
@@ -318,9 +325,24 @@ class AddProject(QDialog, Ui_AddProjectDialog):
             self.projectStartDE.setEnabled(False)
             self.projectDueDE.setEnabled(False)
             self.addProjectButton.setEnabled(False)
-            self.exitProjectButton.setEnabled(False)
+            self.exitProjectButton.setText('Exit')
         else:
             self.addProjectStatusLabel.setText(addProject)
+
+    def on_exit_without_save(self):
+        if self.exitProjectButton.text() == 'Exit':
+            self.close()
+        else:
+            confirmation = QMessageBox.question(self, "Confirm exit",
+                                                "Are you sure you want to exit without adding the project?",
+                                                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if confirmation == QMessageBox.StandardButton.Yes:
+                self.close()
+
+    def on_field_changed(self):
+        self.field_changed = True
+        self.addProjectButton.setEnabled(True)
+        self.exitProjectButton.setText('Exit (without saving')
 
 
 
@@ -331,10 +353,27 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         self.home_window_instance = home_window_instance
         self.projectPkey = projectPkey
         self.activeUser = activeUser
+        self.field_changed = False
+
+        # run functions
         self.populate_project()
         self.populate_team_members_table()
+
+        # on buttons click
         self.deleteProjectButton.clicked.connect(self.on_delete_project)
         self.saveChangesButton.clicked.connect(self.on_save_changes)
+        self.exitWithoutSavingButton.clicked.connect(self.on_exit_without_save)
+        self.closeProjectButton.clicked.connect(self.on_close_project)
+
+        # check if fields have changed
+        self.projectNameLE.textChanged.connect(self.on_field_changed)
+        self.projectDescTE.textChanged.connect(self.on_field_changed)
+        self.projectStatusCB.currentTextChanged.connect(self.on_field_changed)
+        self.projectStartDE.dateChanged.connect(self.on_field_changed)
+        self.projectDueDE.dateChanged.connect(self.on_field_changed)
+
+        # disable buttons
+        self.saveChangesButton.setEnabled(False)
 
     def populate_project(self):
         # Create a database connection
@@ -350,9 +389,8 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
             self.projectStartDE.setDate(project.start_date)
             self.projectDueDE.setDate(project.due_date)
             if project.end_date:
-                self.projectEndDE.setDate(project.end_date)
-            else:
-                self.projectEndDE.setDate(QDate())
+                self.projectEndLE.setText(project.end_date.strftime("%d/%m/%Y"))
+
             self.projectOwnerLE.setText(project.owner.full_name)
 
     def populate_team_members_table(self):
@@ -395,20 +433,7 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
                 self.home_window_instance.populate_projects_all_table()
 
                 #disable fields after deletion
-                self.projectNameLE.setEnabled(False)
-                self.projectDescTE.setEnabled(False)
-                self.projectStatusCB.setEnabled(False)
-                self.projectStartDE.setEnabled(False)
-                self.projectDueDE.setEnabled(False)
-                self.projectEndDE.setEnabled(False)
-                self.projectOwnerLE.setEnabled(False)
-                self.saveChangesButton.setEnabled(False)
-                self.exitWithoutSavingButton.setEnabled(False)
-                self.closeProjectButton.setEnabled(False)
-                self.deleteProjectButton.setEnabled(False)
-                self.TeamMembersTable.setEnabled(False)
-                self.addMemberButton.setEnabled(False)
-                self.removeMemberButton.setEnabled(False)
+                self.disable_view_project_fields()
 
             else:
                 return projectDelete
@@ -425,10 +450,6 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         startDateDT = datetime.date(currentStartDate.year(), currentStartDate.month(), currentStartDate.day())
         Pstart = datetime.datetime.strptime(str(startDateDT), '%Y-%m-%d')
 
-        currentEndDate = self.projectEndDE.date()
-        endDateDT = datetime.date(currentEndDate.year(), currentEndDate.month(), currentEndDate.day())
-        Pend = datetime.datetime.strptime(str(endDateDT), '%Y-%m-%d')
-
         currentDueDate = self.projectDueDE.date()
         dueDateDT = datetime.date(currentDueDate.year(), currentDueDate.month(), currentDueDate.day())
         Pdue = datetime.datetime.strptime(str(dueDateDT), '%Y-%m-%d')
@@ -438,18 +459,74 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         session = db.get_session()
         p = Project()
         updateProject = p.set_project(session, self.projectPkey, currentName, currentDesc,
-                                      currentStatus, Pstart, Pend, Pdue)
+                                      currentStatus, Pstart, Pdue)
 
         if updateProject:
             print('updated')
             self.projectChangesLabel.setText(f'The project, {currentName}! has now been updated.')
             self.home_window_instance.populate_projects_all_table()
+            self.exitWithoutSavingButton.setText('Exit')
+            self.saveChangesButton.setEnabled(False)
         else:
             self.projectChangesLabel.setText(updateProject)
 
 
+    def on_exit_without_save(self):
+        if self.exitWithoutSavingButton.text() == 'Exit':
+            self.close()
+        else:
+            confirmation = QMessageBox.question(self, "Confirm exit",
+                                                "Are you sure you want to exit without saving the changes?",
+                                                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if confirmation == QMessageBox.StandardButton.Yes:
+                self.close()
+
+    def on_close_project(self):
+        confirmation = QMessageBox.question(self, "Confirm Project Closure",
+                                            "Are you sure you want to close this project?",
+                                            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if confirmation == QMessageBox.StandardButton.Yes:
+            # Create a database connection
+            db = DatabaseConnection()
+            session = db.get_session()
+            # project instance
+            p = Project()
+            projects = p.get_project(session, self.projectPkey)
+            for project in projects:
+                projectName = project.name
+            closeProject = p.close_project(session, self.projectPkey)
+            if closeProject == 'Project Closed':
+                self.projectChangesLabel.setText(f'The project, {projectName}! has now been closed.')
+                self.home_window_instance.populate_projects_all_table()
+
+                # disable fields after deletion
+                self.disable_view_project_fields()
+            else:
+                return closeProject
+        else:
+            return
 
 
+    def disable_view_project_fields(self):
+        self.projectNameLE.setEnabled(False)
+        self.projectDescTE.setEnabled(False)
+        self.projectStatusCB.setEnabled(False)
+        self.projectStartDE.setEnabled(False)
+        self.projectDueDE.setEnabled(False)
+        self.projectEndLE.setEnabled(False)
+        self.projectOwnerLE.setEnabled(False)
+        self.saveChangesButton.setEnabled(False)
+        self.exitWithoutSavingButton.setEnabled(False)
+        self.closeProjectButton.setEnabled(False)
+        self.deleteProjectButton.setEnabled(False)
+        self.TeamMembersTable.setEnabled(False)
+        self.addMemberButton.setEnabled(False)
+        self.removeMemberButton.setEnabled(False)
+
+    def on_field_changed(self):
+        self.field_changed = True
+        self.saveChangesButton.setEnabled(True)
+        self.exitWithoutSavingButton.setText('Exit (without saving')
 
 
 

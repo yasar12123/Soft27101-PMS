@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1171</width>
-    <height>634</height>
+    <width>1219</width>
+    <height>633</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,19 +21,28 @@
        <enum>Qt::Horizontal</enum>
       </property>
       <widget class="QFrame" name="frame_3">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
+       <property name="lineWidth">
+        <number>0</number>
+       </property>
        <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>10</x>
           <y>70</y>
-          <width>77</width>
-          <height>211</height>
+          <width>81</width>
+          <height>221</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -114,6 +123,9 @@
                 <property name="sizeAdjustPolicy">
                  <enum>QAbstractScrollArea::AdjustToContents</enum>
                 </property>
+                <property name="editTriggers">
+                 <set>QAbstractItemView::NoEditTriggers</set>
+                </property>
                 <column>
                  <property name="text">
                   <string>Project PKEY</string>
@@ -173,6 +185,9 @@
              <layout class="QVBoxLayout" name="verticalLayout_3">
               <item>
                <widget class="QTableWidget" name="TasksOngoingTable">
+                <property name="editTriggers">
+                 <set>QAbstractItemView::NoEditTriggers</set>
+                </property>
                 <column>
                  <property name="text">
                   <string>Task PKEY</string>
@@ -252,14 +267,29 @@
             <layout class="QHBoxLayout" name="horizontalLayout_3">
              <item>
               <widget class="QGroupBox" name="groupBox_3">
+               <property name="minimumSize">
+                <size>
+                 <width>700</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="title">
                 <string>Projects </string>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_7">
                 <item>
                  <widget class="QTableWidget" name="ProjectsAllTable">
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
                   <property name="sizeAdjustPolicy">
                    <enum>QAbstractScrollArea::AdjustToContents</enum>
+                  </property>
+                  <property name="editTriggers">
+                   <set>QAbstractItemView::NoEditTriggers</set>
                   </property>
                   <column>
                    <property name="text">
@@ -324,8 +354,14 @@
              </item>
              <item>
               <widget class="QGroupBox" name="groupBox_4">
+               <property name="minimumSize">
+                <size>
+                 <width>350</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="title">
-                <string>Comment Timeline</string>
+                <string>Project Comments Timeline</string>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_10">
                 <item>
@@ -341,6 +377,9 @@
                     <width>0</width>
                     <height>300</height>
                    </size>
+                  </property>
+                  <property name="editTriggers">
+                   <set>QAbstractItemView::NoEditTriggers</set>
                   </property>
                   <property name="alternatingRowColors">
                    <bool>false</bool>
@@ -433,23 +472,69 @@
           <layout class="QHBoxLayout" name="horizontalLayout_8">
            <item>
             <widget class="QGroupBox" name="groupBox_6">
+             <property name="minimumSize">
+              <size>
+               <width>700</width>
+               <height>0</height>
+              </size>
+             </property>
              <property name="title">
               <string>Tasks</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_14">
               <item>
                <widget class="QTableWidget" name="TaskAllTable">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="sizeAdjustPolicy">
                  <enum>QAbstractScrollArea::AdjustToContents</enum>
                 </property>
+                <property name="editTriggers">
+                 <set>QAbstractItemView::NoEditTriggers</set>
+                </property>
                 <column>
                  <property name="text">
-                  <string>Project</string>
+                  <string>Project PKEY</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Project Name</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Task PKEY</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Task Name</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Task Desc</string>
                  </property>
                 </column>
                 <column>
                  <property name="text">
                   <string>Start Date</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Status</string>
                  </property>
                 </column>
                 <column>
@@ -464,7 +549,12 @@
                 </column>
                 <column>
                  <property name="text">
-                  <string>Status</string>
+                  <string>Assignee</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Assigner</string>
                  </property>
                 </column>
                </widget>
@@ -472,16 +562,16 @@
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_5">
                 <item>
-                 <widget class="QPushButton" name="ViewProjectButton_2">
+                 <widget class="QPushButton" name="ViewTaskButton">
                   <property name="text">
-                   <string>View Project</string>
+                   <string>View Task</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="AddProjectButton_2">
+                 <widget class="QPushButton" name="AddTaskButton">
                   <property name="text">
-                   <string>Add Project</string>
+                   <string>Add Task</string>
                   </property>
                  </widget>
                 </item>
@@ -492,50 +582,81 @@
            </item>
            <item>
             <widget class="QGroupBox" name="groupBox_5">
-             <property name="title">
-              <string>Team Members</string>
+             <property name="minimumSize">
+              <size>
+               <width>350</width>
+               <height>0</height>
+              </size>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_12">
+             <property name="title">
+              <string>Task Comments Timeline</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_13">
               <item>
-               <layout class="QVBoxLayout" name="verticalLayout_13">
-                <item>
-                 <widget class="QTableWidget" name="TeamMemberTable1">
-                  <column>
-                   <property name="text">
-                    <string>Username</string>
+               <widget class="QListWidget" name="taskCommentListWidget">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>300</height>
+                 </size>
+                </property>
+                <property name="editTriggers">
+                 <set>QAbstractItemView::NoEditTriggers</set>
+                </property>
+                <property name="alternatingRowColors">
+                 <bool>false</bool>
+                </property>
+                <property name="isWrapping" stdset="0">
+                 <bool>false</bool>
+                </property>
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="viewMode">
+                 <enum>QListView::ListMode</enum>
+                </property>
+                <property name="sortingEnabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QGroupBox" name="groupBox_8">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="title">
+                 <string/>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_12">
+                 <item>
+                  <widget class="QTextEdit" name="newTaskCommentTE">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
                    </property>
-                  </column>
-                  <column>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="addTaskCommentButton">
                    <property name="text">
-                    <string>Name</string>
+                    <string>Add comment</string>
                    </property>
-                  </column>
-                  <column>
-                   <property name="text">
-                    <string>Start Date</string>
-                   </property>
-                  </column>
-                 </widget>
-                </item>
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_7">
-                  <item>
-                   <widget class="QPushButton" name="ViewMemberButton_2">
-                    <property name="text">
-                     <string>View Member</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="AddMemberButton_2">
-                    <property name="text">
-                     <string>Add Member</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -554,7 +675,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1171</width>
+     <width>1219</width>
      <height>22</height>
     </rect>
    </property>

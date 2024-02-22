@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>816</width>
-    <height>509</height>
+    <height>531</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -75,6 +75,13 @@
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
        <layout class="QGridLayout" name="gridLayout">
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Project Start Date: </string>
+          </property>
+         </widget>
+        </item>
         <item row="2" column="0">
          <widget class="QLabel" name="label_3">
           <property name="text">
@@ -82,8 +89,25 @@
           </property>
          </widget>
         </item>
-        <item row="5" column="2">
-         <widget class="QDateEdit" name="projectEndDE">
+        <item row="1" column="2">
+         <widget class="QTextEdit" name="projectDescTE"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Project Description: </string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Project Name: </string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="2">
+         <widget class="QDateEdit" name="projectDueDE">
           <property name="calendarPopup">
            <bool>true</bool>
           </property>
@@ -96,61 +120,10 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="2">
-         <widget class="QComboBox" name="projectStatusCB">
-          <property name="acceptDrops">
-           <bool>false</bool>
-          </property>
-          <item>
-           <property name="text">
-            <string>Open</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Not Started</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label">
+        <item row="6" column="0">
+         <widget class="QLabel" name="label_8">
           <property name="text">
-           <string>Project Name: </string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2">
-         <widget class="QLineEdit" name="projectNameLE"/>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Project Start Date: </string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QTextEdit" name="projectDescTE"/>
-        </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="label_7">
-          <property name="text">
-           <string>Project End Date</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="2">
-         <widget class="QDateEdit" name="projectDueDE">
-          <property name="calendarPopup">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Project Description: </string>
+           <string>Owner</string>
           </property>
          </widget>
         </item>
@@ -161,15 +134,48 @@
           </property>
          </widget>
         </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="label_8">
+        <item row="6" column="2">
+         <widget class="QLineEdit" name="projectOwnerLE"/>
+        </item>
+        <item row="2" column="2">
+         <widget class="QComboBox" name="projectStatusCB">
+          <property name="acceptDrops">
+           <bool>false</bool>
+          </property>
+          <item>
+           <property name="text">
+            <string>Not Started</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>In-Progress</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_7">
           <property name="text">
-           <string>Owner</string>
+           <string>Project End Date</string>
           </property>
          </widget>
         </item>
-        <item row="6" column="2">
-         <widget class="QLineEdit" name="projectOwnerLE"/>
+        <item row="0" column="2">
+         <widget class="QLineEdit" name="projectNameLE"/>
+        </item>
+        <item row="5" column="2">
+         <widget class="QLineEdit" name="projectEndLE">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+          <property name="placeholderText">
+           <string>Project is currently open</string>
+          </property>
+          <property name="clearButtonEnabled">
+           <bool>false</bool>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -205,7 +211,7 @@
             <item>
              <widget class="QPushButton" name="exitWithoutSavingButton">
               <property name="text">
-               <string>Exit (without saving)</string>
+               <string>Exit</string>
               </property>
              </widget>
             </item>

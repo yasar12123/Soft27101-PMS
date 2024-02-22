@@ -26,9 +26,10 @@ if __name__ == '__main__':
 
 
     p = Project()
-    updateProject = p.set_project(session, 21, 'changename', 'changeStat', 'Not Started')
+    projects = p.get_project(session, 2)
 
-    if updateProject:
-        print('updated')
+    for project in projects:
+        if project.end_date:
+            print(project.end_date)
 
 

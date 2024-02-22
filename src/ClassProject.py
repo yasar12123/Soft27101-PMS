@@ -128,7 +128,7 @@ class Project(Base):
             return f'Error retrieving data: {e}'
 
 
-    def set_project(self, session, projectPkey, setName, setDesc, setStatus, setStartDate, setEndDate, setDueDate):
+    def set_project(self, session, projectPkey, setName, setDesc, setStatus, setStartDate, setDueDate):
         # Try to establish connection to db
         try:
             # Create a session
@@ -142,7 +142,6 @@ class Project(Base):
                     project.desc = setDesc
                     project.status = setStatus
                     project.start_date = setStartDate
-                    project.end_date = setEndDate
                     project.due_date = setDueDate
                     session.commit()
                 return 'Project updated'
@@ -167,4 +166,23 @@ class Project(Base):
         except SQLAlchemyError as e:
             # Log or handle the exception
             return f'Error deleting project: {e}'
+
+    def close_project(self, session, projectPkey):
+        # Try to establish connection to db
+        try:
+            # Create a session
+            with session() as session:
+                project = session.query(Project).filter_by(project_pkey=projectPkey).first()
+                if project is None:
+                    return 'Project does not exist'
+
+                else:
+                    project.status = 'Completed'
+                    project.end_date = datetime.utcnow()
+                    session.commit()
+                return 'Project Closed'
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error closing project: {e}'
 

@@ -43,12 +43,12 @@
        </property>
        <item>
         <property name="text">
-         <string>Open</string>
+         <string>Not Started</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>Not Started</string>
+         <string>In-Progress</string>
         </property>
        </item>
       </widget>
@@ -131,7 +131,7 @@
         <item>
          <widget class="QPushButton" name="exitProjectButton">
           <property name="text">
-           <string>Exit (without saving)</string>
+           <string>Exit</string>
           </property>
          </widget>
         </item>
