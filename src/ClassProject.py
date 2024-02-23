@@ -93,8 +93,8 @@ class Project(Base):
                     # query db for the project
                     project = (
                         session.query(Project)
-                        .filter(Project.name == self.name)  # Filter by project name
-                        .filter(Project.is_removed == 0)  # Filter by is_removed status
+                        .filter(Project.name == self.name,  # Filter by project name
+                                Project.is_removed == 0)  # Filter by is_removed status
                         .first()
                     )
                     # if the project already exists in the database
@@ -186,3 +186,15 @@ class Project(Base):
             # Log or handle the exception
             return f'Error closing project: {e}'
 
+    def get_project_fkey(self, session, projectName):
+        # Try to establish connection to db
+        try:
+            # Create a session
+            with session() as session:
+                # query db for the user
+                project = session.query(Project).filter_by(name=projectName).first()
+                return project.project_pkey
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error connecting: {e}'

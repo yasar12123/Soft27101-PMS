@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>816</width>
-    <height>553</height>
+    <height>559</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -49,54 +49,48 @@
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
        <layout class="QGridLayout" name="gridLayout">
-        <item row="0" column="2">
-         <widget class="QLineEdit" name="taskNameLE"/>
-        </item>
-        <item row="3" column="2">
-         <widget class="QDateEdit" name="taskStartDE">
-          <property name="calendarPopup">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="2">
-         <widget class="QLineEdit" name="taskEndLE">
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-          <property name="placeholderText">
-           <string>Project is currently open</string>
-          </property>
-          <property name="clearButtonEnabled">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QTextEdit" name="taskDescTE"/>
-        </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="label_7">
-          <property name="text">
-           <string>Task End Date</string>
-          </property>
-         </widget>
-        </item>
         <item row="2" column="0">
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>Task Status: </string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
          <widget class="QLabel" name="label_2">
           <property name="text">
            <string>Task Description: </string>
           </property>
          </widget>
         </item>
-        <item row="2" column="2">
+        <item row="8" column="0">
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>Assigned By: </string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_8">
+          <property name="text">
+           <string>Assigned To: </string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="2">
+         <widget class="QDateEdit" name="taskStartDE">
+          <property name="calendarPopup">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="2">
+         <widget class="QLineEdit" name="taskEndLE">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+          <property name="placeholderText">
+           <string>Task is currently open</string>
+          </property>
+          <property name="clearButtonEnabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="2">
          <widget class="QComboBox" name="taskStatusCB">
           <property name="acceptDrops">
            <bool>false</bool>
@@ -113,45 +107,58 @@
           </item>
          </widget>
         </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Task Start Date: </string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>Task Name: </string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="label_8">
-          <property name="text">
-           <string>Assigned To: </string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="2">
+        <item row="5" column="2">
          <widget class="QDateEdit" name="taskDueDE">
           <property name="calendarPopup">
            <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="4" column="0">
+        <item row="5" column="0">
          <widget class="QLabel" name="label_5">
           <property name="text">
            <string>Task Due Date: </string>
           </property>
          </widget>
         </item>
-        <item row="6" column="2">
-         <widget class="QComboBox" name="taskAssigneeCB"/>
+        <item row="1" column="2">
+         <widget class="QLineEdit" name="taskNameLE"/>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Task Status: </string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Task Name: </string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="2">
+         <widget class="QTextEdit" name="taskDescTE"/>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Task Start Date: </string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="label_7">
+          <property name="text">
+           <string>Task End Date</string>
+          </property>
+         </widget>
         </item>
         <item row="7" column="2">
+         <widget class="QComboBox" name="taskAssigneeCB"/>
+        </item>
+        <item row="8" column="2">
          <widget class="QLineEdit" name="taskAssignerLE">
           <property name="readOnly">
            <bool>true</bool>
@@ -164,17 +171,20 @@
           </property>
          </widget>
         </item>
-        <item row="7" column="0">
-         <widget class="QLabel" name="label_9">
+        <item row="0" column="2">
+         <widget class="QLineEdit" name="projectNameLE"/>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_10">
           <property name="text">
-           <string>Assigned By: </string>
+           <string>Project Name: </string>
           </property>
          </widget>
         </item>
        </layout>
       </item>
       <item>
-       <widget class="QLabel" name="projectChangesLabel">
+       <widget class="QLabel" name="taskChangesLabel">
         <property name="text">
          <string/>
         </property>

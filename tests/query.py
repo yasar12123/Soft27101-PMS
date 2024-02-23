@@ -25,10 +25,8 @@ if __name__ == '__main__':
     session = db.get_session()
 
     t = Task()
-    tasks = t.get_tasks(session, 16)
-
-    for task in tasks:
-        print(task.assigner.full_name, task.project.name)
+    taskClose = t.close_task(session, 1)
+    print(taskClose)
 
 
 

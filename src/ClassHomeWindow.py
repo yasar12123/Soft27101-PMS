@@ -14,6 +14,8 @@ from PyQt6.QtCore import QDate
 from generated.AddProjectDialog import Ui_AddProjectDialog
 from generated.HomeWindow import Ui_HomeWindow
 from generated.ViewProjectDialog import Ui_ViewProjectDialog
+from generated.ViewTaskDialog import Ui_ViewTaskDialog
+from generated.AddTaskDialog import Ui_AddTaskDialog
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -30,6 +32,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         super().__init__()
         self.setupUi(self)
         self.activeUser = activeUser
+        self.projectNameItemSelected = None
         self.projectItemSelected = None
         self.taskItemSelected = None
 
@@ -54,6 +57,8 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.ViewProjectButton.clicked.connect(self.on_view_project_button)
         self.tasksButton.clicked.connect(self.on_tasks_button)
         self.addTaskCommentButton.clicked.connect(self.on_add_task_comment_button)
+        self.ViewTaskButton.clicked.connect(self.on_view_task_button)
+        self.AddTaskButton.clicked.connect(self.on_add_task_button)
 
         # on table click
         self.ProjectsAllTable.itemClicked.connect(self.on_project_all_table_item_clicked)
@@ -220,6 +225,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         row = item.row()
         project = self.ProjectsAllTable.item(row, 0).text()
         self.projectItemSelected = int(project)
+        self.projectNameItemSelected = self.ProjectsAllTable.item(row, 1).text()
         self.populate_project_comments(int(project))
 
         # set button to enable
@@ -239,8 +245,8 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
     ####tasks dashboard
     def on_tasks_button(self):
         self.stackedWidget.setCurrentIndex(2)
+        self.TaskAllTable.setRowCount(0)
         self.populate_task_project_table()
-        self.populate_task_all_table()
 
     def populate_task_project_table(self):
         # Create a database connection
@@ -292,6 +298,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 self.TaskAllTable.setItem(row, 9, QtWidgets.QTableWidgetItem(task.assigner.full_name))
                 row += 1
 
+
     def on_task_project_all_table_item_clicked(self, item):
         if item is None:
             self.populate_task_all_table()
@@ -301,6 +308,8 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             row = item.row()
             project = self.taskProjectTable.item(row, 0).text()
             self.populate_task_all_table(projectPKEY=int(project))
+            self.projectItemSelected = int(project)
+            self.projectNameItemSelected = self.taskProjectTable.item(row, 1).text()
 
 
     def populate_task_comments(self, taskPkey):
@@ -324,6 +333,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             project = self.TaskAllTable.item(row, 0).text()
             task = self.TaskAllTable.item(row, 2).text()
             self.projectItemSelected = int(project)
+            self.projectNameItemSelected = self.TaskAllTable.item(row, 1).text()
             self.taskItemSelected = int(task)
             self.populate_task_comments(taskPkey=int(task))
 
@@ -364,7 +374,14 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.view_project_window = ViewProject(self, projectPkey=projectPk, activeUser=self.activeUser)
         self.view_project_window.show()
 
+    def on_view_task_button(self):
+        taskPk = self.taskItemSelected
+        self.view_task_window = ViewTask(self, projectPkey=self.projectItemSelected, taskPkey=taskPk, activeUser=self.activeUser)
+        self.view_task_window.show()
 
+    def on_add_task_button(self):
+        self.add_task_window = AddTask(self, projectName=self.projectNameItemSelected, projectPkey=self.projectItemSelected, activeUser=self.activeUser)
+        self.add_task_window.show()
 
 
 class AddProject(QDialog, Ui_AddProjectDialog):
@@ -451,6 +468,105 @@ class AddProject(QDialog, Ui_AddProjectDialog):
         self.field_changed = True
         self.addProjectButton.setEnabled(True)
         self.exitProjectButton.setText('Exit (without saving')
+
+
+
+
+
+class AddTask(QDialog, Ui_AddTaskDialog):
+    def __init__(self, home_window_instance, projectName, projectPkey, activeUser):
+        super().__init__()
+        self.setupUi(self)
+        self.activeUser = activeUser
+        self.projectName = projectName
+        self.projectPkey = projectPkey
+        self.field_changed = False
+        self.home_window_instance = home_window_instance
+
+        # buttons
+        self.addTaskButton.clicked.connect(self.on_add_task_button)
+        self.exitTaskButton.clicked.connect(self.on_exit_without_save)
+
+        #set date defaults
+        self.taskStartDE.setDate(QDate.currentDate())
+        self.taskDueDE.setDate(QDate.currentDate())
+
+        #set project name
+        self.projectNameLE.setText(projectName)
+
+        #check if fields have changed
+        self.taskNameLE.textChanged.connect(self.on_field_changed)
+        self.taskDescTE.textChanged.connect(self.on_field_changed)
+        self.taskStatusCB.currentTextChanged.connect(self.on_field_changed)
+        self.taskStartDE.dateChanged.connect(self.on_field_changed)
+        self.taskDueDE.dateChanged.connect(self.on_field_changed)
+
+        # disable button
+        self.addTaskButton.setEnabled(False)
+
+
+
+    def on_add_task_button(self):
+        # Create a session
+        db = DatabaseConnection()
+        session = db.get_session()
+
+        # get assigner fkey
+        assigner = User()
+        assignerfkey = assigner.get_user_fkey(session, self.activeUser)
+
+        # input from window
+        Tname = self.taskNameLE.text()
+        Tdesc = self.taskDescTE.toPlainText()
+        Tstatus = self.taskStatusCB.currentText()
+        startDate = self.taskStartDE.date()
+        startDateDT = datetime.date(startDate.year(), startDate.month(), startDate.day())
+        Tstart = datetime.datetime.strptime(str(startDateDT), '%Y-%m-%d')
+        dueDate = self.taskDueDE.date()
+        dueDateDT = datetime.date(dueDate.year(), dueDate.month(), dueDate.day())
+        Tdue = datetime.datetime.strptime(str(dueDateDT), '%Y-%m-%d')
+
+        # db session
+        dbCon = DatabaseConnection()
+        session = dbCon.get_session()
+
+        # Create a new task instance
+        new_task = Task(project_fkey=self.projectPkey, name=Tname, desc=Tdesc, start_date=Tstart, due_date=Tdue, status=Tstatus,
+                        assigner_fkey=assignerfkey, assignee_fkey=-1, is_removed=0)
+        # add project to db
+        addTask = new_task.add_task(session)
+
+        if addTask == 'successful':
+            self.addTaskStatusLabel.setText(f'The task, {Tname}! has now been added in to project: {self.projectName}.')
+            self.home_window_instance.populate_task_all_table(projectPKEY=self.projectPkey)
+
+            # disable fields
+            self.projectNameLE.setEnabled(False)
+            self.taskNameLE.setEnabled(False)
+            self.taskDescTE.setEnabled(False)
+            self.taskStatusCB.setEnabled(False)
+            self.taskStartDE.setEnabled(False)
+            self.taskDueDE.setEnabled(False)
+            self.addTaskButton.setEnabled(False)
+            self.exitTaskButton.setText('Exit')
+        else:
+            self.addTaskStatusLabel.setText(addTask)
+
+
+    def on_exit_without_save(self):
+        if self.exitTaskButton.text() == 'Exit':
+            self.close()
+        else:
+            confirmation = QMessageBox.question(self, "Confirm exit",
+                                                "Are you sure you want to exit without adding the task?",
+                                                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if confirmation == QMessageBox.StandardButton.Yes:
+                self.close()
+
+    def on_field_changed(self):
+        self.field_changed = True
+        self.addTaskButton.setEnabled(True)
+        self.exitTaskButton.setText('Exit (without saving')
 
 
 
@@ -624,7 +740,7 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         self.projectEndLE.setEnabled(False)
         self.projectOwnerLE.setEnabled(False)
         self.saveChangesButton.setEnabled(False)
-        self.exitWithoutSavingButton.setEnabled(False)
+        #self.exitWithoutSavingButton.setEnabled(False)
         self.closeProjectButton.setEnabled(False)
         self.deleteProjectButton.setEnabled(False)
         self.TeamMembersTable.setEnabled(False)
@@ -636,6 +752,176 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         self.saveChangesButton.setEnabled(True)
         self.exitWithoutSavingButton.setText('Exit (without saving')
 
+
+
+class ViewTask(QDialog, Ui_ViewTaskDialog):
+    def __init__(self, home_window_instance, projectPkey, taskPkey, activeUser):
+        super().__init__()
+        self.setupUi(self)
+        self.home_window_instance = home_window_instance
+        self.projectPkey = projectPkey
+        self.taskPkey = taskPkey
+        self.activeUser = activeUser
+        self.field_changed = False
+
+        # run functions
+        self.populate_task()
+        #self.populate_team_members_table()
+
+        # on buttons click
+        self.deleteTaskButton.clicked.connect(self.on_delete_task)
+        self.saveChangesButton.clicked.connect(self.on_save_changes)
+        self.exitWithoutSavingButton.clicked.connect(self.on_exit_without_save)
+        self.closeTaskButton.clicked.connect(self.on_close_task)
+
+        # check if fields have changed
+        self.taskNameLE.textChanged.connect(self.on_field_changed)
+        self.taskDescTE.textChanged.connect(self.on_field_changed)
+        self.taskStatusCB.currentTextChanged.connect(self.on_field_changed)
+        self.taskStartDE.dateChanged.connect(self.on_field_changed)
+        self.taskDueDE.dateChanged.connect(self.on_field_changed)
+
+        # disable buttons
+        self.saveChangesButton.setEnabled(False)
+
+    def populate_task(self):
+        # Create a database connection
+        db = DatabaseConnection()
+        session = db.get_session()
+        # task instance
+        t = Task()
+        taskSelected = t.get_task(session, self.taskPkey)
+        for task in taskSelected:
+            self.projectNameLE.setText(task.project.name)
+            self.taskNameLE.setText(task.name)
+            self.taskDescTE.setText(task.desc)
+            self.taskStatusCB.setCurrentText(task.status)
+            self.taskStartDE.setDate(task.start_date)
+            self.taskDueDE.setDate(task.due_date)
+            if task.end_date:
+                self.taskEndLE.setText(task.end_date.strftime("%d/%m/%Y"))
+
+            self.taskAssignerLE.setText(task.assigner.full_name)
+            self.taskAssigneeCB.setCurrentText(task.assignee.full_name)
+
+
+    def on_delete_task(self):
+        confirmation = QMessageBox.question(self, "Confirm Deletion",
+                                            "Are you sure you want to delete this task?",
+                                            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if confirmation == QMessageBox.StandardButton.Yes:
+            # Proceed with deletion
+            # Create a database connection
+            db = DatabaseConnection()
+            session = db.get_session()
+            # task instance
+            t = Task()
+            tasks = t.get_task(session, self.taskPkey)
+            for task in tasks:
+                taskName = task.name
+            taskDelete = t.delete_task(session, self.taskPkey)
+            if taskDelete == 'Task deleted successfully':
+                self.taskChangesLabel.setText(f'The Task, {taskName}! has now been removed.')
+                self.home_window_instance.populate_task_all_table(projectPKEY=self.projectPkey)
+
+                #disable fields after deletion
+                self.disable_view_task_fields()
+
+            else:
+                return taskDelete
+        else:
+            # Cancelled by the user
+            return
+
+    def on_save_changes(self):
+        currentProjectName = self.projectNameLE.text()
+        currentTaskName = self.taskNameLE.text()
+        currentDesc = self.taskDescTE.toPlainText()
+        currentStatus = self.taskStatusCB.currentText()
+
+        currentStartDate = self.taskStartDE.date()
+        startDateDT = datetime.date(currentStartDate.year(), currentStartDate.month(), currentStartDate.day())
+        Pstart = datetime.datetime.strptime(str(startDateDT), '%Y-%m-%d')
+
+        currentDueDate = self.taskDueDE.date()
+        dueDateDT = datetime.date(currentDueDate.year(), currentDueDate.month(), currentDueDate.day())
+        Pdue = datetime.datetime.strptime(str(dueDateDT), '%Y-%m-%d')
+
+        # Create a database connection
+        db = DatabaseConnection()
+        session = db.get_session()
+        t = Task()
+        updateTask = t.set_task(session, self.taskPkey, currentTaskName, currentDesc,
+                                      currentStatus, Pstart, Pdue)
+
+        if updateTask:
+            print('updated')
+            self.taskChangesLabel.setText(f'The task, {currentTaskName}! has now been updated.')
+            self.home_window_instance.populate_task_all_table(projectPKEY=self.projectPkey)
+            self.exitWithoutSavingButton.setText('Exit')
+            self.saveChangesButton.setEnabled(False)
+        else:
+            self.taskChangesLabel.setText(updateTask)
+
+
+    def on_exit_without_save(self):
+        if self.exitWithoutSavingButton.text() == 'Exit':
+            self.close()
+        else:
+            confirmation = QMessageBox.question(self, "Confirm exit",
+                                                "Are you sure you want to exit without saving the changes?",
+                                                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if confirmation == QMessageBox.StandardButton.Yes:
+                self.close()
+
+    def on_close_task(self):
+        confirmation = QMessageBox.question(self, "Confirm Task Closure",
+                                            "Are you sure you want to close this task?",
+                                            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if confirmation == QMessageBox.StandardButton.Yes:
+            # Create a database connection
+            db = DatabaseConnection()
+            session = db.get_session()
+            # task instance
+            t = Task()
+            tasks = t.get_task(session, self.taskPkey)
+            for task in tasks:
+                taskName = task.name
+            closeTask = t.close_task(session, self.taskPkey)
+            if closeTask == 'Task Closed':
+                self.taskChangesLabel.setText(f'The task, {taskName}! has now been closed.')
+                self.home_window_instance.populate_task_all_table(projectPKEY=self.projectPkey)
+
+                # disable fields after deletion
+                self.disable_view_task_fields()
+            else:
+                return closeTask
+        else:
+            return
+
+
+    def disable_view_task_fields(self):
+        self.projectNameLE.setEnabled(False)
+        self.taskNameLE.setEnabled(False)
+        self.taskDescTE.setEnabled(False)
+        self.taskStatusCB.setEnabled(False)
+        self.taskStartDE.setEnabled(False)
+        self.taskDueDE.setEnabled(False)
+        self.taskEndLE.setEnabled(False)
+        self.taskAssigneeCB.setEnabled(False)
+        self.taskAssignerLE.setEnabled(False)
+        self.saveChangesButton.setEnabled(False)
+        #self.exitWithoutSavingButton.setEnabled(False)
+        self.closeTaskButton.setEnabled(False)
+        self.deleteTaskButton.setEnabled(False)
+        #self.TeamMembersTable.setEnabled(False)
+        #self.addMemberButton.setEnabled(False)
+        #self.removeMemberButton.setEnabled(False)
+
+    def on_field_changed(self):
+        self.field_changed = True
+        self.saveChangesButton.setEnabled(True)
+        self.exitWithoutSavingButton.setText('Exit (without saving')
 
 
 
