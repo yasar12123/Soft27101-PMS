@@ -16,6 +16,7 @@ from generated.HomeWindow import Ui_HomeWindow
 from generated.ViewProjectDialog import Ui_ViewProjectDialog
 from generated.ViewTaskDialog import Ui_ViewTaskDialog
 from generated.AddTaskDialog import Ui_AddTaskDialog
+from generated.ViewProjectAddTeamMemberDialog import Ui_ViewProjectAddTeamMemberDialog
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -470,9 +471,6 @@ class AddProject(QDialog, Ui_AddProjectDialog):
         self.exitProjectButton.setText('Exit (without saving')
 
 
-
-
-
 class AddTask(QDialog, Ui_AddTaskDialog):
     def __init__(self, home_window_instance, projectName, projectPkey, activeUser):
         super().__init__()
@@ -569,25 +567,29 @@ class AddTask(QDialog, Ui_AddTaskDialog):
         self.exitTaskButton.setText('Exit (without saving')
 
 
-
 class ViewProject(QDialog, Ui_ViewProjectDialog):
     def __init__(self, home_window_instance, projectPkey, activeUser):
         super().__init__()
         self.setupUi(self)
         self.home_window_instance = home_window_instance
         self.projectPkey = projectPkey
+        self.projectName = None
         self.activeUser = activeUser
         self.field_changed = False
+        self.is_admin_or_owner = False
 
         # run functions
         self.populate_project()
         self.populate_team_members_table()
+        self.check_if_user_is_admin_or_owner()
+        self.set_projectName()
 
         # on buttons click
         self.deleteProjectButton.clicked.connect(self.on_delete_project)
         self.saveChangesButton.clicked.connect(self.on_save_changes)
         self.exitWithoutSavingButton.clicked.connect(self.on_exit_without_save)
         self.closeProjectButton.clicked.connect(self.on_close_project)
+        self.addMemberButton.clicked.connect(self.on_add_member_button)
 
         # check if fields have changed
         self.projectNameLE.textChanged.connect(self.on_field_changed)
@@ -598,6 +600,34 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
 
         # disable buttons
         self.saveChangesButton.setEnabled(False)
+
+    def set_projectName(self):
+        self.projectName = self.projectNameLE.text()
+    def no_permission_to_perform_action(self):
+        QMessageBox.critical(self, "Permission denied", "You do not have permissions to perform this action",
+                             QMessageBox.StandardButton.Close)
+
+    def check_if_user_is_admin_or_owner(self):
+        # Create a database connection
+        db = DatabaseConnection()
+        session = db.get_session()
+
+        # is project owner
+        p = Project()
+        projectSelected = p.get_project(session, self.projectPkey)
+        for project in projectSelected:
+            if project.owner.username == self.activeUser:
+                self.is_admin_or_owner = True
+                break
+
+        # is admin
+        u = User()
+        activeUser = u.get_user(session, self.activeUser)
+        for user in activeUser:
+            for userRole in user.user_roles:
+                if userRole.role_type == 'Admin':
+                    self.is_admin_or_owner = True
+                    break
 
     def populate_project(self):
         # Create a database connection
@@ -636,64 +666,68 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
                 self.TeamMembersTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(teamMember.start_date)))
                 row += 1
 
-
     def on_delete_project(self):
-        confirmation = QMessageBox.question(self, "Confirm Deletion",
-                                            "Are you sure you want to delete this project?",
-                                            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        if confirmation == QMessageBox.StandardButton.Yes:
-            # Proceed with deletion
+        if self.is_admin_or_owner is False:
+            self.no_permission_to_perform_action()
+        else:
+            confirmation = QMessageBox.question(self, "Confirm Deletion",
+                                                "Are you sure you want to delete this project?",
+                                                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if confirmation == QMessageBox.StandardButton.Yes:
+                # Proceed with deletion
+                # Create a database connection
+                db = DatabaseConnection()
+                session = db.get_session()
+                # project instance
+                p = Project()
+                projects = p.get_project(session, self.projectPkey)
+                for project in projects:
+                    projectName = project.name
+                projectDelete = p.delete_project(session, self.projectPkey)
+                if projectDelete == 'Project deleted successfully':
+                    self.projectChangesLabel.setText(f'The project, {projectName}! has now been removed.')
+                    self.home_window_instance.populate_projects_all_table()
+
+                    #disable fields after deletion
+                    self.disable_view_project_fields()
+
+                else:
+                    return projectDelete
+            else:
+                # Cancelled by the user
+                return
+
+    def on_save_changes(self):
+        if self.is_admin_or_owner is False:
+            self.no_permission_to_perform_action()
+        else:
+            currentName = self.projectNameLE.text()
+            currentDesc = self.projectDescTE.toPlainText()
+            currentStatus = self.projectStatusCB.currentText()
+
+            currentStartDate = self.projectStartDE.date()
+            startDateDT = datetime.date(currentStartDate.year(), currentStartDate.month(), currentStartDate.day())
+            Pstart = datetime.datetime.strptime(str(startDateDT), '%Y-%m-%d')
+
+            currentDueDate = self.projectDueDE.date()
+            dueDateDT = datetime.date(currentDueDate.year(), currentDueDate.month(), currentDueDate.day())
+            Pdue = datetime.datetime.strptime(str(dueDateDT), '%Y-%m-%d')
+
             # Create a database connection
             db = DatabaseConnection()
             session = db.get_session()
-            # project instance
             p = Project()
-            projects = p.get_project(session, self.projectPkey)
-            for project in projects:
-                projectName = project.name
-            projectDelete = p.delete_project(session, self.projectPkey)
-            if projectDelete == 'Project deleted successfully':
-                self.projectChangesLabel.setText(f'The project, {projectName}! has now been removed.')
+            updateProject = p.set_project(session, self.projectPkey, currentName, currentDesc,
+                                          currentStatus, Pstart, Pdue)
+
+            if updateProject:
+                print('updated')
+                self.projectChangesLabel.setText(f'The project, {currentName}! has now been updated.')
                 self.home_window_instance.populate_projects_all_table()
-
-                #disable fields after deletion
-                self.disable_view_project_fields()
-
+                self.exitWithoutSavingButton.setText('Exit')
+                self.saveChangesButton.setEnabled(False)
             else:
-                return projectDelete
-        else:
-            # Cancelled by the user
-            return
-
-    def on_save_changes(self):
-        currentName = self.projectNameLE.text()
-        currentDesc = self.projectDescTE.toPlainText()
-        currentStatus = self.projectStatusCB.currentText()
-
-        currentStartDate = self.projectStartDE.date()
-        startDateDT = datetime.date(currentStartDate.year(), currentStartDate.month(), currentStartDate.day())
-        Pstart = datetime.datetime.strptime(str(startDateDT), '%Y-%m-%d')
-
-        currentDueDate = self.projectDueDE.date()
-        dueDateDT = datetime.date(currentDueDate.year(), currentDueDate.month(), currentDueDate.day())
-        Pdue = datetime.datetime.strptime(str(dueDateDT), '%Y-%m-%d')
-
-        # Create a database connection
-        db = DatabaseConnection()
-        session = db.get_session()
-        p = Project()
-        updateProject = p.set_project(session, self.projectPkey, currentName, currentDesc,
-                                      currentStatus, Pstart, Pdue)
-
-        if updateProject:
-            print('updated')
-            self.projectChangesLabel.setText(f'The project, {currentName}! has now been updated.')
-            self.home_window_instance.populate_projects_all_table()
-            self.exitWithoutSavingButton.setText('Exit')
-            self.saveChangesButton.setEnabled(False)
-        else:
-            self.projectChangesLabel.setText(updateProject)
-
+                self.projectChangesLabel.setText(updateProject)
 
     def on_exit_without_save(self):
         if self.exitWithoutSavingButton.text() == 'Exit':
@@ -706,30 +740,32 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
                 self.close()
 
     def on_close_project(self):
-        confirmation = QMessageBox.question(self, "Confirm Project Closure",
-                                            "Are you sure you want to close this project?",
-                                            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        if confirmation == QMessageBox.StandardButton.Yes:
-            # Create a database connection
-            db = DatabaseConnection()
-            session = db.get_session()
-            # project instance
-            p = Project()
-            projects = p.get_project(session, self.projectPkey)
-            for project in projects:
-                projectName = project.name
-            closeProject = p.close_project(session, self.projectPkey)
-            if closeProject == 'Project Closed':
-                self.projectChangesLabel.setText(f'The project, {projectName}! has now been closed.')
-                self.home_window_instance.populate_projects_all_table()
-
-                # disable fields after deletion
-                self.disable_view_project_fields()
-            else:
-                return closeProject
+        if self.is_admin_or_owner is False:
+            self.no_permission_to_perform_action()
         else:
-            return
+            confirmation = QMessageBox.question(self, "Confirm Project Closure",
+                                                "Are you sure you want to close this project?",
+                                                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if confirmation == QMessageBox.StandardButton.Yes:
+                # Create a database connection
+                db = DatabaseConnection()
+                session = db.get_session()
+                # project instance
+                p = Project()
+                projects = p.get_project(session, self.projectPkey)
+                for project in projects:
+                    projectName = project.name
+                closeProject = p.close_project(session, self.projectPkey)
+                if closeProject == 'Project Closed':
+                    self.projectChangesLabel.setText(f'The project, {projectName}! has now been closed.')
+                    self.home_window_instance.populate_projects_all_table()
 
+                    # disable fields after deletion
+                    self.disable_view_project_fields()
+                else:
+                    return closeProject
+            else:
+                return
 
     def disable_view_project_fields(self):
         self.projectNameLE.setEnabled(False)
@@ -752,6 +788,81 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         self.saveChangesButton.setEnabled(True)
         self.exitWithoutSavingButton.setText('Exit (without saving')
 
+    def on_add_member_button(self):
+        self.add_member_window = AddTeamMemberDialog(self, projectName=self.projectName,
+                                                     projectPkey=self.projectPkey,
+                                                     activeUser=self.activeUser)
+        self.add_member_window.show()
+
+
+
+
+class AddTeamMemberDialog(QDialog, Ui_ViewProjectAddTeamMemberDialog):
+    def __init__(self, view_project_instance, projectName, projectPkey, activeUser):
+        super().__init__()
+        self.setupUi(self)
+        self.view_project_instance = view_project_instance
+        self.projectPkey = projectPkey
+        self.projectName = projectName
+        self.activeUser = activeUser
+        self.field_changed = False
+        #self.edit_permissions = False
+
+        #run func
+        self.populate_project_name()
+        self.populate_user_name()
+
+        #on button
+        self.addUserButton.clicked.connect(self.on_add_user_button)
+
+    def populate_project_name(self):
+        self.projectNameLE.setText(self.projectName)
+
+    def populate_user_name(self):
+        # Create a database connection
+        db = DatabaseConnection()
+        session = db.get_session()
+        u = User()
+        users = u.get_users(session)
+        row = 0
+        for user in users:
+            self.userCB.addItem(str(user.user_pkey))
+            self.userCB.setItemText(row, f'{user.full_name} ({user.username})')
+            row += 1
+
+    def on_add_user_button(self):
+        # input from window
+        user = self.userCB.itemData()
+        print(user)
+
+
+        # # db session
+        # dbCon = DatabaseConnection()
+        # session = dbCon.get_session()
+        #
+        # # Create a new task instance
+        # new_task = Task(project_fkey=self.projectPkey, name=Tname, desc=Tdesc, start_date=Tstart, due_date=Tdue, status=Tstatus,
+        #                 assigner_fkey=assignerfkey, assignee_fkey=-1, is_removed=0)
+        # # add project to db
+        # addTask = new_task.add_task(session)
+        #
+        # if addTask == 'successful':
+        #     self.addTaskStatusLabel.setText(f'The task, {Tname}! has now been added in to project: {self.projectName}.')
+        #     self.home_window_instance.populate_task_all_table(projectPKEY=self.projectPkey)
+        #
+        #     # disable fields
+        #     self.projectNameLE.setEnabled(False)
+        #     self.taskNameLE.setEnabled(False)
+        #     self.taskDescTE.setEnabled(False)
+        #     self.taskStatusCB.setEnabled(False)
+        #     self.taskStartDE.setEnabled(False)
+        #     self.taskDueDE.setEnabled(False)
+        #     self.addTaskButton.setEnabled(False)
+        #     self.exitTaskButton.setText('Exit')
+        # else:
+        #     self.addTaskStatusLabel.setText(addTask)
+
+
 
 
 class ViewTask(QDialog, Ui_ViewTaskDialog):
@@ -763,9 +874,11 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         self.taskPkey = taskPkey
         self.activeUser = activeUser
         self.field_changed = False
+        self.edit_permissions = False
 
         # run functions
         self.populate_task()
+        self.check_edit_permissions()
         #self.populate_team_members_table()
 
         # on buttons click
@@ -783,6 +896,41 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
 
         # disable buttons
         self.saveChangesButton.setEnabled(False)
+
+
+    def no_permission_to_perform_action(self):
+        QMessageBox.critical(self, "Permission denied", "You do not have permissions to perform this action",
+                             QMessageBox.StandardButton.Close)
+
+    def check_edit_permissions(self):
+        # Create a database connection
+        db = DatabaseConnection()
+        session = db.get_session()
+
+        # is task assignee
+        t = Task()
+        taskSelected = t.get_task(session, self.taskPkey)
+        for task in taskSelected:
+            if task.assignee.username == self.activeUser:
+                self.edit_permissions = True
+                break
+
+        # is project owner
+        p = Project()
+        projectSelected = p.get_project(session, self.projectPkey)
+        for project in projectSelected:
+            if project.owner.username == self.activeUser:
+                self.edit_permissions = True
+                break
+
+        # is admin
+        u = User()
+        activeUser = u.get_user(session, self.activeUser)
+        for user in activeUser:
+            for userRole in user.user_roles:
+                if userRole.role_type == 'Admin':
+                    self.edit_permissions = True
+                    break
 
     def populate_task(self):
         # Create a database connection
@@ -806,62 +954,68 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
 
 
     def on_delete_task(self):
-        confirmation = QMessageBox.question(self, "Confirm Deletion",
-                                            "Are you sure you want to delete this task?",
-                                            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        if confirmation == QMessageBox.StandardButton.Yes:
-            # Proceed with deletion
+        if self.edit_permissions is False:
+            self.no_permission_to_perform_action()
+        else:
+            confirmation = QMessageBox.question(self, "Confirm Deletion",
+                                                "Are you sure you want to delete this task?",
+                                                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if confirmation == QMessageBox.StandardButton.Yes:
+                # Proceed with deletion
+                # Create a database connection
+                db = DatabaseConnection()
+                session = db.get_session()
+                # task instance
+                t = Task()
+                tasks = t.get_task(session, self.taskPkey)
+                for task in tasks:
+                    taskName = task.name
+                taskDelete = t.delete_task(session, self.taskPkey)
+                if taskDelete == 'Task deleted successfully':
+                    self.taskChangesLabel.setText(f'The Task, {taskName}! has now been removed.')
+                    self.home_window_instance.populate_task_all_table(projectPKEY=self.projectPkey)
+
+                    #disable fields after deletion
+                    self.disable_view_task_fields()
+
+                else:
+                    return taskDelete
+            else:
+                # Cancelled by the user
+                return
+
+    def on_save_changes(self):
+        if self.edit_permissions is False:
+            self.no_permission_to_perform_action()
+        else:
+            currentProjectName = self.projectNameLE.text()
+            currentTaskName = self.taskNameLE.text()
+            currentDesc = self.taskDescTE.toPlainText()
+            currentStatus = self.taskStatusCB.currentText()
+
+            currentStartDate = self.taskStartDE.date()
+            startDateDT = datetime.date(currentStartDate.year(), currentStartDate.month(), currentStartDate.day())
+            Pstart = datetime.datetime.strptime(str(startDateDT), '%Y-%m-%d')
+
+            currentDueDate = self.taskDueDE.date()
+            dueDateDT = datetime.date(currentDueDate.year(), currentDueDate.month(), currentDueDate.day())
+            Pdue = datetime.datetime.strptime(str(dueDateDT), '%Y-%m-%d')
+
             # Create a database connection
             db = DatabaseConnection()
             session = db.get_session()
-            # task instance
             t = Task()
-            tasks = t.get_task(session, self.taskPkey)
-            for task in tasks:
-                taskName = task.name
-            taskDelete = t.delete_task(session, self.taskPkey)
-            if taskDelete == 'Task deleted successfully':
-                self.taskChangesLabel.setText(f'The Task, {taskName}! has now been removed.')
+            updateTask = t.set_task(session, self.taskPkey, currentTaskName, currentDesc,
+                                          currentStatus, Pstart, Pdue)
+
+            if updateTask:
+                print('updated')
+                self.taskChangesLabel.setText(f'The task, {currentTaskName}! has now been updated.')
                 self.home_window_instance.populate_task_all_table(projectPKEY=self.projectPkey)
-
-                #disable fields after deletion
-                self.disable_view_task_fields()
-
+                self.exitWithoutSavingButton.setText('Exit')
+                self.saveChangesButton.setEnabled(False)
             else:
-                return taskDelete
-        else:
-            # Cancelled by the user
-            return
-
-    def on_save_changes(self):
-        currentProjectName = self.projectNameLE.text()
-        currentTaskName = self.taskNameLE.text()
-        currentDesc = self.taskDescTE.toPlainText()
-        currentStatus = self.taskStatusCB.currentText()
-
-        currentStartDate = self.taskStartDE.date()
-        startDateDT = datetime.date(currentStartDate.year(), currentStartDate.month(), currentStartDate.day())
-        Pstart = datetime.datetime.strptime(str(startDateDT), '%Y-%m-%d')
-
-        currentDueDate = self.taskDueDE.date()
-        dueDateDT = datetime.date(currentDueDate.year(), currentDueDate.month(), currentDueDate.day())
-        Pdue = datetime.datetime.strptime(str(dueDateDT), '%Y-%m-%d')
-
-        # Create a database connection
-        db = DatabaseConnection()
-        session = db.get_session()
-        t = Task()
-        updateTask = t.set_task(session, self.taskPkey, currentTaskName, currentDesc,
-                                      currentStatus, Pstart, Pdue)
-
-        if updateTask:
-            print('updated')
-            self.taskChangesLabel.setText(f'The task, {currentTaskName}! has now been updated.')
-            self.home_window_instance.populate_task_all_table(projectPKEY=self.projectPkey)
-            self.exitWithoutSavingButton.setText('Exit')
-            self.saveChangesButton.setEnabled(False)
-        else:
-            self.taskChangesLabel.setText(updateTask)
+                self.taskChangesLabel.setText(updateTask)
 
 
     def on_exit_without_save(self):
@@ -875,29 +1029,32 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
                 self.close()
 
     def on_close_task(self):
-        confirmation = QMessageBox.question(self, "Confirm Task Closure",
-                                            "Are you sure you want to close this task?",
-                                            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        if confirmation == QMessageBox.StandardButton.Yes:
-            # Create a database connection
-            db = DatabaseConnection()
-            session = db.get_session()
-            # task instance
-            t = Task()
-            tasks = t.get_task(session, self.taskPkey)
-            for task in tasks:
-                taskName = task.name
-            closeTask = t.close_task(session, self.taskPkey)
-            if closeTask == 'Task Closed':
-                self.taskChangesLabel.setText(f'The task, {taskName}! has now been closed.')
-                self.home_window_instance.populate_task_all_table(projectPKEY=self.projectPkey)
-
-                # disable fields after deletion
-                self.disable_view_task_fields()
-            else:
-                return closeTask
+        if self.edit_permissions is False:
+            self.no_permission_to_perform_action()
         else:
-            return
+            confirmation = QMessageBox.question(self, "Confirm Task Closure",
+                                                "Are you sure you want to close this task?",
+                                                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if confirmation == QMessageBox.StandardButton.Yes:
+                # Create a database connection
+                db = DatabaseConnection()
+                session = db.get_session()
+                # task instance
+                t = Task()
+                tasks = t.get_task(session, self.taskPkey)
+                for task in tasks:
+                    taskName = task.name
+                closeTask = t.close_task(session, self.taskPkey)
+                if closeTask == 'Task Closed':
+                    self.taskChangesLabel.setText(f'The task, {taskName}! has now been closed.')
+                    self.home_window_instance.populate_task_all_table(projectPKEY=self.projectPkey)
+
+                    # disable fields after deletion
+                    self.disable_view_task_fields()
+                else:
+                    return closeTask
+            else:
+                return
 
 
     def disable_view_task_fields(self):

@@ -1,5 +1,6 @@
 from src.ClassBase import Base
-from sqlalchemy.orm import relationship
+from src.ClassUserRole import UserRole
+from sqlalchemy.orm import relationship, joinedload
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from datetime import datetime
 from sqlalchemy.exc import SQLAlchemyError
@@ -100,6 +101,43 @@ class User(Base):
             # Log or handle the exception
             return f'Error connecting: {e}'
 
+
+    def get_user(self, session, userName):
+        # Try to establish connection to db
+        try:
+            # Create a session
+            with session() as session:
+                query = (
+                    session.query(User)
+                    .join(User.user_roles)
+                    .filter(User.username == userName)
+                    .filter(User.user_pkey != -1)
+                    .filter(UserRole.is_active == 1)
+                    .options(joinedload(User.user_roles))
+                )
+                return query.all()
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error retrieving data: {e}'
+
+    def get_users(self, session):
+        # Try to establish connection to db
+        try:
+            # Create a session
+            with session() as session:
+                query = (
+                    session.query(User)
+                    .join(User.user_roles)
+                    .filter(UserRole.is_active == 1)
+                    .filter(User.user_pkey != -1)
+                    .options(joinedload(User.user_roles))
+                )
+                return query.all()
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error retrieving data: {e}'
 
 class UserAdmin(User):
     __tablename__ = 'USER_ADMIN'

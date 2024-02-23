@@ -48,3 +48,40 @@ class ProjectTeam(Base):
             # Log or handle the exception
             return f'Error retrieving data: {e}'
 
+
+    def add_team_member_to_project(self, session):
+
+        # check if fields are null
+        dictToCheck = {"Project": self.project_fkey,
+                       "User": self.user_fkey,
+                       "Team": self.team_fkey}
+
+        for attribute, val in dictToCheck.items():
+            if val == '':
+                return f'the field {attribute} can not be empty'
+
+        else:
+            # Try to establish connection to db
+            try:
+                # Create a session
+                with session() as session:
+                    # query db for the prject team
+                    projectTeam = (
+                        session.query(ProjectTeam)
+                        .filter(ProjectTeam.project_fkey == self.project_fkey,
+                                ProjectTeam.user_fkey == self.user_fkey,
+                                ProjectTeam.is_removed == 0)  # Filter by is_removed status
+                        .first()
+                    )
+                    # if the user already exists in the team
+                    if projectTeam:
+                        return f'Error!, the user: {self.name} already a team member'
+                    # if project is not in the database
+                    if projectTeam is None:
+                        session.add(self)
+                        session.commit()
+                        return 'successful'
+            except SQLAlchemyError as e:
+                # Log or handle the exception
+                return f'Error during adding user to project team: {e}'
+

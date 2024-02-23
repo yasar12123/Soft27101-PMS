@@ -167,6 +167,8 @@ class Project(Base):
             # Log or handle the exception
             return f'Error deleting project: {e}'
 
+
+
     def close_project(self, session, projectPkey):
         # Try to establish connection to db
         try:

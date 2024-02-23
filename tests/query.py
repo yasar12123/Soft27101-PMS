@@ -24,9 +24,10 @@ if __name__ == '__main__':
     # Obtain a session using the get_session() method
     session = db.get_session()
 
-    t = Task()
-    taskClose = t.close_task(session, 1)
-    print(taskClose)
+    row = 0
+    for user in range(0,100):
+        print(row)
+        row += 1
 
 
 
