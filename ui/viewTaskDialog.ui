@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>816</width>
-    <height>559</height>
+    <height>587</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -156,7 +156,11 @@
          </widget>
         </item>
         <item row="7" column="2">
-         <widget class="QComboBox" name="taskAssigneeCB"/>
+         <widget class="QComboBox" name="taskAssigneeCB">
+          <property name="editable">
+           <bool>true</bool>
+          </property>
+         </widget>
         </item>
         <item row="8" column="2">
          <widget class="QLineEdit" name="taskAssignerLE">
@@ -172,7 +176,14 @@
          </widget>
         </item>
         <item row="0" column="2">
-         <widget class="QLineEdit" name="projectNameLE"/>
+         <widget class="QLineEdit" name="projectNameLE">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
         </item>
         <item row="0" column="0">
          <widget class="QLabel" name="label_10">

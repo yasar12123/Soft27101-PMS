@@ -17,8 +17,8 @@ class DatabaseConnection:
     def connection_string(self):
         server = os.getenv('AZURE_SQL_SERVER')
         database = os.getenv('AZURE_SQL_DB')
-        driver = os.getenv('SQL_DRIVER', '{ODBC Driver 17 for SQL Server}')  ## test older version
-        #driver = os.getenv('SQL_DRIVER', '{ODBC Driver 18 for SQL Server}') ##pc with driver
+        #driver = os.getenv('SQL_DRIVER', '{ODBC Driver 17 for SQL Server}')  ## test older version
+        driver = os.getenv('SQL_DRIVER', '{ODBC Driver 18 for SQL Server}') ##pc with driver
         #driver = os.getenv('SQL_DRIVER', '{SQL Server Native Client 11.0}') ##laptop with ssms
 
         user = os.getenv('AZURE_SQL_USER')
@@ -43,20 +43,15 @@ class DatabaseConnection:
     def __enter__(self):
         return self.get_session()
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if exc_type is not None:
-            print(f"An error occurred: {exc_val}")
-        self.Session.close()
+    # def __exit__(self, exc_type, exc_val, exc_tb):
+    #     if exc_type is not None:
+    #         print(f"An error occurred: {exc_val}")
+    #     self.Session.close()
 
 
-# Usage:
-# with DatabaseConnection() as session:
-#     result = session.execute("SELECT * FROM Table")
-#     for row in result:
-#         print(row)
 
 
-#Usage:
+# #Usage:
 # db = DatabaseConnection()
 # session = db.get_session()
 

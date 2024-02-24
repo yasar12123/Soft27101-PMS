@@ -10,7 +10,7 @@ from src.ClassAttachment import Attachment
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QDialog, QMessageBox
-from PyQt6.QtCore import QDate
+from PyQt6.QtCore import QDate, Qt
 from generated.AddProjectDialog import Ui_AddProjectDialog
 from generated.HomeWindow import Ui_HomeWindow
 from generated.ViewProjectDialog import Ui_ViewProjectDialog
@@ -29,13 +29,17 @@ import datetime
 
 
 class HomeWindow(QMainWindow, Ui_HomeWindow):
-    def __init__(self, activeUser):
+    def __init__(self, activeUserInstance):
         super().__init__()
         self.setupUi(self)
-        self.activeUser = activeUser
+        self.activeUserInstance = activeUserInstance
         self.projectNameItemSelected = None
         self.projectItemSelected = None
         self.taskItemSelected = None
+
+        # database connection
+        self.dbCon = DatabaseConnection()
+        self.session = self.dbCon.get_session()
 
         # Hide pkey for tables
         self.ProjectsOngoingTable.setColumnHidden(0, True)
@@ -60,6 +64,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.addTaskCommentButton.clicked.connect(self.on_add_task_comment_button)
         self.ViewTaskButton.clicked.connect(self.on_view_task_button)
         self.AddTaskButton.clicked.connect(self.on_add_task_button)
+        self.logOutButton.clicked.connect(self.on_logOut_button)
 
         # on table click
         self.ProjectsAllTable.itemClicked.connect(self.on_project_all_table_item_clicked)
@@ -68,14 +73,10 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.TaskAllTable.itemClicked.connect(self.on_task_table_item_clicked)
 
 
-
     def populate_projects_ongoing_table(self):
-        # Create a database connection
-        db = DatabaseConnection()
-        session = db.get_session()
         # project instance
         p = Project()
-        projects = p.get_projects_for_team_member(session, self.activeUser)
+        projects = p.get_projects_for_team_member(self.session, self.activeUserInstance.username)
 
         # Populate the projects table
         row = 0
@@ -96,15 +97,12 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         #clear table
         self.TasksOngoingTable.setRowCount(0)
 
-        # Create a database connection
-        db = DatabaseConnection()
-        session = db.get_session()
         # project instance
         t = Task()
         if projectPkey:
-            tasks = t.get_tasks_for_team_member(session, self.activeUser, projectPkey=projectPkey)
+            tasks = t.get_tasks_for_team_member(self.session, self.activeUserInstance.username, projectPkey=projectPkey)
         else:
-            tasks = t.get_tasks_for_team_member(session, self.activeUser)
+            tasks = t.get_tasks_for_team_member(self.session, self.activeUserInstance.username)
         # Populate the projects table
         row = 0
         if tasks:
@@ -131,12 +129,8 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
 
     def plot_project_gantt_chart(self):
-        # Create a database connection
-        db = DatabaseConnection()
-        session = db.get_session()
-        # project instance
         p = Project()
-        projects = p.get_projects_for_team_member(session, self.activeUser)
+        projects = p.get_projects_for_team_member(self.session, self.activeUserInstance.username)
 
         # data for plotting
         project_names = [project.name for project in projects]
@@ -161,12 +155,9 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
 
     def populate_projects_all_table(self):
-        # Create a database connection
-        db = DatabaseConnection()
-        session = db.get_session()
         # project instance
         p = Project()
-        projects = p.get_projects(session)
+        projects = p.get_projects(self.session)
 
         # Populate the projects table
         row = 0
@@ -187,10 +178,8 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
     def populate_project_comments(self, projectPkey):
         # Create a database connection
-        db = DatabaseConnection()
-        session = db.get_session()
         comLog = CommunicationLog()
-        projectLog = comLog.get_project_communication_log(session, projectPkey)
+        projectLog = comLog.get_project_communication_log(self.session, projectPkey)
         self.commentListWidget.clear()
         for log in projectLog:
             self.commentListWidget.addItem('')
@@ -201,19 +190,15 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # get comment
         commentToAdd = self.newCommentTE.toPlainText()
 
-        # Create a session
-        db = DatabaseConnection()
-        session = db.get_session()
         # get user fkey
-        user = User()
-        userFkey = user.get_user_fkey(session, self.activeUser)
+        userFkey = self.activeUserInstance.user_pkey
         # get project fkey
         projectFkey = self.projectItemSelected
 
         # add comment
         new_comment = CommunicationLog(user_fkey=userFkey, project_fkey=projectFkey, task_fkey=-1, comment=commentToAdd,
                                        timestamp=datetime.datetime.now())
-        addComment = new_comment.add_comment(session)
+        addComment = new_comment.add_comment(self.session)
 
         if addComment == 'successful':
             self.populate_project_comments(projectPkey=projectFkey)
@@ -246,16 +231,16 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
     ####tasks dashboard
     def on_tasks_button(self):
         self.stackedWidget.setCurrentIndex(2)
+        self.ViewTaskButton.setEnabled(False)
+        self.AddTaskButton.setEnabled(False)
+        self.taskCommentListWidget.clear()
         self.TaskAllTable.setRowCount(0)
         self.populate_task_project_table()
 
     def populate_task_project_table(self):
-        # Create a database connection
-        db = DatabaseConnection()
-        session = db.get_session()
         # project instance
         p = Project()
-        projects = p.get_projects(session)
+        projects = p.get_projects(self.session)
 
         # Populate the projects table
         row = 0
@@ -271,15 +256,12 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         #clear table
         self.TaskAllTable.setRowCount(0)
 
-        # Create a database connection
-        db = DatabaseConnection()
-        session = db.get_session()
         # task instance
         t = Task()
         if projectPKEY:
-            tasks = t.get_tasks(session, projectPKEY)
+            tasks = t.get_tasks(self.session, projectPKEY)
         else:
-            tasks = t.get_tasks(session)
+            tasks = t.get_tasks(self.session)
 
         # Populate the tasks table
         row = 0
@@ -301,6 +283,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
 
     def on_task_project_all_table_item_clicked(self, item):
+        self.AddTaskButton.setEnabled(True)
         if item is None:
             self.populate_task_all_table()
 
@@ -314,11 +297,8 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
 
     def populate_task_comments(self, taskPkey):
-        # Create a database connection
-        db = DatabaseConnection()
-        session = db.get_session()
         comLog = CommunicationLog()
-        taskLog = comLog.get_task_communication_log(session, taskPkey)
+        taskLog = comLog.get_task_communication_log(self.session, taskPkey)
         self.taskCommentListWidget.clear()
         for log in taskLog:
             self.taskCommentListWidget.addItem('')
@@ -326,6 +306,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
 
     def on_task_table_item_clicked(self, item):
+        self.ViewTaskButton.setEnabled(True)
         if item is None:
             self.populate_task_all_table()
         else:
@@ -341,13 +322,8 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
     def on_add_task_comment_button(self):
         # get comment
         commentToAdd = self.newTaskCommentTE.toPlainText()
-
-        # Create a session
-        db = DatabaseConnection()
-        session = db.get_session()
         # get user fkey
-        user = User()
-        userFkey = user.get_user_fkey(session, self.activeUser)
+        userFkey = self.activeUserInstance.user_pkey
         # get project fkey
         projectFkey = self.projectItemSelected
         # get task fkey
@@ -356,7 +332,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # add comment
         new_comment = CommunicationLog(user_fkey=userFkey, project_fkey=projectFkey, task_fkey=taskFkey, comment=commentToAdd,
                                        timestamp=datetime.datetime.now())
-        addComment = new_comment.add_comment(session)
+        addComment = new_comment.add_comment(self.session)
 
         if addComment == 'successful':
             self.populate_task_comments(taskPkey=taskFkey)
@@ -367,31 +343,42 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
 
     def on_add_project_button(self):
-        self.add_project_window = AddProject(self, activeUser=self.activeUser)
+        self.add_project_window = AddProject(self, activeUserInstance=self.activeUserInstance)
         self.add_project_window.show()
 
     def on_view_project_button(self):
         projectPk = self.projectItemSelected
-        self.view_project_window = ViewProject(self, projectPkey=projectPk, activeUser=self.activeUser)
+        self.view_project_window = ViewProject(self, projectPkey=projectPk, activeUserInstance=self.activeUserInstance)
         self.view_project_window.show()
 
     def on_view_task_button(self):
         taskPk = self.taskItemSelected
-        self.view_task_window = ViewTask(self, projectPkey=self.projectItemSelected, taskPkey=taskPk, activeUser=self.activeUser)
+        self.view_task_window = ViewTask(self, projectPkey=self.projectItemSelected, taskPkey=taskPk, activeUserInstance=self.activeUserInstance)
         self.view_task_window.show()
 
     def on_add_task_button(self):
-        self.add_task_window = AddTask(self, projectName=self.projectNameItemSelected, projectPkey=self.projectItemSelected, activeUser=self.activeUser)
+        self.add_task_window = AddTask(self, projectName=self.projectNameItemSelected, projectPkey=self.projectItemSelected, activeUserInstance=self.activeUserInstance)
         self.add_task_window.show()
+
+    def on_logOut_button(self):
+        confirmation = QMessageBox.question(self, "Confirm logging out",
+                                            "Are you sure you want to log out?",
+                                            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if confirmation == QMessageBox.StandardButton.Yes:
+            self.close()
 
 
 class AddProject(QDialog, Ui_AddProjectDialog):
-    def __init__(self, home_window_instance, activeUser):
+    def __init__(self, home_window_instance, activeUserInstance):
         super().__init__()
         self.setupUi(self)
-        self.activeUser = activeUser
+        self.activeUserInstance = activeUserInstance
         self.field_changed = False
         self.home_window_instance = home_window_instance
+
+        # database connection
+        self.dbCon = DatabaseConnection()
+        self.session = self.dbCon.get_session()
 
         # buttons
         self.addProjectButton.clicked.connect(self.on_add_project_button)
@@ -423,22 +410,15 @@ class AddProject(QDialog, Ui_AddProjectDialog):
         dueDateDT = datetime.date(dueDate.year(), dueDate.month(), dueDate.day())
         Pdue = datetime.datetime.strptime(str(dueDateDT), '%Y-%m-%d')
 
-        # Create a session
-        db = DatabaseConnection()
-        session = db.get_session()
         # get owner fkey
-        owner = User()
-        ownerfkey = owner.get_user_fkey(session, self.activeUser)
-
-        # db session
-        dbCon = DatabaseConnection()
-        session = dbCon.get_session()
+        ownerfkey = self.activeUserInstance.user_pkey
 
         # Create a new project instance
         new_project = Project(name=Pname, desc=Pdesc, start_date=Pstart, due_date=Pdue, status=Pstatus,
                               owner_fkey=ownerfkey, is_removed=0)
+
         # add project to db
-        addProject = new_project.add_project(session)
+        addProject = new_project.add_project(self.session, ownerfkey)
 
         if addProject == 'successful':
             self.addProjectStatusLabel.setText(f'The project, {Pname}! has now been added.')
@@ -470,16 +450,22 @@ class AddProject(QDialog, Ui_AddProjectDialog):
         self.addProjectButton.setEnabled(True)
         self.exitProjectButton.setText('Exit (without saving')
 
-
 class AddTask(QDialog, Ui_AddTaskDialog):
-    def __init__(self, home_window_instance, projectName, projectPkey, activeUser):
+    def __init__(self, home_window_instance, projectName, projectPkey, activeUserInstance):
         super().__init__()
         self.setupUi(self)
-        self.activeUser = activeUser
+        self.activeUserInstance = activeUserInstance
         self.projectName = projectName
         self.projectPkey = projectPkey
         self.field_changed = False
         self.home_window_instance = home_window_instance
+
+        # database connection
+        self.dbCon = DatabaseConnection()
+        self.session = self.dbCon.get_session()
+
+        #run fuc
+        self.populate_assign_to()
 
         # buttons
         self.addTaskButton.clicked.connect(self.on_add_task_button)
@@ -502,16 +488,26 @@ class AddTask(QDialog, Ui_AddTaskDialog):
         # disable button
         self.addTaskButton.setEnabled(False)
 
+    def populate_assign_to(self):
+        pt = ProjectTeam()
+        project = pt.get_team_of_project(self.session, self.projectPkey)
+
+        for user in project:
+            item_text = f'{user.user.full_name} ({user.user.username})'
+            item_data = user.user.user_pkey
+            self.AssignToCB.addItem(item_text, item_data)
 
 
     def on_add_task_button(self):
-        # Create a session
-        db = DatabaseConnection()
-        session = db.get_session()
+        # get assignee fkey
+        if self.AssignToCB.currentIndex() == -1:
+            assignee_fkey = -1
+        else:
+            AssignToCBIndex = self.AssignToCB.currentIndex()
+            assignee_fkey = int(self.AssignToCB.itemData(AssignToCBIndex))
 
         # get assigner fkey
-        assigner = User()
-        assignerfkey = assigner.get_user_fkey(session, self.activeUser)
+        assignerfkey = self.activeUserInstance.user_pkey
 
         # input from window
         Tname = self.taskNameLE.text()
@@ -524,15 +520,12 @@ class AddTask(QDialog, Ui_AddTaskDialog):
         dueDateDT = datetime.date(dueDate.year(), dueDate.month(), dueDate.day())
         Tdue = datetime.datetime.strptime(str(dueDateDT), '%Y-%m-%d')
 
-        # db session
-        dbCon = DatabaseConnection()
-        session = dbCon.get_session()
 
         # Create a new task instance
         new_task = Task(project_fkey=self.projectPkey, name=Tname, desc=Tdesc, start_date=Tstart, due_date=Tdue, status=Tstatus,
-                        assigner_fkey=assignerfkey, assignee_fkey=-1, is_removed=0)
+                        assigner_fkey=assignerfkey, assignee_fkey=assignee_fkey, is_removed=0)
         # add project to db
-        addTask = new_task.add_task(session)
+        addTask = new_task.add_task(self.session)
 
         if addTask == 'successful':
             self.addTaskStatusLabel.setText(f'The task, {Tname}! has now been added in to project: {self.projectName}.')
@@ -566,17 +559,20 @@ class AddTask(QDialog, Ui_AddTaskDialog):
         self.addTaskButton.setEnabled(True)
         self.exitTaskButton.setText('Exit (without saving')
 
-
 class ViewProject(QDialog, Ui_ViewProjectDialog):
-    def __init__(self, home_window_instance, projectPkey, activeUser):
+    def __init__(self, home_window_instance, projectPkey, activeUserInstance):
         super().__init__()
         self.setupUi(self)
         self.home_window_instance = home_window_instance
         self.projectPkey = projectPkey
         self.projectName = None
-        self.activeUser = activeUser
+        self.activeUserInstance = activeUserInstance
         self.field_changed = False
         self.is_admin_or_owner = False
+
+        # database connection
+        self.dbCon = DatabaseConnection()
+        self.session = self.dbCon.get_session()
 
         # run functions
         self.populate_project()
@@ -601,6 +597,7 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         # disable buttons
         self.saveChangesButton.setEnabled(False)
 
+
     def set_projectName(self):
         self.projectName = self.projectNameLE.text()
     def no_permission_to_perform_action(self):
@@ -608,21 +605,18 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
                              QMessageBox.StandardButton.Close)
 
     def check_if_user_is_admin_or_owner(self):
-        # Create a database connection
-        db = DatabaseConnection()
-        session = db.get_session()
 
         # is project owner
         p = Project()
-        projectSelected = p.get_project(session, self.projectPkey)
+        projectSelected = p.get_project(self.session, self.projectPkey)
         for project in projectSelected:
-            if project.owner.username == self.activeUser:
+            if project.owner.username == self.activeUserInstance.username:
                 self.is_admin_or_owner = True
                 break
 
         # is admin
         u = User()
-        activeUser = u.get_user(session, self.activeUser)
+        activeUser = u.get_user(self.session, self.activeUserInstance.username)
         for user in activeUser:
             for userRole in user.user_roles:
                 if userRole.role_type == 'Admin':
@@ -630,12 +624,9 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
                     break
 
     def populate_project(self):
-        # Create a database connection
-        db = DatabaseConnection()
-        session = db.get_session()
         # project instance
         p = Project()
-        projectSelected = p.get_project(session, self.projectPkey)
+        projectSelected = p.get_project(self.session, self.projectPkey)
         for project in projectSelected:
             self.projectNameLE.setText(project.name)
             self.projectDescTE.setText(project.desc)
@@ -648,12 +639,9 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
             self.projectOwnerLE.setText(project.owner.full_name)
 
     def populate_team_members_table(self):
-        # Create a database connection
-        db = DatabaseConnection()
-        session = db.get_session()
         # project team instance
         pt = ProjectTeam()
-        teamMembers = pt.get_team_of_project(session, self.projectPkey)
+        teamMembers = pt.get_team_of_project(self.session, self.projectPkey)
 
         # Populate the projects table
         row = 0
@@ -674,16 +662,12 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
                                                 "Are you sure you want to delete this project?",
                                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
             if confirmation == QMessageBox.StandardButton.Yes:
-                # Proceed with deletion
-                # Create a database connection
-                db = DatabaseConnection()
-                session = db.get_session()
                 # project instance
                 p = Project()
-                projects = p.get_project(session, self.projectPkey)
+                projects = p.get_project(self.session, self.projectPkey)
                 for project in projects:
                     projectName = project.name
-                projectDelete = p.delete_project(session, self.projectPkey)
+                projectDelete = p.delete_project(self.session, self.projectPkey)
                 if projectDelete == 'Project deleted successfully':
                     self.projectChangesLabel.setText(f'The project, {projectName}! has now been removed.')
                     self.home_window_instance.populate_projects_all_table()
@@ -713,11 +697,8 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
             dueDateDT = datetime.date(currentDueDate.year(), currentDueDate.month(), currentDueDate.day())
             Pdue = datetime.datetime.strptime(str(dueDateDT), '%Y-%m-%d')
 
-            # Create a database connection
-            db = DatabaseConnection()
-            session = db.get_session()
             p = Project()
-            updateProject = p.set_project(session, self.projectPkey, currentName, currentDesc,
+            updateProject = p.set_project(self.session, self.projectPkey, currentName, currentDesc,
                                           currentStatus, Pstart, Pdue)
 
             if updateProject:
@@ -747,15 +728,12 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
                                                 "Are you sure you want to close this project?",
                                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
             if confirmation == QMessageBox.StandardButton.Yes:
-                # Create a database connection
-                db = DatabaseConnection()
-                session = db.get_session()
                 # project instance
                 p = Project()
-                projects = p.get_project(session, self.projectPkey)
+                projects = p.get_project(self.session, self.projectPkey)
                 for project in projects:
                     projectName = project.name
-                closeProject = p.close_project(session, self.projectPkey)
+                closeProject = p.close_project(self.session, self.projectPkey)
                 if closeProject == 'Project Closed':
                     self.projectChangesLabel.setText(f'The project, {projectName}! has now been closed.')
                     self.home_window_instance.populate_projects_all_table()
@@ -789,24 +767,27 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         self.exitWithoutSavingButton.setText('Exit (without saving')
 
     def on_add_member_button(self):
-        self.add_member_window = AddTeamMemberDialog(self, projectName=self.projectName,
-                                                     projectPkey=self.projectPkey,
-                                                     activeUser=self.activeUser)
-        self.add_member_window.show()
-
-
-
+        if self.is_admin_or_owner is False:
+            self.no_permission_to_perform_action()
+        else:
+            self.add_member_window = AddTeamMemberDialog(self, projectName=self.projectName,
+                                                         projectPkey=self.projectPkey,
+                                                         activeUserInstance=self.activeUserInstance)
+            self.add_member_window.show()
 
 class AddTeamMemberDialog(QDialog, Ui_ViewProjectAddTeamMemberDialog):
-    def __init__(self, view_project_instance, projectName, projectPkey, activeUser):
+    def __init__(self, view_project_instance, projectName, projectPkey, activeUserInstance):
         super().__init__()
         self.setupUi(self)
         self.view_project_instance = view_project_instance
         self.projectPkey = projectPkey
         self.projectName = projectName
-        self.activeUser = activeUser
+        self.activeUserInstance = activeUserInstance
         self.field_changed = False
-        #self.edit_permissions = False
+
+        # database connection
+        self.dbCon = DatabaseConnection()
+        self.session = self.dbCon.get_session()
 
         #run func
         self.populate_project_name()
@@ -814,72 +795,66 @@ class AddTeamMemberDialog(QDialog, Ui_ViewProjectAddTeamMemberDialog):
 
         #on button
         self.addUserButton.clicked.connect(self.on_add_user_button)
+        self.exitButton.clicked.connect(self.on_exit_button)
 
     def populate_project_name(self):
         self.projectNameLE.setText(self.projectName)
 
     def populate_user_name(self):
-        # Create a database connection
-        db = DatabaseConnection()
-        session = db.get_session()
         u = User()
-        users = u.get_users(session)
-        row = 0
+        users = u.get_users(self.session)
         for user in users:
-            self.userCB.addItem(str(user.user_pkey))
-            self.userCB.setItemText(row, f'{user.full_name} ({user.username})')
-            row += 1
+            item_text = f'{user.full_name} ({user.username})'
+            item_data = user.user_pkey
+            self.userCB.addItem(item_text, item_data)
+
 
     def on_add_user_button(self):
         # input from window
-        user = self.userCB.itemData()
-        print(user)
+        index = self.userCB.currentIndex()
+        user_pkey = int(self.userCB.itemData(index))
 
+        #create project team instance
+        projectUser = ProjectTeam(user_fkey=user_pkey, project_fkey=self.projectPkey, team_fkey=-1)
+        addToPT = projectUser.add_team_member_to_project(self.session)
 
-        # # db session
-        # dbCon = DatabaseConnection()
-        # session = dbCon.get_session()
-        #
-        # # Create a new task instance
-        # new_task = Task(project_fkey=self.projectPkey, name=Tname, desc=Tdesc, start_date=Tstart, due_date=Tdue, status=Tstatus,
-        #                 assigner_fkey=assignerfkey, assignee_fkey=-1, is_removed=0)
-        # # add project to db
-        # addTask = new_task.add_task(session)
-        #
-        # if addTask == 'successful':
-        #     self.addTaskStatusLabel.setText(f'The task, {Tname}! has now been added in to project: {self.projectName}.')
-        #     self.home_window_instance.populate_task_all_table(projectPKEY=self.projectPkey)
-        #
-        #     # disable fields
-        #     self.projectNameLE.setEnabled(False)
-        #     self.taskNameLE.setEnabled(False)
-        #     self.taskDescTE.setEnabled(False)
-        #     self.taskStatusCB.setEnabled(False)
-        #     self.taskStartDE.setEnabled(False)
-        #     self.taskDueDE.setEnabled(False)
-        #     self.addTaskButton.setEnabled(False)
-        #     self.exitTaskButton.setText('Exit')
-        # else:
-        #     self.addTaskStatusLabel.setText(addTask)
+        if addToPT == 'successful':
+            self.addUserConfirmLE.setText(f'{self.userCB.itemText(index)}! has now been added to {self.projectName}.')
+            self.view_project_instance.populate_team_members_table()
+        else:
+            self.addUserConfirmLE.setText(addToPT)
 
-
-
+    def on_exit_button(self):
+        self.close()
 
 class ViewTask(QDialog, Ui_ViewTaskDialog):
-    def __init__(self, home_window_instance, projectPkey, taskPkey, activeUser):
+    def __init__(self, home_window_instance, projectPkey, taskPkey, activeUserInstance):
         super().__init__()
         self.setupUi(self)
         self.home_window_instance = home_window_instance
         self.projectPkey = projectPkey
         self.taskPkey = taskPkey
-        self.activeUser = activeUser
+        self.activeUserInstance = activeUserInstance
         self.field_changed = False
         self.edit_permissions = False
+        self.admin_permissions = False
+
+        # database connection
+        self.dbCon = DatabaseConnection()
+        self.session = self.dbCon.get_session()
+
+        # disable fields
+        self.taskNameLE.setReadOnly(True)
+        self.taskDescTE.setReadOnly(True)
+        self.taskStartDE.setReadOnly(True)
+        self.taskDueDE.setReadOnly(True)
+        self.taskAssigneeCB.setEnabled(False)
 
         # run functions
+        self.check_admin_permissions()
+        self.populate_task_assignee()
         self.populate_task()
         self.check_edit_permissions()
-        #self.populate_team_members_table()
 
         # on buttons click
         self.deleteTaskButton.clicked.connect(self.on_delete_task)
@@ -893,39 +868,73 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         self.taskStatusCB.currentTextChanged.connect(self.on_field_changed)
         self.taskStartDE.dateChanged.connect(self.on_field_changed)
         self.taskDueDE.dateChanged.connect(self.on_field_changed)
+        self.taskAssigneeCB.currentIndexChanged.connect(self.on_field_changed)
 
         # disable buttons
         self.saveChangesButton.setEnabled(False)
 
+    def populate_task_assignee(self):
+        pt = ProjectTeam()
+        project = pt.get_team_of_project(self.session, self.projectPkey)
+
+        for user in project:
+            item_text = f'{user.user.full_name} ({user.user.username})'
+            item_data = user.user.user_pkey
+            self.taskAssigneeCB.addItem(item_text, item_data)
 
     def no_permission_to_perform_action(self):
         QMessageBox.critical(self, "Permission denied", "You do not have permissions to perform this action",
                              QMessageBox.StandardButton.Close)
 
-    def check_edit_permissions(self):
-        # Create a database connection
-        db = DatabaseConnection()
-        session = db.get_session()
 
+    def check_admin_permissions(self):
+        # is project owner
+        p = Project()
+        projectSelected = p.get_project(self.session, self.projectPkey)
+        for project in projectSelected:
+            if project.owner.username == self.activeUserInstance.username:
+                self.admin_permissions = True
+                self.taskNameLE.setReadOnly(False)
+                self.taskDescTE.setReadOnly(False)
+                self.taskStartDE.setReadOnly(False)
+                self.taskDueDE.setReadOnly(False)
+                self.taskAssigneeCB.setEnabled(False)
+                break
+
+        # is admin
+        u = User()
+        activeUser = u.get_user(self.session, self.activeUserInstance.username)
+        for user in activeUser:
+            for userRole in user.user_roles:
+                if userRole.role_type == 'Admin':
+                    self.admin_permissions = True
+                    self.taskNameLE.setReadOnly(False)
+                    self.taskDescTE.setReadOnly(False)
+                    self.taskStartDE.setReadOnly(False)
+                    self.taskDueDE.setReadOnly(False)
+                    self.taskAssigneeCB.setEnabled(False)
+                    break
+
+    def check_edit_permissions(self):
         # is task assignee
         t = Task()
-        taskSelected = t.get_task(session, self.taskPkey)
+        taskSelected = t.get_task(self.session, self.taskPkey)
         for task in taskSelected:
-            if task.assignee.username == self.activeUser:
+            if task.assignee.username == self.activeUserInstance.username:
                 self.edit_permissions = True
                 break
 
         # is project owner
         p = Project()
-        projectSelected = p.get_project(session, self.projectPkey)
+        projectSelected = p.get_project(self.session, self.projectPkey)
         for project in projectSelected:
-            if project.owner.username == self.activeUser:
+            if project.owner.username == self.activeUserInstance.username:
                 self.edit_permissions = True
                 break
 
         # is admin
         u = User()
-        activeUser = u.get_user(session, self.activeUser)
+        activeUser = u.get_user(self.session, self.activeUserInstance.username)
         for user in activeUser:
             for userRole in user.user_roles:
                 if userRole.role_type == 'Admin':
@@ -933,12 +942,9 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
                     break
 
     def populate_task(self):
-        # Create a database connection
-        db = DatabaseConnection()
-        session = db.get_session()
         # task instance
         t = Task()
-        taskSelected = t.get_task(session, self.taskPkey)
+        taskSelected = t.get_task(self.session, self.taskPkey)
         for task in taskSelected:
             self.projectNameLE.setText(task.project.name)
             self.taskNameLE.setText(task.name)
@@ -949,28 +955,23 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             if task.end_date:
                 self.taskEndLE.setText(task.end_date.strftime("%d/%m/%Y"))
 
-            self.taskAssignerLE.setText(task.assigner.full_name)
-            self.taskAssigneeCB.setCurrentText(task.assignee.full_name)
-
+            self.taskAssignerLE.setText(f'{task.assigner.full_name} ({task.assigner.username})')
+            self.taskAssigneeCB.setCurrentText(f'{task.assignee.full_name} ({task.assignee.username})')
 
     def on_delete_task(self):
-        if self.edit_permissions is False:
+        if self.admin_permissions is False:
             self.no_permission_to_perform_action()
         else:
             confirmation = QMessageBox.question(self, "Confirm Deletion",
                                                 "Are you sure you want to delete this task?",
                                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
             if confirmation == QMessageBox.StandardButton.Yes:
-                # Proceed with deletion
-                # Create a database connection
-                db = DatabaseConnection()
-                session = db.get_session()
                 # task instance
                 t = Task()
-                tasks = t.get_task(session, self.taskPkey)
+                tasks = t.get_task(self.session, self.taskPkey)
                 for task in tasks:
                     taskName = task.name
-                taskDelete = t.delete_task(session, self.taskPkey)
+                taskDelete = t.delete_task(self.session, self.taskPkey)
                 if taskDelete == 'Task deleted successfully':
                     self.taskChangesLabel.setText(f'The Task, {taskName}! has now been removed.')
                     self.home_window_instance.populate_task_all_table(projectPKEY=self.projectPkey)
@@ -1001,12 +1002,14 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             dueDateDT = datetime.date(currentDueDate.year(), currentDueDate.month(), currentDueDate.day())
             Pdue = datetime.datetime.strptime(str(dueDateDT), '%Y-%m-%d')
 
-            # Create a database connection
-            db = DatabaseConnection()
-            session = db.get_session()
+            # get assignee fkey
+            AssignToCBIndex = self.taskAssigneeCB.currentIndex()
+            assignee_fkey = int(self.taskAssigneeCB.itemData(AssignToCBIndex))
+
+
             t = Task()
-            updateTask = t.set_task(session, self.taskPkey, currentTaskName, currentDesc,
-                                          currentStatus, Pstart, Pdue)
+            updateTask = t.set_task(self.session, self.taskPkey, currentTaskName, currentDesc,
+                                          currentStatus, Pstart, Pdue, assignee_fkey)
 
             if updateTask:
                 print('updated')
@@ -1029,22 +1032,19 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
                 self.close()
 
     def on_close_task(self):
-        if self.edit_permissions is False:
+        if self.admin_permissions is False:
             self.no_permission_to_perform_action()
         else:
             confirmation = QMessageBox.question(self, "Confirm Task Closure",
                                                 "Are you sure you want to close this task?",
                                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
             if confirmation == QMessageBox.StandardButton.Yes:
-                # Create a database connection
-                db = DatabaseConnection()
-                session = db.get_session()
                 # task instance
                 t = Task()
-                tasks = t.get_task(session, self.taskPkey)
+                tasks = t.get_task(self.session, self.taskPkey)
                 for task in tasks:
                     taskName = task.name
-                closeTask = t.close_task(session, self.taskPkey)
+                closeTask = t.close_task(self.session, self.taskPkey)
                 if closeTask == 'Task Closed':
                     self.taskChangesLabel.setText(f'The task, {taskName}! has now been closed.')
                     self.home_window_instance.populate_task_all_table(projectPKEY=self.projectPkey)
@@ -1084,9 +1084,18 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
 
 
 
+
 def main():
+    # db connection
+    dbCon = DatabaseConnection()
+    session = dbCon.get_session()
+    # Class user to query
+    user = User()
+    # authenticate user
+    userAuthentication, userInstance = user.authenticate(session, 'tm1', '12345')
+
     app = QApplication(sys.argv)
-    window = HomeWindow(activeUser='tm1')
+    window = HomeWindow(activeUserInstance=userInstance)
     window.show()
     sys.exit(app.exec())
 

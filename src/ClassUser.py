@@ -44,17 +44,17 @@ class User(Base):
 
                 # if user does not exist
                 if user is None:
-                    return f'The Username: {username} does not exist'
+                    return f'The Username: {username} does not exist', None
                 # if user exist but password does not match
                 if user and user.password_hashed != hashed_password:
-                    return 'Incorrect Password'
+                    return 'Incorrect Password', None
                 # if user exists and password matches
                 if user and user.password_hashed == hashed_password:
-                    return 'Login Successful'
+                    return 'Login Successful', user
 
         except SQLAlchemyError as e:
             # Log or handle the exception
-            return f'Error during authentication: {e}'
+            return f'Error during authentication: {e}', None
 
     def register(self, session):
 

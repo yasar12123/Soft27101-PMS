@@ -24,10 +24,12 @@ if __name__ == '__main__':
     # Obtain a session using the get_session() method
     session = db.get_session()
 
-    row = 0
-    for user in range(0,100):
-        print(row)
-        row += 1
+    # t = Task()
+    # tasks = t.get_tasks_for_team_member(session, 'tm1')
+    #
+    # for task in tasks:
+    #     print(task.name, task.project.name)
 
-
-
+    p = Project()
+    #project = p.number_of_open_tasks(session(), 14)
+    project = p.get_projects(session)

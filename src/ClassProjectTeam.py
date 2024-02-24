@@ -16,6 +16,7 @@ class ProjectTeam(Base):
     team_fkey = Column(Integer, ForeignKey('TEAM.team_pkey'), nullable=False)
     start_date = Column(DateTime, default=datetime.utcnow, nullable=False)
     end_date = Column(DateTime)
+    is_removed = Column(Integer, default=0)
 
     # Define the relationships
     user = relationship('User', back_populates='team_associations')
@@ -48,7 +49,6 @@ class ProjectTeam(Base):
             # Log or handle the exception
             return f'Error retrieving data: {e}'
 
-
     def add_team_member_to_project(self, session):
 
         # check if fields are null
@@ -65,17 +65,18 @@ class ProjectTeam(Base):
             try:
                 # Create a session
                 with session() as session:
-                    # query db for the prject team
+                    # query db for the project team
                     projectTeam = (
                         session.query(ProjectTeam)
                         .filter(ProjectTeam.project_fkey == self.project_fkey,
                                 ProjectTeam.user_fkey == self.user_fkey,
-                                ProjectTeam.is_removed == 0)  # Filter by is_removed status
+                                ProjectTeam.is_removed == 0)
                         .first()
                     )
+
                     # if the user already exists in the team
                     if projectTeam:
-                        return f'Error!, the user: {self.name} already a team member'
+                        return f'Error!, {projectTeam.user.full_name} ({projectTeam.user.username}) is already a team member'
                     # if project is not in the database
                     if projectTeam is None:
                         session.add(self)

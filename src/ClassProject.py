@@ -30,6 +30,15 @@ class Project(Base):
     project_team_members = relationship('ProjectTeam', back_populates='project')
     communication_log = relationship('CommunicationLog', back_populates='project')
 
+    def number_of_open_tasks(self, session, project_fkey):
+        # Retrieve the project from the database
+        project = session.query(Project).get(project_fkey)
+        if project is None:
+            return "Project not found"
+
+        # Count the number of open tasks for the project
+        open_tasks_count = sum(1 for task in project.tasks if not task.is_completed)
+        return open_tasks_count
 
     def get_projects_for_team_member(self, session, team_member_username):
         # Try to establish connection to db
@@ -42,8 +51,9 @@ class Project(Base):
                     .join(Project.owner)
                     .join(Project.project_team_members)
                     .join(teamUser, ProjectTeam.user_fkey == teamUser.user_pkey)
-                    .filter(teamUser.username == team_member_username)
-                    .filter(Project.is_removed == 0)
+                    .filter(teamUser.username == team_member_username,
+                            Project.is_removed == 0,
+                            ProjectTeam.is_removed == 0)
                     .options(joinedload(Project.owner))
                 )
                 return query.all()
@@ -71,8 +81,20 @@ class Project(Base):
             return f'Error retrieving data: {e}'
 
 
+    def add_owner_to_project_team(self, ownerPkey):
+        # Create a session
+        db = DatabaseConnection()
+        session = db.get_session()
 
-    def add_project(self, session):
+        pt = ProjectTeam(user_fkey=ownerPkey, project_fkey=self.project_pkey, team_fkey=-1)
+        projectUser = pt.add_team_member_to_project(session)
+        if projectUser == 'successful':
+            return 'owner has been added'
+        else:
+            return projectUser
+
+
+    def add_project(self, session, ownerPkey):
 
         # check if fields are null
         dictToCheck = {"Project Name": self.name,
@@ -104,6 +126,8 @@ class Project(Base):
                     if project is None:
                         session.add(self)
                         session.commit()
+                        #add owner to project team
+                        self.add_owner_to_project_team(ownerPkey=ownerPkey)
                         return 'successful'
             except SQLAlchemyError as e:
                 # Log or handle the exception

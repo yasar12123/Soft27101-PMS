@@ -29,6 +29,7 @@ class Task(Base):
     communication_log = relationship('CommunicationLog', back_populates='task')
 
 
+
     def get_tasks_for_team_member(self, session, team_member_username, projectPkey=None):
         # Try to establish connection to db
         try:
@@ -38,6 +39,7 @@ class Task(Base):
                     session.query(Task)
                     .join(User, Task.assignee_fkey == User.user_pkey)
                     .join(Project, Task.project_fkey == Project.project_pkey)
+                    .options(joinedload(Task.project))
                     .filter(User.username == team_member_username, Task.is_removed == 0)
                 )
                 # If project is specified, filter tasks based on the project
@@ -84,8 +86,7 @@ class Task(Base):
                     .join(User, Task.assignee_fkey == User.user_pkey)
                     .join(Project, Task.project_fkey == Project.project_pkey)
                     .options(joinedload(Task.assignee), joinedload(Task.assigner), joinedload(Task.project))
-                    .filter(Project.is_removed == 0, Task.is_removed == 0)
-                    .filter(Task.task_pkey == taskPkey)
+                    .filter(Project.is_removed == 0, Task.is_removed == 0, Task.task_pkey == taskPkey)
                 )
                 return query.all()
 
@@ -93,7 +94,7 @@ class Task(Base):
             # Log or handle the exception
             return f'Error retrieving data: {e}'
 
-    def set_task(self, session, taskPkey, setName, setDesc, setStatus, setStartDate, setDueDate):
+    def set_task(self, session, taskPkey, setName, setDesc, setStatus, setStartDate, setDueDate, assigneeFkey):
         # Try to establish connection to db
         try:
             # Create a session
@@ -108,6 +109,7 @@ class Task(Base):
                     task.status = setStatus
                     task.start_date = setStartDate
                     task.due_date = setDueDate
+                    task.assignee_fkey = assigneeFkey
                     session.commit()
                 return 'Project updated'
 
@@ -157,7 +159,9 @@ class Task(Base):
                        "Task Description": self.desc,
                        "Task Status": self.status,
                        "Task Stat Date": self.start_date,
-                       "Task Due Date": self.due_date}
+                       "Task Due Date": self.due_date,
+                       "Assignee": self.assignee_fkey,
+                       "Assigner": self.assigner_fkey}
 
         for attribute, val in dictToCheck.items():
             if val == '':

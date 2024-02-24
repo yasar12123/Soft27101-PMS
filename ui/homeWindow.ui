@@ -42,7 +42,7 @@
           <x>10</x>
           <y>70</y>
           <width>81</width>
-          <height>221</height>
+          <height>281</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -68,9 +68,35 @@
           </widget>
          </item>
          <item>
+          <widget class="QPushButton" name="workloadButton">
+           <property name="text">
+            <string>Workload</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>450</y>
+          <width>81</width>
+          <height>111</height>
+         </rect>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_17">
+         <item>
           <widget class="QPushButton" name="profileButton">
            <property name="text">
             <string>Profile</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="logOutButton">
+           <property name="text">
+            <string>Logout</string>
            </property>
           </widget>
          </item>

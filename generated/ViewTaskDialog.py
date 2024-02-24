@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_ViewTaskDialog(object):
     def setupUi(self, ViewTaskDialog):
         ViewTaskDialog.setObjectName("ViewTaskDialog")
-        ViewTaskDialog.resize(816, 559)
+        ViewTaskDialog.resize(816, 587)
         self.gridLayout_3 = QtWidgets.QGridLayout(ViewTaskDialog)
         self.gridLayout_3.setObjectName("gridLayout_3")
         self.groupBox_3 = QtWidgets.QGroupBox(parent=ViewTaskDialog)
@@ -88,6 +88,7 @@ class Ui_ViewTaskDialog(object):
         self.label_7.setObjectName("label_7")
         self.gridLayout.addWidget(self.label_7, 6, 0, 1, 1)
         self.taskAssigneeCB = QtWidgets.QComboBox(parent=self.groupBox)
+        self.taskAssigneeCB.setEditable(True)
         self.taskAssigneeCB.setObjectName("taskAssigneeCB")
         self.gridLayout.addWidget(self.taskAssigneeCB, 7, 2, 1, 1)
         self.taskAssignerLE = QtWidgets.QLineEdit(parent=self.groupBox)
@@ -97,6 +98,8 @@ class Ui_ViewTaskDialog(object):
         self.taskAssignerLE.setObjectName("taskAssignerLE")
         self.gridLayout.addWidget(self.taskAssignerLE, 8, 2, 1, 1)
         self.projectNameLE = QtWidgets.QLineEdit(parent=self.groupBox)
+        self.projectNameLE.setEnabled(True)
+        self.projectNameLE.setReadOnly(True)
         self.projectNameLE.setObjectName("projectNameLE")
         self.gridLayout.addWidget(self.projectNameLE, 0, 2, 1, 1)
         self.label_10 = QtWidgets.QLabel(parent=self.groupBox)

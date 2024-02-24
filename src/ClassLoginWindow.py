@@ -18,7 +18,10 @@ class LoginWindow(QMainWindow, Ui_LoginWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.activeUser = None
+        self.activeUserInstance = None
+
+        self.dbCon = DatabaseConnection()
+        self.session = self.dbCon.get_session()
 
         # Connect signals to slots
         self.loginButton.clicked.connect(self.on_login)
@@ -30,17 +33,14 @@ class LoginWindow(QMainWindow, Ui_LoginWindow):
         username = self.usernameLE.text()
         password = self.passwordLE.text()
 
-        #db connection
-        dbCon = DatabaseConnection()
-        session = dbCon.get_session()
         # Class user to query
         user = User()
         # authenticate user
-        userAuthentication = user.authenticate(session, username, password)
+        userAuthentication, userInstance = user.authenticate(self.session, username, password)
 
         if userAuthentication == 'Login Successful':
             self.signInLabel.setText(f'Welcome, {username}! You have now logged in.')
-            self.activeUser = username
+            self.activeUserInstance = userInstance
             self.open_home_window()
             self.close()
 
@@ -52,7 +52,7 @@ class LoginWindow(QMainWindow, Ui_LoginWindow):
         self.register_window.show()
 
     def open_home_window(self):
-        self.home_window = HomeWindow(activeUser=self.activeUser)
+        self.home_window = HomeWindow(activeUserInstance=self.activeUserInstance)
         self.home_window.show()
 
 
