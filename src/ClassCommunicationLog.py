@@ -26,18 +26,19 @@ class CommunicationLog(Base):
     attachments = relationship('Attachment', back_populates='communication_log')
 
 
-    def get_project_communication_log(self, session, projectPkey):
+    @classmethod
+    def get_project_communication_log(cls, session, project_fkey):
         # Try to establish connection to db
         try:
             # Create a session
             with session() as session:
                 query = (
-                    session.query(CommunicationLog)
-                    .join(CommunicationLog.project)
-                    .join(CommunicationLog.user)
-                    .options(joinedload(CommunicationLog.project))
-                    .options(joinedload(CommunicationLog.user))
-                    .filter(Project.project_pkey == projectPkey)
+                    session.query(cls)
+                    .join(cls.project)
+                    .join(cls.user)
+                    .options(joinedload(cls.project))
+                    .options(joinedload(cls.user))
+                    .filter(Project.project_pkey == project_fkey)
                 )
             return query.all()
 
@@ -62,19 +63,20 @@ class CommunicationLog(Base):
                 return f'Error during adding comment: {e}'
 
 
-    def get_task_communication_log(self, session, taskPkey):
+    @classmethod
+    def get_task_communication_log(cls, session, task_fkey):
         # Try to establish connection to db
         try:
             # Create a session
             with session() as session:
                 query = (
-                    session.query(CommunicationLog)
-                    .join(CommunicationLog.project)
-                    .join(CommunicationLog.task)
-                    .join(CommunicationLog.user)
-                    .options(joinedload(CommunicationLog.project))
-                    .options(joinedload(CommunicationLog.user))
-                    .filter(Task.task_pkey == taskPkey)
+                    session.query(cls)
+                    .join(cls.project)
+                    .join(cls.task)
+                    .join(cls.user)
+                    .options(joinedload(cls.project))
+                    .options(joinedload(cls.user))
+                    .filter(Task.task_pkey == task_fkey)
                 )
             return query.all()
 

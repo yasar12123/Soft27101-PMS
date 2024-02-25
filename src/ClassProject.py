@@ -29,6 +29,7 @@ class Project(Base):
     tasks = relationship('Task', back_populates='project')
     project_team_members = relationship('ProjectTeam', back_populates='project')
     communication_log = relationship('CommunicationLog', back_populates='project')
+    timeline_events = relationship("TimelineEvent", back_populates="project")
 
     def number_of_open_tasks(self, session, project_fkey):
         # Retrieve the project from the database
@@ -40,19 +41,20 @@ class Project(Base):
         open_tasks_count = sum(1 for task in project.tasks if not task.is_completed)
         return open_tasks_count
 
-    def get_projects_for_team_member(self, session, team_member_username):
+    @classmethod
+    def get_projects_for_team_member(cls, session, team_member_username):
         # Try to establish connection to db
         try:
             # Create a session
             with session() as session:
                 teamUser = aliased(User)
                 query = (
-                    session.query(Project)
-                    .join(Project.owner)
-                    .join(Project.project_team_members)
+                    session.query(cls)
+                    .join(cls.owner)
+                    .join(cls.project_team_members)
                     .join(teamUser, ProjectTeam.user_fkey == teamUser.user_pkey)
                     .filter(teamUser.username == team_member_username,
-                            Project.is_removed == 0,
+                            cls.is_removed == 0,
                             ProjectTeam.is_removed == 0)
                     .options(joinedload(Project.owner))
                 )
@@ -62,17 +64,17 @@ class Project(Base):
             # Log or handle the exception
             return f'Error retrieving data: {e}'
 
-
-    def get_projects(self, session):
+    @classmethod
+    def get_projects(cls, session):
         # Try to establish connection to db
         try:
             # Create a session
             with session() as session:
                 query = (
-                    session.query(Project)
-                    .join(Project.owner)
-                    .filter(Project.is_removed == 0)
-                    .options(joinedload(Project.owner))
+                    session.query(cls)
+                    .join(cls.owner)
+                    .filter(cls.is_removed == 0)
+                    .options(joinedload(cls.owner))
                 )
                 return query.all()
 
@@ -81,12 +83,12 @@ class Project(Base):
             return f'Error retrieving data: {e}'
 
 
-    def add_owner_to_project_team(self, ownerPkey):
+    def add_owner_to_project_team(self, owner_fkey):
         # Create a session
         db = DatabaseConnection()
         session = db.get_session()
 
-        pt = ProjectTeam(user_fkey=ownerPkey, project_fkey=self.project_pkey, team_fkey=-1)
+        pt = ProjectTeam(user_fkey=owner_fkey, project_fkey=self.project_pkey, team_fkey=-1)
         projectUser = pt.add_team_member_to_project(session)
         if projectUser == 'successful':
             return 'owner has been added'
@@ -94,7 +96,7 @@ class Project(Base):
             return projectUser
 
 
-    def add_project(self, session, ownerPkey):
+    def add_project(self, session, owner_fkey):
 
         # check if fields are null
         dictToCheck = {"Project Name": self.name,
@@ -127,23 +129,23 @@ class Project(Base):
                         session.add(self)
                         session.commit()
                         #add owner to project team
-                        self.add_owner_to_project_team(ownerPkey=ownerPkey)
+                        self.add_owner_to_project_team(owner_fkey=owner_fkey)
                         return 'successful'
             except SQLAlchemyError as e:
                 # Log or handle the exception
                 return f'Error during adding project: {e}'
 
-
-    def get_project(self, session, projectPkey):
+    @classmethod
+    def get_project(cls, session, project_pkey):
         # Try to establish connection to db
         try:
             # Create a session
             with session() as session:
                 query = (
-                    session.query(Project)
-                    .join(Project.owner)
-                    .options(joinedload(Project.owner))
-                    .filter(Project.project_pkey == projectPkey)
+                    session.query(cls)
+                    .join(cls.owner)
+                    .options(joinedload(cls.owner))
+                    .filter(cls.project_pkey == project_pkey)
                 )
                 return query.all()
 
@@ -151,13 +153,13 @@ class Project(Base):
             # Log or handle the exception
             return f'Error retrieving data: {e}'
 
-
-    def set_project(self, session, projectPkey, setName, setDesc, setStatus, setStartDate, setDueDate):
+    @classmethod
+    def set_project(cls, session, projectPkey, setName, setDesc, setStatus, setStartDate, setDueDate):
         # Try to establish connection to db
         try:
             # Create a session
             with session() as session:
-                project = session.query(Project).filter_by(project_pkey=projectPkey).first()
+                project = session.query(cls).filter_by(project_pkey=projectPkey).first()
                 if project is None:
                     return 'Project does not exist'
 
@@ -175,12 +177,12 @@ class Project(Base):
             return f'Error setting data: {e}'
 
 
-
-    def delete_project(self, session, projectPkey):
+    @classmethod
+    def delete_project(cls, session, projectPkey):
         try:
             # Create a session
             with session() as session:
-                project = session.query(Project).filter_by(project_pkey=projectPkey).first()
+                project = session.query(cls).filter_by(project_pkey=projectPkey).first()
                 if project:
                     project.is_removed = 1
                     session.commit()
@@ -192,13 +194,13 @@ class Project(Base):
             return f'Error deleting project: {e}'
 
 
-
-    def close_project(self, session, projectPkey):
+    @classmethod
+    def close_project(cls, session, project_pkey):
         # Try to establish connection to db
         try:
             # Create a session
             with session() as session:
-                project = session.query(Project).filter_by(project_pkey=projectPkey).first()
+                project = session.query(cls).filter_by(project_pkey=project_pkey).first()
                 if project is None:
                     return 'Project does not exist'
 
@@ -212,13 +214,14 @@ class Project(Base):
             # Log or handle the exception
             return f'Error closing project: {e}'
 
-    def get_project_fkey(self, session, projectName):
+    @classmethod
+    def get_project_fkey(cls, session, projectName):
         # Try to establish connection to db
         try:
             # Create a session
             with session() as session:
                 # query db for the user
-                project = session.query(Project).filter_by(name=projectName).first()
+                project = session.query(cls).filter_by(name=projectName).first()
                 return project.project_pkey
 
         except SQLAlchemyError as e:

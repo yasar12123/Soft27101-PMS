@@ -27,24 +27,25 @@ class Task(Base):
     assignee = relationship('User', back_populates='assigned_tasks', foreign_keys=[assignee_fkey])
     assigner = relationship('User', back_populates='assigner_of_tasks', foreign_keys=[assigner_fkey])
     communication_log = relationship('CommunicationLog', back_populates='task')
+    timeline_events = relationship("TimelineEvent", back_populates="task")
 
 
-
-    def get_tasks_for_team_member(self, session, team_member_username, projectPkey=None):
+    @classmethod
+    def get_tasks_for_team_member(cls, session, team_member_username, project_fkey=None):
         # Try to establish connection to db
         try:
             # Create a session
             with session() as session:
                 query = (
-                    session.query(Task)
-                    .join(User, Task.assignee_fkey == User.user_pkey)
-                    .join(Project, Task.project_fkey == Project.project_pkey)
-                    .options(joinedload(Task.project))
-                    .filter(User.username == team_member_username, Task.is_removed == 0)
+                    session.query(cls)
+                    .join(User, cls.assignee_fkey == User.user_pkey)
+                    .join(Project, cls.project_fkey == Project.project_pkey)
+                    .options(joinedload(cls.project))
+                    .filter(User.username == team_member_username, cls.is_removed == 0)
                 )
                 # If project is specified, filter tasks based on the project
-                if projectPkey:
-                    query = query.filter(Project.project_pkey == projectPkey)
+                if project_fkey:
+                    query = query.filter(Project.project_pkey == project_fkey)
 
                 return query.all()
 
@@ -53,21 +54,23 @@ class Task(Base):
             return f'Error retrieving data: {e}'
 
 
-    def get_tasks(self, session, projectPkey=None):
+
+    @classmethod
+    def get_tasks(cls, session, project_fkey=None):
         # Try to establish connection to db
         try:
             # Create a session
             with session() as session:
                 query = (
-                    session.query(Task)
-                    .join(User, Task.assignee_fkey == User.user_pkey)
-                    .join(Project, Task.project_fkey == Project.project_pkey)
-                    .options(joinedload(Task.assignee), joinedload(Task.assigner), joinedload(Task.project))
-                    .filter(Project.is_removed == 0, Task.is_removed == 0)
+                    session.query(cls)
+                    .join(User, cls.assignee_fkey == User.user_pkey)
+                    .join(Project, cls.project_fkey == Project.project_pkey)
+                    .options(joinedload(cls.assignee), joinedload(cls.assigner), joinedload(cls.project))
+                    .filter(Project.is_removed == 0, cls.is_removed == 0)
                 )
                 # If project is specified, filter tasks based on the project
-                if projectPkey:
-                    query = query.filter(Project.project_pkey == projectPkey)
+                if project_fkey:
+                    query = query.filter(Project.project_pkey == project_fkey)
 
                 return query.all()
 
@@ -76,17 +79,18 @@ class Task(Base):
             return f'Error retrieving data: {e}'
 
 
-    def get_task(self, session, taskPkey):
+    @classmethod
+    def get_task(cls, session, task_pkey):
         # Try to establish connection to db
         try:
             # Create a session
             with session() as session:
                 query = (
-                    session.query(Task)
-                    .join(User, Task.assignee_fkey == User.user_pkey)
-                    .join(Project, Task.project_fkey == Project.project_pkey)
-                    .options(joinedload(Task.assignee), joinedload(Task.assigner), joinedload(Task.project))
-                    .filter(Project.is_removed == 0, Task.is_removed == 0, Task.task_pkey == taskPkey)
+                    session.query(cls)
+                    .join(User, cls.assignee_fkey == User.user_pkey)
+                    .join(Project, cls.project_fkey == Project.project_pkey)
+                    .options(joinedload(cls.assignee), joinedload(cls.assigner), joinedload(cls.project))
+                    .filter(Project.is_removed == 0, cls.is_removed == 0, cls.task_pkey == task_pkey)
                 )
                 return query.all()
 
@@ -94,15 +98,15 @@ class Task(Base):
             # Log or handle the exception
             return f'Error retrieving data: {e}'
 
-    def set_task(self, session, taskPkey, setName, setDesc, setStatus, setStartDate, setDueDate, assigneeFkey):
-        # Try to establish connection to db
+
+    @classmethod
+    def set_task(cls, session, task_pkey, setName, setDesc, setStatus, setStartDate, setDueDate, assigneeFkey):
         try:
-            # Create a session
-            with session() as session:
-                task = session.query(Task).filter_by(task_pkey=taskPkey).first()
+            # Use a separate variable name to avoid shadowing the class variable
+            with session() as sess:
+                task = sess.query(cls).filter_by(task_pkey=task_pkey).first()
                 if task is None:
-                    return 'Project does not exist'
-
+                    return 'Task does not exist'
                 else:
                     task.name = setName
                     task.desc = setDesc
@@ -110,18 +114,17 @@ class Task(Base):
                     task.start_date = setStartDate
                     task.due_date = setDueDate
                     task.assignee_fkey = assigneeFkey
-                    session.commit()
-                return 'Project updated'
-
+                    sess.commit()
+                return 'Task updated'
         except SQLAlchemyError as e:
-            # Log or handle the exception
             return f'Error setting data: {e}'
 
-    def delete_task(self, session, taskPkey):
+    @classmethod
+    def delete_task(cls, session, task_pkey):
         try:
             # Create a session
             with session() as session:
-                task = session.query(Task).filter_by(task_pkey=taskPkey).first()
+                task = session.query(cls).filter_by(task_pkey=task_pkey).first()
                 if task:
                     task.is_removed = 1
                     session.commit()
@@ -132,13 +135,13 @@ class Task(Base):
             # Log or handle the exception
             return f'Error deleting project: {e}'
 
-
-    def close_task(self, session, taskPkey):
+    @classmethod
+    def close_task(cls, session, task_pkey):
         # Try to establish connection to db
         try:
             # Create a session
             with session() as session:
-                task = session.query(Task).filter_by(task_pkey=taskPkey).first()
+                task = session.query(cls).filter_by(task_pkey=task_pkey).first()
                 if task is None:
                     return 'Task does not exist'
                 else:
@@ -150,6 +153,7 @@ class Task(Base):
         except SQLAlchemyError as e:
             # Log or handle the exception
             return f'Error closing project: {e}'
+
 
     def add_task(self, session):
 

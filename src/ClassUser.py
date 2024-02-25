@@ -24,6 +24,7 @@ class User(Base):
     assigner_of_tasks = relationship('Task', back_populates='assigner', foreign_keys='Task.assigner_fkey')
     user_roles = relationship('UserRole', back_populates='user')
     communication_log = relationship('CommunicationLog', back_populates='user')
+    timeline_events = relationship("TimelineEvent", back_populates="user")
 
     def hash_password(self, password):
         # Implement a secure hash function (e.g., bcrypt, Argon2)

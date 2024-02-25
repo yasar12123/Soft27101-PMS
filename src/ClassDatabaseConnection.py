@@ -12,7 +12,7 @@ class DatabaseConnection:
 
     def create_engine(self):
         conn_str = self.connection_string()
-        return create_engine(conn_str, echo=True)
+        return create_engine(conn_str, echo=False)
 
     def connection_string(self):
         server = os.getenv('AZURE_SQL_SERVER')

@@ -7,6 +7,7 @@ from src.ClassTeam import Team
 from src.ClassTask import Task
 from src.ClassCommunicationLog import CommunicationLog
 from src.ClassAttachment import Attachment
+from src.ClassTimelineEvent import TimelineEvent
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QDialog, QMessageBox
@@ -100,7 +101,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # project instance
         t = Task()
         if projectPkey:
-            tasks = t.get_tasks_for_team_member(self.session, self.activeUserInstance.username, projectPkey=projectPkey)
+            tasks = t.get_tasks_for_team_member(self.session, self.activeUserInstance.username, project_fkey=projectPkey)
         else:
             tasks = t.get_tasks_for_team_member(self.session, self.activeUserInstance.username)
         # Populate the projects table

@@ -7,6 +7,7 @@ from src.ClassTeam import Team
 from src.ClassTask import Task
 from src.ClassCommunicationLog import CommunicationLog
 from src.ClassAttachment import Attachment
+from src.ClassTimelineEvent import TimelineEvent
 
 import matplotlib.pyplot as plt
 from datetime import datetime
@@ -30,6 +31,7 @@ if __name__ == '__main__':
     # for task in tasks:
     #     print(task.name, task.project.name)
 
-    p = Project()
-    #project = p.number_of_open_tasks(session(), 14)
-    project = p.get_projects(session)
+    t = Task()
+    tasks = t.get_tasks_by_project(session)
+    for task in tasks:
+        print(task.name)
