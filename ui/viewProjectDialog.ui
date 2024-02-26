@@ -159,6 +159,11 @@
             <string>In-Progress</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string>Completed</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item row="5" column="0">

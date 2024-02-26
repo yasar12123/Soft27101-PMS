@@ -80,24 +80,7 @@ class Task(Base):
             return f'Error retrieving data: {e}'
 
 
-    @classmethod
-    def get_task(cls, session, task_pkey):
-        # Try to establish connection to db
-        try:
-            # Create a session
-            with session() as session:
-                query = (
-                    session.query(cls)
-                    .join(User, cls.assignee_fkey == User.user_pkey)
-                    .join(Project, cls.project_fkey == Project.project_pkey)
-                    .options(joinedload(cls.assignee), joinedload(cls.assigner), joinedload(cls.project))
-                    .filter(Project.is_removed == 0, cls.is_removed == 0, cls.task_pkey == task_pkey)
-                )
-                return query.all()
 
-        except SQLAlchemyError as e:
-            # Log or handle the exception
-            return f'Error retrieving data: {e}'
 
 
     @classmethod
@@ -170,7 +153,6 @@ class Task(Base):
 
     def add_task(self, session):
 
-        # check if fields are null
         dictToCheck = {"Project FKEY": self.project_fkey,
                        "Task Name": self.name,
                        "Task Description": self.desc,
@@ -179,13 +161,13 @@ class Task(Base):
                        "Task Due Date": self.due_date,
                        "Assignee": self.assignee_fkey,
                        "Assigner": self.assigner_fkey}
-
+        # check if fields are null
         for attribute, val in dictToCheck.items():
             if val == '':
                 return f'the field {attribute} can not be empty'
 
+        # if fields are not null
         else:
-            # Try to establish connection to db
             try:
                 # Create a session
                 with session() as session:
@@ -193,24 +175,46 @@ class Task(Base):
                     projectTask = (
                         session.query(Project)
                         .options(joinedload(Project.tasks))
-                        .filter(
-                            Project.project_pkey == self.project_fkey,
-                            Project.is_removed == 0,
-                            Task.is_removed == 0,
-                            Task.name == self.name
-                        )
+                        .filter(Project.project_pkey == self.project_fkey,
+                                Project.is_removed == 0,
+                                Task.is_removed == 0,
+                                Task.name == self.name)
                         .join(Task)
-                        .first()
-                    )
+                        .first())
+
                     # if the task of project already exists in the database
                     if projectTask:
                         return f'Error!, the task: {self.name} already exists'
-                    # if project is not in the database
+
+                    # if project is not in the database the add
                     if projectTask is None:
                         session.add(self)
                         session.commit()
                         return 'successful'
+
+            #exception with sql alchemy
             except SQLAlchemyError as e:
-                # Log or handle the exception
                 return f'Error during adding project: {e}'
+
+    def get_task(self, session, task_pkey):
+        # Try to establish connection to db
+        try:
+            # Create a session
+            with session() as session:
+                # query db for project
+                task = (
+                    session.query(Task)
+                    .join(User, Task.assignee_fkey == User.user_pkey)
+                    .join(Project, Task.project_fkey == Project.project_pkey)
+                    .options(joinedload(Task.assignee), joinedload(Task.assigner), joinedload(Task.project))
+                    .filter(Project.is_removed == 0, Task.is_removed == 0, Task.task_pkey == task_pkey)
+                    .first()
+                )
+
+                if task:
+                    return task
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error retrieving data: {e}'
 

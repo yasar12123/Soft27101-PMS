@@ -82,7 +82,6 @@ class Project(Base):
             # Log or handle the exception
             return f'Error retrieving data: {e}'
 
-
     def add_owner_to_project_team(self, owner_fkey):
         # Create a session
         db = DatabaseConnection()
@@ -94,7 +93,6 @@ class Project(Base):
             return 'owner has been added'
         else:
             return projectUser
-
 
     def add_project(self, session, owner_fkey):
 
@@ -136,24 +134,6 @@ class Project(Base):
                 return f'Error during adding project: {e}'
 
     @classmethod
-    def get_project(cls, session, project_pkey):
-        # Try to establish connection to db
-        try:
-            # Create a session
-            with session() as session:
-                query = (
-                    session.query(cls)
-                    .join(cls.owner)
-                    .options(joinedload(cls.owner))
-                    .filter(cls.project_pkey == project_pkey)
-                )
-                return query.all()
-
-        except SQLAlchemyError as e:
-            # Log or handle the exception
-            return f'Error retrieving data: {e}'
-
-    @classmethod
     def set_project(cls, session, projectPkey, setName, setDesc, setStatus, setStartDate, setDueDate):
         # Try to establish connection to db
         try:
@@ -176,13 +156,12 @@ class Project(Base):
             # Log or handle the exception
             return f'Error setting data: {e}'
 
-
     @classmethod
-    def delete_project(cls, session, projectPkey):
+    def delete_project(cls, session, project_pkey):
         try:
             # Create a session
             with session() as session:
-                project = session.query(cls).filter_by(project_pkey=projectPkey).first()
+                project = session.query(cls).filter_by(project_pkey=project_pkey).first()
                 if project:
                     project.is_removed = 1
                     session.commit()
@@ -193,7 +172,6 @@ class Project(Base):
             # Log or handle the exception
             return f'Error deleting project: {e}'
 
-
     @classmethod
     def close_project(cls, session, project_pkey):
         # Try to establish connection to db
@@ -201,8 +179,10 @@ class Project(Base):
             # Create a session
             with session() as session:
                 project = session.query(cls).filter_by(project_pkey=project_pkey).first()
+                # if project does not exit
                 if project is None:
                     return 'Project does not exist'
+
 
                 else:
                     project.status = 'Completed'
@@ -227,3 +207,23 @@ class Project(Base):
         except SQLAlchemyError as e:
             # Log or handle the exception
             return f'Error connecting: {e}'
+
+    def get_project(self, session, project_pkey):
+        # Try to establish connection to db
+        try:
+            # Create a session
+            with session() as session:
+                # query db for project
+                project = (
+                    session.query(Project)
+                    .options(joinedload(Project.owner))
+                    .filter_by(project_pkey=project_pkey)
+                    .first()
+                )
+
+                if project:
+                    return project
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error retrieving data: {e}'

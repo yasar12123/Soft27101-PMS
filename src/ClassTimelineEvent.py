@@ -1,6 +1,7 @@
 from src.ClassBase import Base
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 
 class TimelineEvent(Base):
@@ -18,4 +19,21 @@ class TimelineEvent(Base):
     project = relationship("Project", back_populates="timeline_events")
     task = relationship("Task", back_populates="timeline_events")
     user = relationship("User", back_populates="timeline_events")
+
+    @classmethod
+    def log_project_creation(cls, session, project):
+        try:
+            # Create a new TimelineEvent instance
+            event = cls(
+                event_type="Project Creation", event_description=f"Project '{project.name}' was created.",
+                project_fkey=project.project_pkey, task_fkey=-1, user_fkey=project.owner_fkey
+            )
+
+            session.add(event)
+            session.commit()
+            return "Project creation logged successfully."
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error logging project creation: {e}'
 

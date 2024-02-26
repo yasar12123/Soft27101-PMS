@@ -25,11 +25,7 @@ if __name__ == '__main__':
     # Obtain a session using the get_session() method
     session = db.get_session()
 
-    dbCon = DatabaseConnection()
-    session = dbCon.get_session()
-    # Class user to query
-    user = User()
-    # authenticate user
-    userAuthentication, userInstance = user.authenticate(session, 'tm1', '12345')
+    t = Task()
+    task = t.get_task(session, 14)
 
-    print(userInstance.username)
+    print(task.project.name, task.project.owner_fkey)
