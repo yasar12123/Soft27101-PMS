@@ -20,6 +20,7 @@ class Task(Base):
     due_date = Column(DateTime)
     assignee_fkey = Column(Integer, ForeignKey('USER.user_pkey'), nullable=False)
     assigner_fkey = Column(Integer, ForeignKey('USER.user_pkey'), nullable=False)
+    task_progress = Column(Integer, default=0)
     is_removed = Column(Integer, default=0)
 
     # Define the relationships
@@ -100,7 +101,8 @@ class Task(Base):
 
 
     @classmethod
-    def set_task(cls, session, task_pkey, setName, setDesc, setStatus, setStartDate, setDueDate, assigneeFkey):
+    def set_task(cls, session, task_pkey, setName=None, setDesc=None, setStatus=None,
+                 setStartDate=None, setDueDate=None, assigneeFkey=None, assignerFkey = None, taskProgress=None):
         try:
             # Use a separate variable name to avoid shadowing the class variable
             with session() as sess:
@@ -108,12 +110,22 @@ class Task(Base):
                 if task is None:
                     return 'Task does not exist'
                 else:
-                    task.name = setName
-                    task.desc = setDesc
-                    task.status = setStatus
-                    task.start_date = setStartDate
-                    task.due_date = setDueDate
-                    task.assignee_fkey = assigneeFkey
+                    if setName:
+                        task.name = setName
+                    if setDesc:
+                        task.desc = setDesc
+                    if setStatus:
+                        task.status = setStatus
+                    if setStartDate:
+                        task.start_date = setStartDate
+                    if setDueDate:
+                        task.due_date = setDueDate
+                    if assigneeFkey:
+                        task.assignee_fkey = assigneeFkey
+                    if assignerFkey:
+                        task.assigner_fkey = assignerFkey
+                    if taskProgress:
+                        task.task_progress = taskProgress
                     sess.commit()
                 return 'Task updated'
         except SQLAlchemyError as e:
@@ -146,6 +158,7 @@ class Task(Base):
                     return 'Task does not exist'
                 else:
                     task.status = 'Completed'
+                    task.task_progress = 100
                     task.end_date = datetime.utcnow()
                     session.commit()
                 return 'Task Closed'

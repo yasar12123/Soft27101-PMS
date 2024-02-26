@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'ui/registerWindow.ui'
+# Form implementation generated from reading ui file 'ui\registerWindow.ui'
 #
 # Created by: PyQt6 UI code generator 6.4.2
 #
@@ -101,7 +101,7 @@ class Ui_RegisterWindow(object):
 
     def retranslateUi(self, RegisterWindow):
         _translate = QtCore.QCoreApplication.translate
-        RegisterWindow.setWindowTitle(_translate("RegisterWindow", "MainWindow"))
+        RegisterWindow.setWindowTitle(_translate("RegisterWindow", "Registration Window"))
         self.label_5.setText(_translate("RegisterWindow", "<html><head/><body><p align=\"center\"><span style=\" font-size:20pt; font-weight:700;\">Registeration</span></p><p align=\"center\"><br/></p></body></html>"))
         self.label.setText(_translate("RegisterWindow", "Fullname:  "))
         self.label_3.setText(_translate("RegisterWindow", "Email:        "))

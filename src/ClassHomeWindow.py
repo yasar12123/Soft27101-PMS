@@ -575,6 +575,15 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         self.dbCon = DatabaseConnection()
         self.session = self.dbCon.get_session()
 
+        #disable fields
+        self.projectNameLE.setReadOnly(True)
+        self.projectDescTE.setReadOnly(True)
+        self.projectStatusCB.setEnabled(False)
+        self.projectStartDE.setReadOnly(True)
+        self.projectDueDE.setReadOnly(True)
+        self.projectEndLE.setReadOnly(True)
+        self.projectOwnerLE.setReadOnly(True)
+
         # run functions
         self.populate_project()
         self.populate_team_members_table()
@@ -613,6 +622,13 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         for project in projectSelected:
             if project.owner.username == self.activeUserInstance.username:
                 self.is_admin_or_owner = True
+                self.projectNameLE.setReadOnly(False)
+                self.projectDescTE.setReadOnly(False)
+                self.projectStatusCB.setEnabled(True)
+                self.projectStartDE.setReadOnly(False)
+                self.projectDueDE.setReadOnly(False)
+                self.projectEndLE.setReadOnly(False)
+                self.projectOwnerLE.setReadOnly(False)
                 break
 
         # is admin
@@ -622,6 +638,13 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
             for userRole in user.user_roles:
                 if userRole.role_type == 'Admin':
                     self.is_admin_or_owner = True
+                    self.projectNameLE.setReadOnly(False)
+                    self.projectDescTE.setReadOnly(False)
+                    self.projectStatusCB.setEnabled(True)
+                    self.projectStartDE.setReadOnly(False)
+                    self.projectDueDE.setReadOnly(False)
+                    self.projectEndLE.setReadOnly(False)
+                    self.projectOwnerLE.setReadOnly(False)
                     break
 
     def populate_project(self):
@@ -839,6 +862,9 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         self.field_changed = False
         self.edit_permissions = False
         self.admin_permissions = False
+        self.project_owner_fkey = False
+        self.assignee_fkey = False
+        self.current_task_status = None
 
         # database connection
         self.dbCon = DatabaseConnection()
@@ -850,18 +876,23 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         self.taskStartDE.setReadOnly(True)
         self.taskDueDE.setReadOnly(True)
         self.taskAssigneeCB.setEnabled(False)
+        # disable items in task status drop down
+        self.taskStatusCB.model().item(2).setEnabled(False)
+        self.taskStatusCB.model().item(3).setEnabled(False)
 
         # run functions
         self.check_admin_permissions()
+        self.check_edit_permissions()
         self.populate_task_assignee()
         self.populate_task()
-        self.check_edit_permissions()
+        self.change_review_button_state()
 
         # on buttons click
         self.deleteTaskButton.clicked.connect(self.on_delete_task)
         self.saveChangesButton.clicked.connect(self.on_save_changes)
         self.exitWithoutSavingButton.clicked.connect(self.on_exit_without_save)
         self.closeTaskButton.clicked.connect(self.on_close_task)
+        self.sendReviewtButton.clicked.connect(self.on_send_for_review)
 
         # check if fields have changed
         self.taskNameLE.textChanged.connect(self.on_field_changed)
@@ -870,9 +901,16 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         self.taskStartDE.dateChanged.connect(self.on_field_changed)
         self.taskDueDE.dateChanged.connect(self.on_field_changed)
         self.taskAssigneeCB.currentIndexChanged.connect(self.on_field_changed)
+        self.taskProgressHS.valueChanged.connect(self.on_field_changed)
+        self.taskProgressHS.valueChanged.connect(self.task_progress_slider_value_changed)
 
         # disable buttons
         self.saveChangesButton.setEnabled(False)
+
+
+    def task_progress_slider_value_changed(self):
+        value = self.taskProgressHS.value()
+        self.tpMinL.setText(str(value))
 
     def populate_task_assignee(self):
         pt = ProjectTeam()
@@ -887,7 +925,6 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         QMessageBox.critical(self, "Permission denied", "You do not have permissions to perform this action",
                              QMessageBox.StandardButton.Close)
 
-
     def check_admin_permissions(self):
         # is project owner
         p = Project()
@@ -899,7 +936,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
                 self.taskDescTE.setReadOnly(False)
                 self.taskStartDE.setReadOnly(False)
                 self.taskDueDE.setReadOnly(False)
-                self.taskAssigneeCB.setEnabled(False)
+                self.taskAssigneeCB.setEnabled(True)
                 break
 
         # is admin
@@ -913,7 +950,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
                     self.taskDescTE.setReadOnly(False)
                     self.taskStartDE.setReadOnly(False)
                     self.taskDueDE.setReadOnly(False)
-                    self.taskAssigneeCB.setEnabled(False)
+                    self.taskAssigneeCB.setEnabled(True)
                     break
 
     def check_edit_permissions(self):
@@ -942,6 +979,12 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
                     self.edit_permissions = True
                     break
 
+    def change_review_button_state(self):
+        if self.current_task_status == 'Completed':
+            self.sendReviewtButton.setEnabled(False)
+        if self.current_task_status == 'Pending Review':
+            self.sendReviewtButton.setText('Reject and send back')
+
     def populate_task(self):
         # task instance
         t = Task()
@@ -950,14 +993,20 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             self.projectNameLE.setText(task.project.name)
             self.taskNameLE.setText(task.name)
             self.taskDescTE.setText(task.desc)
+            self.current_task_status = task.status
             self.taskStatusCB.setCurrentText(task.status)
             self.taskStartDE.setDate(task.start_date)
             self.taskDueDE.setDate(task.due_date)
+            self.taskProgressHS.setValue(task.task_progress)
+            self.tpMinL.setText(str(task.task_progress))
             if task.end_date:
                 self.taskEndLE.setText(task.end_date.strftime("%d/%m/%Y"))
 
             self.taskAssignerLE.setText(f'{task.assigner.full_name} ({task.assigner.username})')
             self.taskAssigneeCB.setCurrentText(f'{task.assignee.full_name} ({task.assignee.username})')
+            self.assignee_fkey = task.assignee_fkey
+            self.project_owner_fkey = task.project.owner_fkey
+
 
     def on_delete_task(self):
         if self.admin_permissions is False:
@@ -1007,10 +1056,12 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             AssignToCBIndex = self.taskAssigneeCB.currentIndex()
             assignee_fkey = int(self.taskAssigneeCB.itemData(AssignToCBIndex))
 
+            #task progress
+            taskProgress = self.taskProgressHS.value()
 
             t = Task()
-            updateTask = t.set_task(self.session, self.taskPkey, currentTaskName, currentDesc,
-                                          currentStatus, Pstart, Pdue, assignee_fkey)
+            updateTask = t.set_task(session=self.session, task_pkey=self.taskPkey, setName=currentTaskName, setDesc=currentDesc, taskProgress=taskProgress,
+                                          setStatus=currentStatus, setStartDate=Pstart, setDueDate=Pdue, assigneeFkey=assignee_fkey)
 
             if updateTask:
                 print('updated')
@@ -1020,7 +1071,6 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
                 self.saveChangesButton.setEnabled(False)
             else:
                 self.taskChangesLabel.setText(updateTask)
-
 
     def on_exit_without_save(self):
         if self.exitWithoutSavingButton.text() == 'Exit':
@@ -1048,6 +1098,10 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
                 closeTask = t.close_task(self.session, self.taskPkey)
                 if closeTask == 'Task Closed':
                     self.taskChangesLabel.setText(f'The task, {taskName}! has now been closed.')
+                    self.taskProgressHS.setValue(100)
+                    self.tpMinL.setText(str(100))
+                    self.taskStatusCB.setCurrentText('Completed')
+                    self.exitWithoutSavingButton.setText('Exit')
                     self.home_window_instance.populate_task_all_table(projectPKEY=self.projectPkey)
 
                     # disable fields after deletion
@@ -1056,7 +1110,6 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
                     return closeTask
             else:
                 return
-
 
     def disable_view_task_fields(self):
         self.projectNameLE.setEnabled(False)
@@ -1080,6 +1133,47 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         self.field_changed = True
         self.saveChangesButton.setEnabled(True)
         self.exitWithoutSavingButton.setText('Exit (without saving')
+
+    def on_send_for_review(self):
+        if self.admin_permissions is True and self.current_task_status == 'Pending Review':
+            confirmation = QMessageBox.question(self, "Confirm Fail Review",
+                                                "Are you sure you want to fail the review?",
+                                                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if confirmation == QMessageBox.StandardButton.Yes:
+                currentTaskName = self.taskNameLE.text()
+                t = Task()
+                updateTask = t.set_task(self.session, self.taskPkey, setStatus='In-Progress')
+                if updateTask:
+                    self.taskStatusCB.setCurrentText('In-Progress')
+                    self.taskChangesLabel.setText(f'The task, {currentTaskName}! has now been sent back.')
+                    self.home_window_instance.populate_task_all_table(projectPKEY=self.projectPkey)
+                    self.sendReviewtButton.setEnabled(False)
+                    self.saveChangesButton.setEnabled(False)
+                    self.exitWithoutSavingButton.setText('Exit')
+                else:
+                    self.taskChangesLabel.setText(updateTask)
+
+        elif self.edit_permissions is True and self.current_task_status != 'Pending Review':
+            confirmation = QMessageBox.question(self, "Confirm Task Review",
+                                                "Are you sure you want to send this task for review?",
+                                                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if confirmation == QMessageBox.StandardButton.Yes:
+                currentTaskName = self.taskNameLE.text()
+                t = Task()
+                updateTask = t.set_task(self.session, self.taskPkey, setStatus='Pending Review')
+
+                if updateTask:
+                    self.taskStatusCB.setCurrentText('Pending Review')
+                    self.taskChangesLabel.setText(f'The task, {currentTaskName}! has now been sent for review.')
+                    self.home_window_instance.populate_task_all_table(projectPKEY=self.projectPkey)
+                    self.sendReviewtButton.setEnabled(False)
+                    self.saveChangesButton.setEnabled(False)
+                    self.exitWithoutSavingButton.setText('Exit')
+                else:
+                    self.taskChangesLabel.setText(updateTask)
+
+        else:
+            self.no_permission_to_perform_action()
 
 
 

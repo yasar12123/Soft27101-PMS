@@ -25,13 +25,11 @@ if __name__ == '__main__':
     # Obtain a session using the get_session() method
     session = db.get_session()
 
-    # t = Task()
-    # tasks = t.get_tasks_for_team_member(session, 'tm1')
-    #
-    # for task in tasks:
-    #     print(task.name, task.project.name)
+    dbCon = DatabaseConnection()
+    session = dbCon.get_session()
+    # Class user to query
+    user = User()
+    # authenticate user
+    userAuthentication, userInstance = user.authenticate(session, 'tm1', '12345')
 
-    t = Task()
-    tasks = t.get_tasks_by_project(session)
-    for task in tasks:
-        print(task.name)
+    print(userInstance.username)
