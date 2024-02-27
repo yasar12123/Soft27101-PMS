@@ -8,11 +8,27 @@ from src.ClassTask import Task
 from src.ClassCommunicationLog import CommunicationLog
 from src.ClassAttachment import Attachment
 
+from PyQt6.QtCore import QThread, pyqtSignal
 from PyQt6.QtWidgets import QApplication, QMainWindow
 from generated.LoginWindow import Ui_LoginWindow
 from src.ClassRegisterWindow import RegisterWindow
 from src.ClassHomeWindow import HomeWindow
 
+
+
+class AuthThread(QThread):
+    authentication_done = pyqtSignal(str, object)
+
+    def __init__(self, user, session, username, password):
+        super().__init__()
+        self.user = user
+        self.session = session
+        self.username = username
+        self.password = password
+
+    def run(self):
+        userAuthentication, userInstance = self.user.authenticate(self.session, self.username, self.password)
+        self.authentication_done.emit(userAuthentication, userInstance)
 
 class LoginWindow(QMainWindow, Ui_LoginWindow):
     def __init__(self):
@@ -27,25 +43,26 @@ class LoginWindow(QMainWindow, Ui_LoginWindow):
         self.loginButton.clicked.connect(self.on_login)
         self.registerButton.clicked.connect(self.open_register_window)
 
-
     def on_login(self):
         # input from window
         username = self.usernameLE.text()
         password = self.passwordLE.text()
 
-        # Class user to query
-        user = User()
-        # authenticate user
-        userAuthentication, userInstance = user.authenticate(self.session, username, password)
+        self.signInLabel.setText(f'Please wait, trying to log you in.')
 
-        if userAuthentication == 'Login Successful':
-            self.signInLabel.setText(f'Welcome, {username}! You have now logged in.')
-            self.activeUserInstance = userInstance
+        # Create authentication thread
+        self.auth_thread = AuthThread(User(), self.session, username, password)
+        self.auth_thread.authentication_done.connect(self.handle_authentication_result)
+        self.auth_thread.start()
+
+    def handle_authentication_result(self, authentication_status, user_instance):
+        if authentication_status == 'Login Successful':
+            self.signInLabel.setText(f'Welcome, ! You have now logged in.')
+            self.activeUserInstance = user_instance
             self.open_home_window()
             self.close()
-
         else:
-            self.signInLabel.setText(userAuthentication)
+            self.signInLabel.setText(authentication_status)
 
     def open_register_window(self):
         self.register_window = RegisterWindow()

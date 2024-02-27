@@ -21,7 +21,7 @@ class RegisterWindow(QMainWindow, Ui_RegisterWindow):
         self.RegisterButton.clicked.connect(self.on_registration)
 
     def toggle_register_button(self, state):
-        if state: # radio is checked
+        if state:
             self.RegisterButton.setEnabled(True)
         else:
             self.RegisterButton.setEnabled(False)

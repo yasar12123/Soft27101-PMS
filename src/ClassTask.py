@@ -87,7 +87,6 @@ class Task(Base):
     def set_task(cls, session, task_pkey, setName=None, setDesc=None, setStatus=None,
                  setStartDate=None, setDueDate=None, assigneeFkey=None, assignerFkey = None, taskProgress=None):
         try:
-            # Use a separate variable name to avoid shadowing the class variable
             with session() as sess:
                 task = sess.query(cls).filter_by(task_pkey=task_pkey).first()
                 if task is None:

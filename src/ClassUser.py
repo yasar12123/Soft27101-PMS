@@ -140,6 +140,21 @@ class User(Base):
             # Log or handle the exception
             return f'Error retrieving data: {e}'
 
+    def get_user_instance(self, session, user_pkey):
+        # Try to establish connection to db
+        try:
+            # Create a session
+            with session() as session:
+                # query db for the user
+                user = session.query(User).filter_by(user_pkey=user_pkey).first()
+                return user
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error connecting: {e}'
+
+
+
 class UserAdmin(User):
     __tablename__ = 'USER_ADMIN'
 

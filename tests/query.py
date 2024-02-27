@@ -25,7 +25,7 @@ if __name__ == '__main__':
     # Obtain a session using the get_session() method
     session = db.get_session()
 
-    t = Task()
-    task = t.get_task(session, 14)
+    u = User()
+    recipients = u.get_user_instance(session, 3)
 
-    print(task.project.name, task.project.owner_fkey)
+    print(recipients)
