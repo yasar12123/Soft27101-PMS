@@ -138,6 +138,8 @@ class Task(Base):
                 task = session.query(cls).filter_by(task_pkey=task_pkey).first()
                 if task is None:
                     return 'Task does not exist'
+                if task.end_date:
+                    return 'The task has already been closed'
                 else:
                     task.status = 'Completed'
                     task.task_progress = 100

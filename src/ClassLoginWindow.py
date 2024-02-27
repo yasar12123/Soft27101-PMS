@@ -57,7 +57,7 @@ class LoginWindow(QMainWindow, Ui_LoginWindow):
 
     def handle_authentication_result(self, authentication_status, user_instance):
         if authentication_status == 'Login Successful':
-            self.signInLabel.setText(f'Welcome, ! You have now logged in.')
+            self.signInLabel.setText(f'Welcome, {user_instance.username}! You have now logged in.')
             self.activeUserInstance = user_instance
             self.open_home_window()
             self.close()

@@ -75,11 +75,11 @@ class EmailSender:
         except Exception as e:
             return f"An error occurred while sending the email: {e}"
 
-    def on_project_creation(self, recipient_email, project_name):
-        to = recipient_email
+    def on_project_creation(self, project_name):
+        to = self.recipient.email_address
         subject = f'TT_CROP - Project: {project_name} has been created'
         message = f'you have created a new project: {project_name}'
-        email = self.send_email(recipient_email=to, subject=subject, message=message)
+        email = self.send_email(recipient_email=[to], subject=subject, message=message)
         return email
 
     def on_task_creation(self):
@@ -91,13 +91,32 @@ class EmailSender:
 
     def on_task_assign(self):
         to = self.recipient.email_address
-        subject = f'TT_CROP - Task: {self.taskName} for Project: {self.project.name}'
+        subject = f'TT_CROP - Task: {self.taskName} for Project: {self.project.name} - ASSIGNED'
         message = f'you have been assigned a task named: {self.taskName} for the project: {self.project.name}, by {self.actionUser.full_name} ({self.actionUser.username})'
         sendEmail = self.send_email(recipient_email=[to], subject=subject, message=message)
         return sendEmail
 
+    def on_task_close(self):
+        to = self.recipient.email_address
+        subject = f'TT_CROP - Task: {self.taskName} for Project: {self.project.name} - CLOSED'
+        message = f'The task named: {self.taskName} for the project: {self.project.name} has now been closed, by {self.actionUser.full_name} ({self.actionUser.username})'
+        sendEmail = self.send_email(recipient_email=[to], subject=subject, message=message)
+        return sendEmail
 
-# # Initialize and use the EmailSender class
-# email_sender = EmailSender()
-# email_sender.send_email(['yasar1212@hotmail.co.uk'], 'test', 'this is a test message')
+    def on_project_close(self):
+        #send to list
+        sendList = []
+
+        #get list of all team members and append to sendList
+        pt = ProjectTeam()
+        projectTeam = pt.get_team_of_project(self.session, self.project.project_pkey)
+        for user in projectTeam:
+            sendList.append(user.user.email_address)
+
+        # message
+        subject = f'TT_CROP - Project: {self.project.name} - CLOSED'
+        message = f'The project named: {self.project.name} has now been closed by {self.actionUser.full_name} ({self.actionUser.username})'
+        sendEmail = self.send_email(recipient_email=sendList, subject=subject, message=message)
+        return sendEmail
+
 

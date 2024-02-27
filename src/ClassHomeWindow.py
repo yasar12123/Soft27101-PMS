@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import sys
 import datetime
-
+from datetime import datetime as dt
 import threading
 
 
@@ -58,6 +58,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.AddProjectButton.clicked.connect(self.on_add_project_button)
         self.addCommentButton.clicked.connect(self.on_add_project_comment_button)
         self.ViewProjectButton.clicked.connect(self.on_view_project_button)
+        self.viewProjectButtonB.clicked.connect(self.on_view_project_button)
         self.tasksButton.clicked.connect(self.on_tasks_button)
         self.addTaskCommentButton.clicked.connect(self.on_add_task_comment_button)
         self.ViewTaskButton.clicked.connect(self.on_view_task_button)
@@ -254,6 +255,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
     #task
     def on_tasks_button(self):
         self.stackedWidget.setCurrentIndex(2)
+        self.viewProjectButtonB.setEnabled(False)
         self.ViewTaskButton.setEnabled(False)
         self.AddTaskButton.setEnabled(False)
         self.taskCommentListWidget.clear()
@@ -321,6 +323,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             self.populate_task_all_table(projectPKEY=int(project))
             self.projectItemSelected = int(project)
             self.projectNameItemSelected = self.taskProjectTable.item(row, 1).text()
+            self.viewProjectButtonB.setEnabled(True)
 
 
     def populate_task_comments(self, taskPkey):
@@ -743,8 +746,11 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
                     break
 
     def check_project_status(self):
+        # if the project has ended then disable fields
         if self.projectInstance.status == 'Completed':
             self.closeProjectButton.setEnabled(False)
+            self.disable_view_project_fields()
+            self.projectStatusCB.setEnabled(False)
 
     def populate_project(self):
         self.projectNameLE.setText(self.projectInstance.name)
@@ -785,9 +791,20 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
                 projectDelete = self.projectInstance.delete_project(self.session, self.projectInstance.project_pkey)
                 if projectDelete == 'Project deleted successfully':
                     self.projectChangesLabel.setText(f'The project, {self.projectInstance.name}! has now been removed.')
+                    # refresh projects table to include the new project
                     self.home_window_instance.populate_projects_all_table()
+
                     #disable fields after deletion
                     self.disable_view_project_fields()
+
+                    # thread send email on project closure
+                    emailSender = EmailSender()
+                    emailSender.set_action_user(self.activeUserInstance.user_pkey)
+                    emailSender.set_project(self.project_pkey)
+                    # Create thread for email
+                    email_thread = threading.Thread(target=emailSender.on_project_close)
+                    email_thread.start()
+
                 else:
                     return projectDelete
 
@@ -953,6 +970,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         self.admin_permissions = False
         self.project_owner_fkey = False
         self.assignee_fkey = False
+        self.assignee_reassigned = False
 
         # database connection
         self.dbCon = DatabaseConnection()
@@ -973,6 +991,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         self.get_task_instance()
         self.check_admin_permissions()
         self.check_edit_permissions()
+        self.check_project_status()
         self.populate_task_assignee()
         self.populate_task()
         self.change_review_button_state()
@@ -1002,6 +1021,11 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         p = Project()
         self.projectInstance = p.get_project(self.session, self.project_pkey)
 
+    def check_project_status(self):
+        if self.taskInstance.status == 'Completed':
+            self.disable_view_task_fields()
+            self.taskStatusCB.setEnabled(False)
+            self.taskProgressHS.setEnabled(False)
     def get_task_instance(self):
         t = Task()
         self.taskInstance = t.get_task(self.session, self.task_pkey)
@@ -1017,6 +1041,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         self.tpMinL.setText(str(self.taskInstance.task_progress))
         if self.taskInstance.end_date:
             self.taskEndLE.setText(self.taskInstance.end_date.strftime("%d/%m/%Y"))
+            self.taskStatusCB.setCurrentText('Completed')
 
         self.taskAssignerLE.setText(f'{self.taskInstance.assigner.full_name} ({self.taskInstance.assigner.username})')
         self.taskAssigneeCB.setCurrentText(f'{self.taskInstance.assignee.full_name} ({self.taskInstance.assignee.username})')
@@ -1031,7 +1056,6 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             item_text = f'{user.user.full_name} ({user.user.username})'
             item_data = user.user.user_pkey
             self.taskAssigneeCB.addItem(item_text, item_data)
-
 
     #permissions
     def no_permission_to_perform_action(self):
@@ -1147,9 +1171,13 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             # get assignee fkey
             AssignToCBIndex = self.taskAssigneeCB.currentIndex()
             assignee_fkey = int(self.taskAssigneeCB.itemData(AssignToCBIndex))
+            # check if assignee has changed
+            if assignee_fkey != self.taskInstance.assignee_fkey:
+                self.assignee_reassigned = True
 
             #task progress
             taskProgress = int(self.taskProgressHS.value())
+
 
             # pass variable to update
             updateTask = self.taskInstance.set_task(session=self.session, task_pkey=self.task_pkey,
@@ -1158,12 +1186,23 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
                                                     setStartDate=Pstart, setDueDate=Pdue, assigneeFkey=assignee_fkey)
 
             if updateTask:
-                print('updated')
                 self.taskChangesLabel.setText(f'The task, {currentTaskName}! has now been updated.')
-
                 self.home_window_instance.populate_task_all_table(projectPKEY=self.project_pkey)
-                #self.exitWithoutSavingButton.setText('Exit')
-                #self.saveChangesButton.setEnabled(False)
+                self.exitWithoutSavingButton.setText('Exit')
+                self.saveChangesButton.setEnabled(False)
+
+                # send email if assignee as changed
+                if self.assignee_reassigned:
+                    emailSender = EmailSender()
+                    emailSender.set_recipient(assignee_fkey)
+                    emailSender.set_action_user(self.activeUserInstance.user_pkey)
+                    emailSender.set_project(self.project_pkey)
+                    emailSender.set_task_name(currentTaskName)
+
+                    # Create thread for email
+                    email_thread = threading.Thread(target=emailSender.on_task_assign)
+                    email_thread.start()
+
 
             else:
                 self.taskChangesLabel.setText(updateTask)
@@ -1183,7 +1222,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             self.no_permission_to_perform_action()
         else:
             confirmation = QMessageBox.question(self, "Confirm Task Closure",
-                                                "Are you sure you want to close this task?",
+                                                "Are you sure you want to end and mark this task as complete?",
                                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
             if confirmation == QMessageBox.StandardButton.Yes:
                 closeTask = self.taskInstance.close_task(self.session, self.task_pkey)
@@ -1192,15 +1231,26 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
                     self.taskProgressHS.setValue(100)
                     self.tpMinL.setText(str(100))
                     self.taskStatusCB.setCurrentText('Completed')
+                    self.taskEndLE.setText(dt.utcnow().strftime('%d/%m/%Y %H:%M:%S'))
                     self.exitWithoutSavingButton.setText('Exit')
                     self.home_window_instance.populate_task_all_table(projectPKEY=self.project_pkey)
 
                     # disable fields after deletion
                     self.disable_view_task_fields()
+
+                    # send email to assignee on closure
+                    emailSender = EmailSender()
+                    emailSender.set_recipient(self.taskInstance.assignee_fkey)
+                    emailSender.set_action_user(self.activeUserInstance.user_pkey)
+                    emailSender.set_project(self.project_pkey)
+                    emailSender.set_task_name(self.taskInstance.name)
+                    # Create thread for email
+                    email_thread = threading.Thread(target=emailSender.on_task_close)
+                    email_thread.start()
+
                 else:
+                    self.taskChangesLabel.setText(f'{closeTask}')
                     return closeTask
-            else:
-                return
 
     def on_field_changed(self):
         self.field_changed = True
@@ -1258,7 +1308,7 @@ def main():
     # Class user to query
     user = User()
     # authenticate user
-    userAuthentication, userInstance = user.authenticate(session, 'yas', '123')
+    userAuthentication, userInstance = user.authenticate(session, 'tm1', '12345')
 
     app = QApplication(sys.argv)
     window = HomeWindow(activeUserInstance=userInstance)
