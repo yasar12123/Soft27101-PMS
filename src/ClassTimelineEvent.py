@@ -9,7 +9,7 @@ class TimelineEvent(Base):
 
     timeline_event_pkey = Column(Integer, primary_key=True, autoincrement=True)
     event_type = Column(String, nullable=False)
-    event_description = Column(String, nullable=False)
+    event_desc = Column(String, nullable=False)
     event_timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
     project_fkey = Column(Integer, ForeignKey('PROJECT.project_pkey'))
     task_fkey = Column(Integer, ForeignKey('TASK.task_pkey'))
@@ -25,13 +25,13 @@ class TimelineEvent(Base):
         try:
             # Create a new TimelineEvent instance
             event = cls(
-                event_type="Project Creation", event_description=f"Project '{project.name}' was created.",
+                event_type="Project Creation", event_desc=f"Project '{project.name}' was created.",
                 project_fkey=project.project_pkey, task_fkey=-1, user_fkey=project.owner_fkey
             )
-
-            session.add(event)
-            session.commit()
-            return "Project creation logged successfully."
+            with session() as session:
+                session.add(event)
+                session.commit()
+                return "Project creation logged successfully."
 
         except SQLAlchemyError as e:
             # Log or handle the exception

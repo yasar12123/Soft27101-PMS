@@ -13,6 +13,7 @@ from src.ClassTimelineEvent import TimelineEvent
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QDialog, QMessageBox, QSizePolicy, QLabel
 from PyQt6.QtCore import QDate, Qt
+from PyQt6.QtGui import QColor
 from generated.AddProjectDialog import Ui_AddProjectDialog
 from generated.HomeWindow import Ui_HomeWindow
 from generated.ViewProjectDialog import Ui_ViewProjectDialog
@@ -50,38 +51,51 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.TaskAllTable.setColumnHidden(2, True)
         self.taskProjectTable.setColumnHidden(0, True)
 
-        # run dash functions
-        self.on_dash_button()
-
-        # On button click
+        # menu
         self.dashButton.clicked.connect(self.on_dash_button)
         self.projectsButton.clicked.connect(self.on_projects_button)
-        self.AddProjectButton.clicked.connect(self.on_add_project_button)
-        self.addCommentButton.clicked.connect(self.on_add_project_comment_button)
-        self.dashViewProjectButton.clicked.connect(self.on_view_project_button)
-        self.ViewProjectButton.clicked.connect(self.on_view_project_button)
-        self.viewProjectButtonB.clicked.connect(self.on_view_project_button)
         self.tasksButton.clicked.connect(self.on_tasks_button)
-        self.addTaskCommentButton.clicked.connect(self.on_add_task_comment_button)
-        self.ViewTaskButton.clicked.connect(self.on_view_task_button)
-        self.dashViewTaskButton.clicked.connect(self.on_view_task_button)
-        self.AddTaskButton.clicked.connect(self.on_add_task_button)
         self.profileButton.clicked.connect(self.on_profile_button)
         self.logOutButton.clicked.connect(self.on_logOut_button)
 
-        # profile -On button click
-        self.changeDetailsButton.clicked.connect(self.on_change_personal_details_button)
-        self.changePasswordRB.clicked.connect(self.on_change_password_radio_button)
-        self.accountDeleteRB.clicked.connect(self.on_account_deletion_understand_button)
-        self.accountDoNotDeleteRB.clicked.connect(self.on_account_deletion_cancel_button)
+        # load on start
+        self.on_dash_button()
+        self.populate_projects_all_table_thread()
 
-
-        # on table click
-        self.ProjectsAllTable.itemClicked.connect(self.on_project_all_table_item_clicked)
+        # dash functions
+        self.dashViewProjectButton.clicked.connect(self.on_go_to_project_button)
+        self.dashViewTaskButton.clicked.connect(self.on_go_to_task_button)
         self.ProjectsOngoingTable.itemClicked.connect(self.on_project_ongoing_table_item_clicked)
+        self.TasksOngoingTable.itemClicked.connect(self.on_task_ongoing_table_item_clicked)
+
+
+        # project function
+        self.AddProjectButton.clicked.connect(self.on_add_project_button)
+        self.ViewProjectButton.clicked.connect(self.on_view_project_button)
+        self.addCommentButton.clicked.connect(self.on_add_project_comment_button)
+        self.ProjectsAllTable.itemClicked.connect(self.on_project_all_table_item_clicked)
+
+
+        # task functions
+        self.ViewTaskButton.clicked.connect(self.on_view_task_button)
+        self.AddTaskButton.clicked.connect(self.on_add_task_button)
+        self.addTaskCommentButton.clicked.connect(self.on_add_task_comment_button)
+        self.viewProjectButtonB.clicked.connect(self.on_view_project_button)
         self.taskProjectTable.itemClicked.connect(self.on_task_project_all_table_item_clicked)
         self.TaskAllTable.itemClicked.connect(self.on_task_table_item_clicked)
-        self.TasksOngoingTable.itemClicked.connect(self.on_task_ongoing_table_item_clicked)
+
+
+        # profile - On button click
+        self.changeDetailsButton.clicked.connect(self.on_change_personal_details_button)
+        self.changePasswordRB.clicked.connect(self.on_change_password_radio_button)
+        self.notChangePasswordRB.clicked.connect(self.on_not_change_password_radio_button)
+        self.accountDeleteRB.clicked.connect(self.on_account_deletion_understand_button)
+        self.accountDoNotDeleteRB.clicked.connect(self.on_account_deletion_cancel_button)
+        self.updateDetailsButton.clicked.connect(self.on_update_details_button)
+        self.request_password_change = False
+        self.accountDeleteButton.clicked.connect(self.on_account_deletion_button)
+
+
 
 
     # dashboard page functions
@@ -89,21 +103,53 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # Switch to the dashboard page
         self.stackedWidget.setCurrentIndex(0)
 
-        # Create threads for each task and start them
+        #disable buttons
+        self.dashViewProjectButton.setEnabled(False)
+        self.dashViewTaskButton.setEnabled(False)
+
+        # thread project ongoing and tasks table
         project_thread = threading.Thread(target=self.populate_projects_ongoing_table)
         task_thread = threading.Thread(target=self.populate_tasks_ongoing_table)
-
-        # Run the threads
         project_thread.start()
         task_thread.start()
 
         # other funcs
-        self.display_task_counts()
+        self.display_stat_counts()
+
+    def display_stat_counts(self):
+        t = Task()
+        tasks = t.get_tasks_for_team_member(self.session, self.activeUserInstance.username)
+        projects = sum(1 for task in tasks if task.project_fkey)
+        completed_tasks = sum(1 for task in tasks if task.status == 'Completed')
+        in_progress_tasks = sum(1 for task in tasks if task.status == 'In-Progress')
+        not_started_tasks = sum(1 for task in tasks if task.status == 'Not Started')
+        pending_review_tasks = sum(1 for task in tasks if task.status == 'Pending Review')
+
+        layout = QVBoxLayout(self.statsFrame)
+
+        # Add labels for task counts
+        project_label = QLabel(f'No of Projects: {projects}')
+        layout.addWidget(project_label)
+
+        completed_label = QLabel(f'Tasks Completed: {completed_tasks}')
+        layout.addWidget(completed_label)
+
+        in_progress_label = QLabel(f'Tasks In-Progress: {in_progress_tasks}')
+        layout.addWidget(in_progress_label)
+
+        not_started_label = QLabel(f'Tasks Not Started: {not_started_tasks}')
+        layout.addWidget(not_started_label)
+
+        pending_review_label = QLabel(f'Tasks Pending Review: {pending_review_tasks}')
+        layout.addWidget(pending_review_label)
+
+        # Set size policy to automatically adjust size
+        self.statsFrame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
     def populate_projects_ongoing_table(self):
         # project instance
         p = Project()
-        projects = p.get_projects_for_team_member(self.session, self.activeUserInstance.username)
+        projects = p.get_projects_for_team_member(self.session, self.activeUserInstance.username, completed='n')
 
         # Populate the projects table
         row = 0
@@ -123,16 +169,17 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         #clear table
         self.TasksOngoingTable.setRowCount(0)
 
-        # project instance
+        # task instance
         t = Task()
         if projectPkey:
             tasks = t.get_tasks_for_team_member(self.session, self.activeUserInstance.username, project_fkey=projectPkey)
         else:
             tasks = t.get_tasks_for_team_member(self.session, self.activeUserInstance.username)
-        # Populate the projects table
-        row = 0
+        # Populate the tasks table
+
         if tasks:
             self.TasksOngoingTable.setRowCount(0)
+            row = 0
             for task in tasks:
                 self.TasksOngoingTable.insertRow(row)
                 self.TasksOngoingTable.setItem(row, 0, QtWidgets.QTableWidgetItem(str(task.task_pkey)))
@@ -140,127 +187,82 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 self.TasksOngoingTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(task.start_date)))
                 self.TasksOngoingTable.setItem(row, 3, QtWidgets.QTableWidgetItem(str(task.due_date)))
                 self.TasksOngoingTable.setItem(row, 4, QtWidgets.QTableWidgetItem(str(task.status)))
-                self.TasksOngoingTable.setItem(row, 5, QtWidgets.QTableWidgetItem(str(task.project_fkey))
-                )
+                self.TasksOngoingTable.setItem(row, 5, QtWidgets.QTableWidgetItem(str(task.project_fkey)))
                 row += 1
 
     def on_project_ongoing_table_item_clicked(self, item):
-        if item is None:
-            self.populate_tasks_ongoing_table()
-
-        else:
-            # get project
+        if item:
+            # get project pkey of row selected
             row = item.row()
+            #set selected project
             projectPkey = self.ProjectsOngoingTable.item(row, 0).text()
             self.projectItemSelected = int(projectPkey)
             self.projectNameItemSelected = self.ProjectsOngoingTable.item(row, 1).text()
+
+            # enable button
+            self.dashViewProjectButton.setEnabled(True)
+
+            # populate tasks table
             self.populate_tasks_ongoing_table(projectPkey=int(projectPkey))
 
     def on_task_ongoing_table_item_clicked(self, item):
-            # get task
+        if item:
+            # set task instance pkey of row selected
             row = item.row()
-            taskPkey = self.TasksOngoingTable.item(row, 0).text()
-            self.taskItemSelected = int(taskPkey)
+            self.taskItemSelected = int(self.TasksOngoingTable.item(row, 0).text())
             self.projectItemSelected = int(self.TasksOngoingTable.item(row, 5).text())
 
-    # def plot_project_gantt_chart(self):
-    #     p = Project()
-    #     projects = p.get_projects_for_team_member(self.session, self.activeUserInstance.username)
-    #
-    #     # data for plotting
-    #     project_names = [project.name for project in projects]
-    #     start_dates = [project.start_date for project in projects]
-    #     due_dates = [project.due_date for project in projects]
-    #
-    #     # Plot Gantt chart
-    #     fig, ax = plt.subplots(figsize=(5, 3))
-    #     for idx, project_name in enumerate(project_names):
-    #         print(type(due_dates[idx]))
-    #         ax.barh(project_name, due_dates[idx], left=start_dates[idx], color='skyblue')
-    #     ax.set_xlabel('Date')
-    #     ax.set_ylabel('Project')
-    #     ax.set_title('Gantt Chart')
-    #     ax.grid(True)
-    #     plt.tight_layout()
-    #
-    #     # Embed Gantt chart
-    #     canvas = FigureCanvas(fig)
-    #     layout = QVBoxLayout(self.projectPlotFrame)
-    #     layout.addWidget(canvas)
+            # enable button
+            self.dashViewTaskButton.setEnabled(True)
 
-    # def plot_project_pie_charts(self):
-    #     p = Project()
-    #     projects = p.get_projects_for_team_member(self.session, self.activeUserInstance.username)
-    #
-    #     # Data for plotting
-    #     completed_tasks = sum(1 for project in projects if project.status == 'Completed')
-    #     all_tasks = len(projects)
-    #     project_completion_percentage = completed_tasks / all_tasks * 100
-    #
-    #     # Plot pie charts
-    #     fig, axs = plt.subplots(1, 3, figsize=(8, 4))
-    #
-    #     # Pie chart for completed tasks
-    #     axs[0].pie([completed_tasks, all_tasks - completed_tasks], labels=['Completed', 'Not Completed'],
-    #                autopct='%1.1f%%')
-    #     axs[0].set_title('Completed Tasks')
-    #
-    #     # Horizontal bar chart for all tasks
-    #     categories = ['Not Started', 'Completed']
-    #     counts = [all_tasks - completed_tasks, completed_tasks]
-    #     axs[1].barh(categories, counts, color=['blue', 'green'])
-    #     axs[1].set_xlabel('Number of Tasks')
-    #     axs[1].set_title('All Tasks')
-    #
-    #     # Pie chart for project completion
-    #     axs[2].pie([project_completion_percentage, 100 - project_completion_percentage],
-    #                labels=['Completed', 'Remaining'], autopct='%1.1f%%')
-    #     axs[2].set_title('Project Completion')
-    #
-    #     fig.tight_layout()
-    #
-    #     # Embed pie charts
-    #     canvas = FigureCanvas(fig)
-    #     layout = QVBoxLayout(self.statsFrame)
-    #     layout.addWidget(canvas)
-    #
-    #     # Set size policy to automatically adjust size
-    #     self.statsFrame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-    #     canvas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+    def on_go_to_project_button(self):
+        # Switch to the projects page
+        self.on_projects_button()
 
-    def display_task_counts(self):
-        t = Task()
-        tasks = t.get_tasks_for_team_member(self.session, self.activeUserInstance.username) #, project_fkey=self.project_pkey)
+        # find a select the project in the project table
+        for row in range(self.ProjectsAllTable.rowCount()):
+            # Get the value of the pkey in the table
+            item = self.ProjectsAllTable.item(row, 0)
+            # if the value matches then select the row
+            if item is not None and item.text() == str(self.projectItemSelected):
+                # Select the row if the value matches
+                self.ProjectsAllTable.selectRow(row)
+                self.ProjectsAllTable.itemClicked.emit(item)
 
-        completed_tasks = sum(1 for task in tasks if task.status == 'Completed')
-        in_progress_tasks = sum(1 for task in tasks if task.status == 'In-Progress')
-        started_tasks = sum(1 for task in tasks if task.status == 'Started')
+    def on_go_to_task_button(self):
+        # Switch to the tasks page
+        self.on_tasks_button()
 
-        layout = QVBoxLayout(self.statsFrame)
+        # find and select row in the projects table
+        for row in range(self.taskProjectTable.rowCount()):
+            # Get the value of the pkey in the table
+            item = self.taskProjectTable.item(row, 0)
+            if item is not None and item.text() == str(self.projectItemSelected):
+                # Select the row if the value matches
+                self.taskProjectTable.selectRow(row)
+                self.taskProjectTable.itemClicked.emit(item)
 
-        # Add labels for task counts
-        completed_label = QLabel(f'Completed Tasks: {completed_tasks}')
-        layout.addWidget(completed_label)
-
-        in_progress_label = QLabel(f'In-Progress Tasks: {in_progress_tasks}')
-        layout.addWidget(in_progress_label)
-
-        started_label = QLabel(f'Started Tasks: {started_tasks}')
-        layout.addWidget(started_label)
-
-        # Set size policy to automatically adjust size
-        self.statsFrame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        # find and select row in the tasks table
+        for row in range(self.TaskAllTable.rowCount()):
+            # Get the value of the pkey in the table
+            item = self.TaskAllTable.item(row, 2)
+            if item is not None and item.text() == str(self.taskItemSelected):
+                # Select the row if the value matches
+                self.TaskAllTable.selectRow(row)
+                self.TaskAllTable.itemClicked.emit(item)
 
 
 
     # project page functions
     def on_projects_button(self):
+        # switch to project page
         self.stackedWidget.setCurrentIndex(1)
+        # clear the comments
         self.commentListWidget.clear()
-
-        # Create threads for populating project all table
-        populate_projects_all_thread = threading.Thread(target=self.populate_projects_all_table)
-        populate_projects_all_thread.start()
+        # disable button
+        self.ViewProjectButton.setEnabled(False)
+        # load all projects using threading
+        self.populate_projects_all_table_thread()
 
     def populate_projects_all_table(self):
         # project instance
@@ -268,9 +270,12 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         projects = p.get_projects(self.session)
 
         # Populate the projects table
-        row = 0
         if projects:
+            # set row number and increment within for loop
+            row = 0
+            # clear projects table
             self.ProjectsAllTable.setRowCount(0)
+            # load data into table
             for project in projects:
                 self.ProjectsAllTable.insertRow(row)
                 self.ProjectsAllTable.setItem(row, 0, QtWidgets.QTableWidgetItem(str(project.project_pkey)))
@@ -282,64 +287,80 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 self.ProjectsAllTable.setItem(row, 6, QtWidgets.QTableWidgetItem(str(project.owner.full_name)))
                 row += 1
 
+    def populate_projects_all_table_thread(self):
+        # Create threads for populating project all table
+        populate_projects_all_thread = threading.Thread(target=self.populate_projects_all_table)
+        populate_projects_all_thread.start()
+
     def populate_project_comments(self, projectPkey):
-        # Create a database connection
+        # get project communication log
         comLog = CommunicationLog()
         projectLog = comLog.get_project_communication_log(self.session, projectPkey)
+        # Sort the projectLog list by timestamp
+        projectLog.sort(key=lambda log: log.timestamp, reverse=True)
+        # clear comments list
         self.commentListWidget.clear()
+        # load project comments
         for log in projectLog:
-            self.commentListWidget.addItem('')
-            self.commentListWidget.addItem(f'Posted: {log.timestamp}, User: {log.user.full_name} \n {log.comment} ')
+            # add new line to space out comments
+            timestamp = log.timestamp.strftime('%d/%m/%Y %H:%M:%S')
+            self.commentListWidget.addItem('\n')
+            self.commentListWidget.addItem(f'Posted: {timestamp}, User: {log.user.full_name} \n {log.comment} ')
 
     def on_add_project_comment_button(self):
-        # get comment
+        # get comment text
         commentToAdd = self.newCommentTE.toPlainText()
 
-        # get user fkey
-        userFkey = self.activeUserInstance.user_pkey
-        # get project fkey
-        projectFkey = self.projectItemSelected
-
+        # new comment
+        new_comment = CommunicationLog(user_fkey=self.activeUserInstance.user_pkey, project_fkey=self.projectItemSelected,
+                                       task_fkey=-1, comment=commentToAdd, timestamp=datetime.datetime.now())
         # add comment
-        new_comment = CommunicationLog(user_fkey=userFkey, project_fkey=projectFkey, task_fkey=-1, comment=commentToAdd,
-                                       timestamp=datetime.datetime.now())
         addComment = new_comment.add_comment(self.session)
 
         if addComment == 'successful':
-            # populate comments
-            project_comments_thread = threading.Thread(target=self.populate_project_comments(projectPkey=projectFkey))
+            # populate comments via thread
+            project_comments_thread = threading.Thread(target=self.populate_project_comments(projectPkey=self.projectItemSelected))
             project_comments_thread.start()
             # clear comment box
             self.newCommentTE.clear()
         else:
-            print(addComment)
+            return addComment
 
     def on_project_all_table_item_clicked(self, item):
-        # get project name
-        row = item.row()
-        project = self.ProjectsAllTable.item(row, 0).text()
-        self.projectItemSelected = int(project)
-        self.projectNameItemSelected = self.ProjectsAllTable.item(row, 1).text()
+        if item:
+            # set project fkey and name
+            row = item.row()
+            self.projectItemSelected = int(self.ProjectsAllTable.item(row, 0).text())
+            self.projectNameItemSelected = self.ProjectsAllTable.item(row, 1).text()
 
-        # set button to enable
-        self.ViewProjectButton.setEnabled(True)
+            # set button to enable
+            self.ViewProjectButton.setEnabled(True)
 
-        # populate comments
-        project_comments_thread = threading.Thread(target=self.populate_project_comments(int(project)))
-        project_comments_thread.start()
+            # populate comments via threading
+            project_comments_thread = threading.Thread(target=self.populate_project_comments(self.projectItemSelected))
+            project_comments_thread.start()
 
     def on_add_project_button(self):
+        # open add project class
         self.add_project_window = AddProject(self, activeUserInstance=self.activeUserInstance)
         self.add_project_window.show()
 
 
 
+
+
     # task page functions
     def on_tasks_button(self):
+        # switch Tasks page
         self.stackedWidget.setCurrentIndex(2)
+
+        # disable buttons
         self.viewProjectButtonB.setEnabled(False)
         self.ViewTaskButton.setEnabled(False)
         self.AddTaskButton.setEnabled(False)
+        self.addTaskCommentButton.setEnabled(False)
+
+        # clear comments and task table
         self.taskCommentListWidget.clear()
         self.TaskAllTable.setRowCount(0)
 
@@ -347,34 +368,35 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         populate_task_project_thread = threading.Thread(target=self.populate_task_project_table)
         populate_task_project_thread.start()
 
+        # Create thread for populating task project table
+        populate_task_thread = threading.Thread(target=self.populate_task_all_table(projectPKEY=-1))
+        populate_task_thread.start()
+
     def populate_task_project_table(self):
         # project instance
         p = Project()
         projects = p.get_projects(self.session)
 
         # Populate the projects table
-        row = 0
         if projects:
+            row = 0
             self.taskProjectTable.setRowCount(0)
             for project in projects:
                 self.taskProjectTable.insertRow(row)
                 self.taskProjectTable.setItem(row, 0, QtWidgets.QTableWidgetItem(str(project.project_pkey)))
                 self.taskProjectTable.setItem(row, 1, QtWidgets.QTableWidgetItem(project.name))
 
-    def populate_task_all_table(self, projectPKEY = None):
+    def populate_task_all_table(self, projectPKEY):
         #clear table
         self.TaskAllTable.setRowCount(0)
 
-        # task instance
+        # get all tasks for project
         t = Task()
-        if projectPKEY:
-            tasks = t.get_tasks(self.session, projectPKEY)
-        else:
-            tasks = t.get_tasks(self.session)
+        tasks = t.get_tasks(self.session, projectPKEY)
 
         # Populate the tasks table
-        row = 0
         if tasks:
+            row = 0
             self.TaskAllTable.setRowCount(0)
             for task in tasks:
                 self.TaskAllTable.insertRow(row)
@@ -391,71 +413,87 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 row += 1
 
     def on_task_project_all_table_item_clicked(self, item):
-        self.AddTaskButton.setEnabled(True)
-        if item is None:
-            self.populate_task_all_table()
-
-        else:
+        if item:
+            # clear task comments table
             self.taskCommentListWidget.clear()
+
+            # set project pkey
             row = item.row()
-            project = self.taskProjectTable.item(row, 0).text()
-            self.populate_task_all_table(projectPKEY=int(project))
-            self.projectItemSelected = int(project)
+            self.projectItemSelected = int(self.taskProjectTable.item(row, 0).text())
             self.projectNameItemSelected = self.taskProjectTable.item(row, 1).text()
+
+            # populate tasks table via threading
+            task_all_table_thread = threading.Thread(target=self.populate_task_all_table(projectPKEY=self.projectItemSelected))
+            task_all_table_thread.start()
+
+            # enable buttons
+            self.AddTaskButton.setEnabled(True)
             self.viewProjectButtonB.setEnabled(True)
 
+            # disable button
+            self.ViewTaskButton.setEnabled(False)
+            self.addTaskCommentButton.setEnabled(False)
+
     def populate_task_comments(self, taskPkey):
+        # get task communication log
         comLog = CommunicationLog()
         taskLog = comLog.get_task_communication_log(self.session, taskPkey)
+
+        # Sort the taskLog list by timestamp
+        taskLog.sort(key=lambda log: log.timestamp, reverse=True)
+
+        # clear task comment list
         self.taskCommentListWidget.clear()
+
+        # load in comments
         for log in taskLog:
-            self.taskCommentListWidget.addItem('')
-            self.taskCommentListWidget.addItem(f'Posted: {log.timestamp}, User: {log.user.full_name} \n {log.comment} ')
+            timestamp = log.timestamp.strftime('%d/%m/%Y %H:%M:%S')
+            self.taskCommentListWidget.addItem('\n')
+            self.taskCommentListWidget.addItem(f'Posted: {timestamp}, User: {log.user.full_name} \n {log.comment} ')
 
     def on_task_table_item_clicked(self, item):
-        self.ViewTaskButton.setEnabled(True)
-        if item is None:
-            self.populate_task_all_table()
-        else:
-            # get project name
+        if item:
+            # set project fkey
             row = item.row()
-            project = self.TaskAllTable.item(row, 0).text()
-            task = self.TaskAllTable.item(row, 2).text()
-            self.projectItemSelected = int(project)
+            self.projectItemSelected = int(self.TaskAllTable.item(row, 0).text())
             self.projectNameItemSelected = self.TaskAllTable.item(row, 1).text()
-            self.taskItemSelected = int(task)
+            self.taskItemSelected = int(self.TaskAllTable.item(row, 2).text())
 
             # thread task comments
-            task_comment_thread = threading.Thread(target=self.populate_task_comments(taskPkey=int(task)))
+            task_comment_thread = threading.Thread(target=self.populate_task_comments(taskPkey=self.taskItemSelected))
             task_comment_thread.start()
 
-    def on_add_task_comment_button(self):
-        # get comment
-        commentToAdd = self.newTaskCommentTE.toPlainText()
-        # get user fkey
-        userFkey = self.activeUserInstance.user_pkey
-        # get project fkey
-        projectFkey = self.projectItemSelected
-        # get task fkey
-        taskFkey = self.taskItemSelected
+            # enable buttons
+            self.ViewTaskButton.setEnabled(True)
+            self.addTaskCommentButton.setEnabled(True)
 
-        # add comment
-        new_comment = CommunicationLog(user_fkey=userFkey, project_fkey=projectFkey, task_fkey=taskFkey, comment=commentToAdd,
+    def on_add_task_comment_button(self):
+        # get comment text
+        commentToAdd = self.newTaskCommentTE.toPlainText()
+
+        # new comment to add
+        new_comment = CommunicationLog(user_fkey=self.activeUserInstance.user_pkey,
+                                       project_fkey=self.projectItemSelected,
+                                       task_fkey=self.taskItemSelected, comment=commentToAdd,
                                        timestamp=datetime.datetime.now())
+        # add comment to db
         addComment = new_comment.add_comment(self.session)
 
         if addComment == 'successful':
             # thread task comments
-            task_comment_thread = threading.Thread(target=self.populate_task_comments(taskPkey=taskFkey))
+            task_comment_thread = threading.Thread(target=self.populate_task_comments(taskPkey=self.taskItemSelected))
             task_comment_thread.start()
 
             # clear comment box
             self.newTaskCommentTE.clear()
         else:
-            print(addComment)
+            return addComment
 
     def on_add_task_button(self):
-        self.add_task_window = AddTask(self, projectName=self.projectNameItemSelected, projectPkey=self.projectItemSelected, activeUserInstance=self.activeUserInstance)
+        # on add task class window
+        self.add_task_window = AddTask(self, projectName=self.projectNameItemSelected,
+                                       projectPkey=self.projectItemSelected,
+                                       activeUserInstance=self.activeUserInstance)
         self.add_task_window.show()
 
 
@@ -473,19 +511,28 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.view_task_window.show()
 
 
+    # log out func and confirmation box
+    def confirmation_box(self, title, display_text):
+        if title and display_text:
+            confirmation = QMessageBox.question(self, title, display_text,
+                                                QMessageBox.StandardButton.Yes |
+                                                QMessageBox.StandardButton.No)
+            return confirmation
 
-    # logout functons
     def on_logOut_button(self):
-        confirmation = QMessageBox.question(self, "Confirm logging out",
-                                            "Are you sure you want to log out?",
-                                            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        confirmation = self.confirmation_box('Confirm logging out', 'Are you sure you want to log out?')
         if confirmation == QMessageBox.StandardButton.Yes:
             self.close()
+
 
 
     # profile page functions
     def on_profile_button(self):
         self.stackedWidget.setCurrentIndex(3)
+        self.on_profile_load_defaults()
+        self.populate_profile_details()
+
+    def on_profile_load_defaults(self):
         self.changeDetailsButton.setText('Change Details')
         self.newPasswordLabel.setText('Password: ')
         self.accountDeleteButton.hide()
@@ -494,13 +541,27 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.pdUsernameLE.setEnabled(False)
         self.pdPasswordLE.setEnabled(False)
         self.updateDetailsButton.setEnabled(False)
+        self.changePasswordRB.setChecked(False)
         self.changePasswordRB.hide()
+        self.notChangePasswordRB.setChecked(False)
+        self.notChangePasswordRB.hide()
         self.updateDetailsButton.hide()
-        self.populate_profile_details()
+        self.accountDoNotDeleteRB.setChecked(True)
+        self.request_password_change = False
+        self.pdPasswordLE.setText('**********')
 
     def on_change_password_radio_button(self):
         self.pdPasswordLE.setEnabled(True)
+        self.pdPasswordLE.clear()
         self.newPasswordLabel.setText('Input New Password: ')
+        self.request_password_change = True
+        self.notChangePasswordRB.show()
+
+    def on_not_change_password_radio_button(self):
+        self.pdPasswordLE.setEnabled(False)
+        self.request_password_change = False
+        self.newPasswordLabel.setText('Password: ')
+        self.pdPasswordLE.setText('**********')
 
     def on_change_personal_details_button(self):
         if self.changeDetailsButton.text() == 'Change Details':
@@ -512,15 +573,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             self.changePasswordRB.show()
             self.changeDetailsButton.setText('Discard Changes')
         else:
-            self.pdNameLE.setEnabled(False)
-            self.pdEmailLE.setEnabled(False)
-            self.pdUsernameLE.setEnabled(False)
-            self.pdPasswordLE.setEnabled(False)
-            self.updateDetailsButton.setEnabled(False)
-            self.updateDetailsButton.hide()
-            self.changePasswordRB.hide()
-            self.newPasswordLabel.setText('Password: ')
-            self.changeDetailsButton.setText('Change Details')
+            self.on_profile_load_defaults()
             self.populate_profile_details()
 
     def populate_profile_details(self):
@@ -534,9 +587,35 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
     def on_account_deletion_cancel_button(self):
         self.accountDeleteButton.hide()
+        self.accountDoNotDeleteRB.setChecked(True)
+
+    def on_update_details_button(self):
+        user_pkey = self.activeUserInstance.user_pkey
+        name = self.pdNameLE.text()
+        emailAdd = self.pdEmailLE.text()
+        username = self.pdUsernameLE.text()
+        password = self.pdPasswordLE.text()
+
+        #if password not changed
+        if self.request_password_change is False:
+            set_user = self.activeUserInstance.set_user(self.session, user_pkey=user_pkey,
+                                                        setFullname=name, setEmailAddress=emailAdd,
+                                                        setUsername=username)
+            self.updateStatusLabel.setText(set_user)
+            self.on_profile_load_defaults()
+        # if password changed
+        if self.request_password_change is True:
+            set_user = self.activeUserInstance.set_user(self.session, user_pkey=user_pkey,
+                                                        setFullname=name, setEmailAddress=emailAdd,
+                                                        setUsername=username, setPassword=password)
+            self.updateStatusLabel.setText(set_user)
+            self.on_profile_load_defaults()
 
 
-
+    def on_account_deletion_button(self):
+        #admin = self.activeUserInstance.is_user_admin(self.session)
+        #print(admin)
+        return
 
 
 class AddProject(QDialog, Ui_AddProjectDialog):
@@ -604,9 +683,9 @@ class AddProject(QDialog, Ui_AddProjectDialog):
             self.addProjectButton.setEnabled(False)
             self.exitProjectButton.setText('Exit')
 
-            # log addition as event
-            #event = TimelineEvent()
-            #addEvent = event.log_project_creation(self.session, new_project)
+            #log event of creation
+            event = TimelineEvent()
+            addEvent = event.log_project_creation(self.session, new_project)
 
         else:
             self.addProjectStatusLabel.setText(addProject)

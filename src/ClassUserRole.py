@@ -1,6 +1,7 @@
 from src.ClassBase import Base
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
+from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 
 class UserRole(Base):
@@ -16,4 +17,5 @@ class UserRole(Base):
 
     # Define the relationship
     user = relationship('User', back_populates='user_roles')
+
 

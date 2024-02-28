@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1219</width>
-    <height>639</height>
+    <height>657</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -190,7 +190,7 @@
               <item>
                <widget class="QPushButton" name="dashViewProjectButton">
                 <property name="text">
-                 <string>View Project</string>
+                 <string>Got To Project</string>
                 </property>
                </widget>
               </item>
@@ -246,7 +246,7 @@
               <item>
                <widget class="QPushButton" name="dashViewTaskButton">
                 <property name="text">
-                 <string>View Task</string>
+                 <string>Got To Task</string>
                 </property>
                </widget>
               </item>
@@ -891,6 +891,24 @@
                         </property>
                         <property name="text">
                          <string>Change Password</string>
+                        </property>
+                        <property name="iconSize">
+                         <size>
+                          <width>14</width>
+                          <height>14</height>
+                         </size>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QRadioButton" name="notChangePasswordRB">
+                        <property name="font">
+                         <font>
+                          <pointsize>7</pointsize>
+                         </font>
+                        </property>
+                        <property name="text">
+                         <string>Do not Change Password</string>
                         </property>
                         <property name="iconSize">
                          <size>

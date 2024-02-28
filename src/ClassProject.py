@@ -44,7 +44,7 @@ class Project(Base):
         return open_tasks_count
 
     @classmethod
-    def get_projects_for_team_member(cls, session, team_member_username):
+    def get_projects_for_team_member(cls, session, team_member_username, completed=None):
         # Try to establish connection to db
         try:
             # Create a session
@@ -60,6 +60,10 @@ class Project(Base):
                             ProjectTeam.is_removed == 0)
                     .options(joinedload(Project.owner))
                 )
+                # If completed is specified as n then remove completed projects
+                if completed == 'n':
+                    query = query.filter(cls.status != 'Completed')
+
                 return query.all()
 
         except SQLAlchemyError as e:

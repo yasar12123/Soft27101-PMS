@@ -24,8 +24,12 @@ if __name__ == '__main__':
     # Obtain a session using the get_session() method
     session = db.get_session()
 
-    t = Task()
-    tasks = t.get_tasks_for_team_member(session, 'tm1')  # , project_fkey=self.project_pkey)
+    new_project = Project(name='test', desc='this', start_date=datetime.utcnow, due_date=datetime.utcnow, status='Not Started',
+                          owner_fkey=4, is_removed=0)
 
-    completed_tasks = sum(1 for task in tasks if task.status == 'Completed')
-    #in_progress_tasks = sum(1 for task in tasks if task.status == 'In-Progress')
+
+    # log addition as event
+    event = TimelineEvent()
+    addEvent = event.log_project_creation(session, new_project)
+
+    print(addEvent)

@@ -88,7 +88,6 @@ class User(Base):
                 # Log or handle the exception
                 return f'Error during registration: {e}'
 
-
     def get_user_fkey(self, session, usernameP):
         # Try to establish connection to db
         try:
@@ -101,7 +100,6 @@ class User(Base):
         except SQLAlchemyError as e:
             # Log or handle the exception
             return f'Error connecting: {e}'
-
 
     def get_user(self, session, userName):
         # Try to establish connection to db
@@ -152,6 +150,56 @@ class User(Base):
         except SQLAlchemyError as e:
             # Log or handle the exception
             return f'Error connecting: {e}'
+
+    @classmethod
+    def set_user(cls, session, user_pkey, setUsername, setFullname, setEmailAddress, setPassword=None):
+        try:
+            # Create a session
+            with session() as session:
+                # check if user exists
+                user = session.query(cls).filter_by(user_pkey=user_pkey).first()
+
+                # if user not in db then return message
+                if user is None:
+                    return 'User does not exist'
+
+                # check if username has been taken already
+                users = cls.get_users(session)
+                for user in users:
+                    if setUsername == user.username:
+                        return f'username: {setUsername} has already been taken \n Try Another'
+
+                # else update details
+                else:
+                    if setUsername:
+                        user.username = setUsername
+                    if setFullname:
+                        user.full_name = setFullname
+                    if setEmailAddress:
+                        user.email_address = setEmailAddress
+                    if setPassword:
+                        user.password_hashed = setPassword
+
+                    # commit changes
+                    session.commit()
+
+                return 'User details updated'
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error setting data: {e}'
+
+
+
+    # def delete_user(cls, session, user_to_delete_pkey):
+    #     adminRole = cls.UserRole.is_user_admin(session, cls.user_pkey)
+    #     if adminRole or cls.user_pkey == user_to_delete_pkey:
+    #         print('deleted')
+
+
+
+
+
 
 
 
