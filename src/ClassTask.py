@@ -219,3 +219,29 @@ class Task(Base):
             # Log or handle the exception
             return f'Error retrieving data: {e}'
 
+
+    # def get_project_progress(self, session):
+    #     """Get the progress of the project in percentage
+    #     :param session: the session to use
+    #     :return: total tasks, completed tasks, progress percentage
+    #     """
+    #     try:
+    #         # Create a session
+    #         with session() as session:
+    #             # Query the database for the total number of tasks in the project
+    #             total_tasks = session.query(func.count(Project.tasks.task_pkey)).filter(
+    #                 Project.Task.project_fkey == self.project_pkey, Project.Task.is_removed == 0).scalar()
+    #             # Query the database for the total number of completed tasks in the project
+    #             completed_tasks = session.query(func.count(Task.task_pkey)).filter(
+    #                 Task.project_fkey == self.project_pkey, Task.status == 'Completed', Task.is_removed == 0).scalar()
+    #
+    #             # If there are no tasks in the project, set to 0
+    #             if total_tasks == 0:
+    #                 return 0
+    #             else:
+    #                 # Calculate the progress percentage
+    #                 progress_percentage = (completed_tasks / total_tasks) * 100
+    #                 return total_tasks, completed_tasks, progress_percentage
+    #
+    #     except SQLAlchemyError as e:
+    #         return f'Error retrieving project progress: {e}'

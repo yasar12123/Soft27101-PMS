@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1219</width>
-    <height>638</height>
+    <height>639</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -188,18 +188,9 @@
                </widget>
               </item>
               <item>
-               <widget class="QFrame" name="projectPlotFrame">
-                <property name="baseSize">
-                 <size>
-                  <width>0</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="frameShape">
-                 <enum>QFrame::StyledPanel</enum>
-                </property>
-                <property name="frameShadow">
-                 <enum>QFrame::Raised</enum>
+               <widget class="QPushButton" name="dashViewProjectButton">
+                <property name="text">
+                 <string>View Project</string>
                 </property>
                </widget>
               </item>
@@ -245,15 +236,17 @@
                   <string>Status</string>
                  </property>
                 </column>
+                <column>
+                 <property name="text">
+                  <string>Project PKEY</string>
+                 </property>
+                </column>
                </widget>
               </item>
               <item>
-               <widget class="QFrame" name="taskPlotFrame">
-                <property name="frameShape">
-                 <enum>QFrame::StyledPanel</enum>
-                </property>
-                <property name="frameShadow">
-                 <enum>QFrame::Raised</enum>
+               <widget class="QPushButton" name="dashViewTaskButton">
+                <property name="text">
+                 <string>View Task</string>
                 </property>
                </widget>
               </item>
@@ -261,6 +254,37 @@
             </widget>
            </item>
           </layout>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="statGB">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>200</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>400</height>
+            </size>
+           </property>
+           <property name="title">
+            <string>Stats</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_22">
+            <item>
+             <widget class="QFrame" name="statsFrame">
+              <property name="frameShape">
+               <enum>QFrame::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Raised</enum>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
          </item>
         </layout>
        </widget>

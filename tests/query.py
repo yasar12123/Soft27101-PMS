@@ -24,9 +24,8 @@ if __name__ == '__main__':
     # Obtain a session using the get_session() method
     session = db.get_session()
 
-    emailSender = EmailSender()
-    emailSender.set_action_user(4)
-    emailSender.set_project(47)
-    # Create thread for email
-    snd = emailSender.on_project_creation('nava nava saa laya')
-    print(snd)
+    t = Task()
+    tasks = t.get_tasks_for_team_member(session, 'tm1')  # , project_fkey=self.project_pkey)
+
+    completed_tasks = sum(1 for task in tasks if task.status == 'Completed')
+    #in_progress_tasks = sum(1 for task in tasks if task.status == 'In-Progress')

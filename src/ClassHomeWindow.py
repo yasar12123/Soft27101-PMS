@@ -11,7 +11,7 @@ from src.ClassAttachment import Attachment
 from src.ClassTimelineEvent import TimelineEvent
 
 from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QDialog, QMessageBox
+from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QDialog, QMessageBox, QSizePolicy, QLabel
 from PyQt6.QtCore import QDate, Qt
 from generated.AddProjectDialog import Ui_AddProjectDialog
 from generated.HomeWindow import Ui_HomeWindow
@@ -45,6 +45,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.ProjectsOngoingTable.setColumnHidden(0, True)
         self.ProjectsAllTable.setColumnHidden(0, True)
         self.TasksOngoingTable.setColumnHidden(0, True)
+        self.TasksOngoingTable.setColumnHidden(5, True)
         self.TaskAllTable.setColumnHidden(0, True)
         self.TaskAllTable.setColumnHidden(2, True)
         self.taskProjectTable.setColumnHidden(0, True)
@@ -57,11 +58,13 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.projectsButton.clicked.connect(self.on_projects_button)
         self.AddProjectButton.clicked.connect(self.on_add_project_button)
         self.addCommentButton.clicked.connect(self.on_add_project_comment_button)
+        self.dashViewProjectButton.clicked.connect(self.on_view_project_button)
         self.ViewProjectButton.clicked.connect(self.on_view_project_button)
         self.viewProjectButtonB.clicked.connect(self.on_view_project_button)
         self.tasksButton.clicked.connect(self.on_tasks_button)
         self.addTaskCommentButton.clicked.connect(self.on_add_task_comment_button)
         self.ViewTaskButton.clicked.connect(self.on_view_task_button)
+        self.dashViewTaskButton.clicked.connect(self.on_view_task_button)
         self.AddTaskButton.clicked.connect(self.on_add_task_button)
         self.profileButton.clicked.connect(self.on_profile_button)
         self.logOutButton.clicked.connect(self.on_logOut_button)
@@ -78,7 +81,24 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.ProjectsOngoingTable.itemClicked.connect(self.on_project_ongoing_table_item_clicked)
         self.taskProjectTable.itemClicked.connect(self.on_task_project_all_table_item_clicked)
         self.TaskAllTable.itemClicked.connect(self.on_task_table_item_clicked)
+        self.TasksOngoingTable.itemClicked.connect(self.on_task_ongoing_table_item_clicked)
 
+
+    # dashboard page functions
+    def on_dash_button(self):
+        # Switch to the dashboard page
+        self.stackedWidget.setCurrentIndex(0)
+
+        # Create threads for each task and start them
+        project_thread = threading.Thread(target=self.populate_projects_ongoing_table)
+        task_thread = threading.Thread(target=self.populate_tasks_ongoing_table)
+
+        # Run the threads
+        project_thread.start()
+        task_thread.start()
+
+        # other funcs
+        self.display_task_counts()
 
     def populate_projects_ongoing_table(self):
         # project instance
@@ -98,7 +118,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 self.ProjectsOngoingTable.setItem(row, 4, QtWidgets.QTableWidgetItem(str(project.status)))
                 self.ProjectsOngoingTable.setItem(row, 5, QtWidgets.QTableWidgetItem(str(project.owner.full_name)))
                 row += 1
-
 
     def populate_tasks_ongoing_table(self, projectPkey=None):
         #clear table
@@ -121,8 +140,9 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 self.TasksOngoingTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(task.start_date)))
                 self.TasksOngoingTable.setItem(row, 3, QtWidgets.QTableWidgetItem(str(task.due_date)))
                 self.TasksOngoingTable.setItem(row, 4, QtWidgets.QTableWidgetItem(str(task.status)))
+                self.TasksOngoingTable.setItem(row, 5, QtWidgets.QTableWidgetItem(str(task.project_fkey))
+                )
                 row += 1
-
 
     def on_project_ongoing_table_item_clicked(self, item):
         if item is None:
@@ -132,34 +152,115 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             # get project
             row = item.row()
             projectPkey = self.ProjectsOngoingTable.item(row, 0).text()
+            self.projectItemSelected = int(projectPkey)
+            self.projectNameItemSelected = self.ProjectsOngoingTable.item(row, 1).text()
             self.populate_tasks_ongoing_table(projectPkey=int(projectPkey))
 
+    def on_task_ongoing_table_item_clicked(self, item):
+            # get task
+            row = item.row()
+            taskPkey = self.TasksOngoingTable.item(row, 0).text()
+            self.taskItemSelected = int(taskPkey)
+            self.projectItemSelected = int(self.TasksOngoingTable.item(row, 5).text())
 
-    def plot_project_gantt_chart(self):
-        p = Project()
-        projects = p.get_projects_for_team_member(self.session, self.activeUserInstance.username)
+    # def plot_project_gantt_chart(self):
+    #     p = Project()
+    #     projects = p.get_projects_for_team_member(self.session, self.activeUserInstance.username)
+    #
+    #     # data for plotting
+    #     project_names = [project.name for project in projects]
+    #     start_dates = [project.start_date for project in projects]
+    #     due_dates = [project.due_date for project in projects]
+    #
+    #     # Plot Gantt chart
+    #     fig, ax = plt.subplots(figsize=(5, 3))
+    #     for idx, project_name in enumerate(project_names):
+    #         print(type(due_dates[idx]))
+    #         ax.barh(project_name, due_dates[idx], left=start_dates[idx], color='skyblue')
+    #     ax.set_xlabel('Date')
+    #     ax.set_ylabel('Project')
+    #     ax.set_title('Gantt Chart')
+    #     ax.grid(True)
+    #     plt.tight_layout()
+    #
+    #     # Embed Gantt chart
+    #     canvas = FigureCanvas(fig)
+    #     layout = QVBoxLayout(self.projectPlotFrame)
+    #     layout.addWidget(canvas)
 
-        # data for plotting
-        project_names = [project.name for project in projects]
-        start_dates = [project.start_date for project in projects]
-        due_dates = [project.due_date for project in projects]
+    # def plot_project_pie_charts(self):
+    #     p = Project()
+    #     projects = p.get_projects_for_team_member(self.session, self.activeUserInstance.username)
+    #
+    #     # Data for plotting
+    #     completed_tasks = sum(1 for project in projects if project.status == 'Completed')
+    #     all_tasks = len(projects)
+    #     project_completion_percentage = completed_tasks / all_tasks * 100
+    #
+    #     # Plot pie charts
+    #     fig, axs = plt.subplots(1, 3, figsize=(8, 4))
+    #
+    #     # Pie chart for completed tasks
+    #     axs[0].pie([completed_tasks, all_tasks - completed_tasks], labels=['Completed', 'Not Completed'],
+    #                autopct='%1.1f%%')
+    #     axs[0].set_title('Completed Tasks')
+    #
+    #     # Horizontal bar chart for all tasks
+    #     categories = ['Not Started', 'Completed']
+    #     counts = [all_tasks - completed_tasks, completed_tasks]
+    #     axs[1].barh(categories, counts, color=['blue', 'green'])
+    #     axs[1].set_xlabel('Number of Tasks')
+    #     axs[1].set_title('All Tasks')
+    #
+    #     # Pie chart for project completion
+    #     axs[2].pie([project_completion_percentage, 100 - project_completion_percentage],
+    #                labels=['Completed', 'Remaining'], autopct='%1.1f%%')
+    #     axs[2].set_title('Project Completion')
+    #
+    #     fig.tight_layout()
+    #
+    #     # Embed pie charts
+    #     canvas = FigureCanvas(fig)
+    #     layout = QVBoxLayout(self.statsFrame)
+    #     layout.addWidget(canvas)
+    #
+    #     # Set size policy to automatically adjust size
+    #     self.statsFrame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+    #     canvas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-        # Plot Gantt chart
-        fig, ax = plt.subplots(figsize=(5, 3))
-        for idx, project_name in enumerate(project_names):
-            print(type(due_dates[idx]))
-            ax.barh(project_name, due_dates[idx], left=start_dates[idx], color='skyblue')
-        ax.set_xlabel('Date')
-        ax.set_ylabel('Project')
-        ax.set_title('Gantt Chart')
-        ax.grid(True)
-        plt.tight_layout()
+    def display_task_counts(self):
+        t = Task()
+        tasks = t.get_tasks_for_team_member(self.session, self.activeUserInstance.username) #, project_fkey=self.project_pkey)
 
-        # Embed Gantt chart
-        canvas = FigureCanvas(fig)
-        layout = QVBoxLayout(self.projectPlotFrame)
-        layout.addWidget(canvas)
+        completed_tasks = sum(1 for task in tasks if task.status == 'Completed')
+        in_progress_tasks = sum(1 for task in tasks if task.status == 'In-Progress')
+        started_tasks = sum(1 for task in tasks if task.status == 'Started')
 
+        layout = QVBoxLayout(self.statsFrame)
+
+        # Add labels for task counts
+        completed_label = QLabel(f'Completed Tasks: {completed_tasks}')
+        layout.addWidget(completed_label)
+
+        in_progress_label = QLabel(f'In-Progress Tasks: {in_progress_tasks}')
+        layout.addWidget(in_progress_label)
+
+        started_label = QLabel(f'Started Tasks: {started_tasks}')
+        layout.addWidget(started_label)
+
+        # Set size policy to automatically adjust size
+        self.statsFrame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+
+
+    # project page functions
+    def on_projects_button(self):
+        self.stackedWidget.setCurrentIndex(1)
+        self.commentListWidget.clear()
+
+        # Create threads for populating project all table
+        populate_projects_all_thread = threading.Thread(target=self.populate_projects_all_table)
+        populate_projects_all_thread.start()
 
     def populate_projects_all_table(self):
         # project instance
@@ -180,7 +281,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 self.ProjectsAllTable.setItem(row, 5, QtWidgets.QTableWidgetItem(str(project.status)))
                 self.ProjectsAllTable.setItem(row, 6, QtWidgets.QTableWidgetItem(str(project.owner.full_name)))
                 row += 1
-
 
     def populate_project_comments(self, projectPkey):
         # Create a database connection
@@ -228,31 +328,13 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         project_comments_thread = threading.Thread(target=self.populate_project_comments(int(project)))
         project_comments_thread.start()
 
-    def on_dash_button(self):
-        # Switch to the dashboard page
-        self.stackedWidget.setCurrentIndex(0)
-
-        # Create threads for each task and start them
-        project_thread = threading.Thread(target=self.populate_projects_ongoing_table)
-        task_thread = threading.Thread(target=self.populate_tasks_ongoing_table)
-
-        # Run the threads
-        project_thread.start()
-        task_thread.start()
-
-        # other funcs
-        self.plot_project_gantt_chart()
-
-    def on_projects_button(self):
-        self.stackedWidget.setCurrentIndex(1)
-        self.commentListWidget.clear()
-
-        # Create threads for populating project all table
-        populate_projects_all_thread = threading.Thread(target=self.populate_projects_all_table)
-        populate_projects_all_thread.start()
+    def on_add_project_button(self):
+        self.add_project_window = AddProject(self, activeUserInstance=self.activeUserInstance)
+        self.add_project_window.show()
 
 
-    #task
+
+    # task page functions
     def on_tasks_button(self):
         self.stackedWidget.setCurrentIndex(2)
         self.viewProjectButtonB.setEnabled(False)
@@ -264,7 +346,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # Create thread for populating task project table
         populate_task_project_thread = threading.Thread(target=self.populate_task_project_table)
         populate_task_project_thread.start()
-
 
     def populate_task_project_table(self):
         # project instance
@@ -279,7 +360,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 self.taskProjectTable.insertRow(row)
                 self.taskProjectTable.setItem(row, 0, QtWidgets.QTableWidgetItem(str(project.project_pkey)))
                 self.taskProjectTable.setItem(row, 1, QtWidgets.QTableWidgetItem(project.name))
-
 
     def populate_task_all_table(self, projectPKEY = None):
         #clear table
@@ -310,7 +390,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 self.TaskAllTable.setItem(row, 9, QtWidgets.QTableWidgetItem(task.assigner.full_name))
                 row += 1
 
-
     def on_task_project_all_table_item_clicked(self, item):
         self.AddTaskButton.setEnabled(True)
         if item is None:
@@ -325,7 +404,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             self.projectNameItemSelected = self.taskProjectTable.item(row, 1).text()
             self.viewProjectButtonB.setEnabled(True)
 
-
     def populate_task_comments(self, taskPkey):
         comLog = CommunicationLog()
         taskLog = comLog.get_task_communication_log(self.session, taskPkey)
@@ -333,7 +411,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         for log in taskLog:
             self.taskCommentListWidget.addItem('')
             self.taskCommentListWidget.addItem(f'Posted: {log.timestamp}, User: {log.user.full_name} \n {log.comment} ')
-
 
     def on_task_table_item_clicked(self, item):
         self.ViewTaskButton.setEnabled(True)
@@ -377,11 +454,13 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         else:
             print(addComment)
 
+    def on_add_task_button(self):
+        self.add_task_window = AddTask(self, projectName=self.projectNameItemSelected, projectPkey=self.projectItemSelected, activeUserInstance=self.activeUserInstance)
+        self.add_task_window.show()
 
-    def on_add_project_button(self):
-        self.add_project_window = AddProject(self, activeUserInstance=self.activeUserInstance)
-        self.add_project_window.show()
 
+
+    # on view project and task buttons
     def on_view_project_button(self):
         projectPk = self.projectItemSelected
         self.view_project_window = ViewProject(self, project_pkey=projectPk, activeUserInstance=self.activeUserInstance)
@@ -393,10 +472,9 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                                          activeUserInstance=self.activeUserInstance)
         self.view_task_window.show()
 
-    def on_add_task_button(self):
-        self.add_task_window = AddTask(self, projectName=self.projectNameItemSelected, projectPkey=self.projectItemSelected, activeUserInstance=self.activeUserInstance)
-        self.add_task_window.show()
 
+
+    # logout functons
     def on_logOut_button(self):
         confirmation = QMessageBox.question(self, "Confirm logging out",
                                             "Are you sure you want to log out?",
@@ -405,7 +483,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             self.close()
 
 
-    # profile
+    # profile page functions
     def on_profile_button(self):
         self.stackedWidget.setCurrentIndex(3)
         self.changeDetailsButton.setText('Change Details')
@@ -456,6 +534,10 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
     def on_account_deletion_cancel_button(self):
         self.accountDeleteButton.hide()
+
+
+
+
 
 class AddProject(QDialog, Ui_AddProjectDialog):
     def __init__(self, home_window_instance, activeUserInstance):
@@ -543,6 +625,9 @@ class AddProject(QDialog, Ui_AddProjectDialog):
         self.field_changed = True
         self.addProjectButton.setEnabled(True)
         self.exitProjectButton.setText('Exit (without saving')
+
+
+
 
 class AddTask(QDialog, Ui_AddTaskDialog):
     def __init__(self, home_window_instance, projectName, projectPkey, activeUserInstance):
@@ -670,7 +755,6 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         super().__init__()
         self.setupUi(self)
         self.home_window_instance = home_window_instance
-
         self.project_pkey = project_pkey
         self.activeUserInstance = activeUserInstance
         self.projectInstance = None
@@ -791,8 +875,13 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
                 projectDelete = self.projectInstance.delete_project(self.session, self.projectInstance.project_pkey)
                 if projectDelete == 'Project deleted successfully':
                     self.projectChangesLabel.setText(f'The project, {self.projectInstance.name}! has now been removed.')
-                    # refresh projects table to include the new project
-                    self.home_window_instance.populate_projects_all_table()
+
+                    # refresh projects table to include the new project on dash tab home window
+                    if self.home_window_instance.stackedWidget.currentIndex() == 0:
+                        self.home_window_instance.populate_projects_ongoing_table()
+
+                    if self.home_window_instance.stackedWidget.currentIndex() == 1:
+                        self.home_window_instance.populate_projects_all_table()
 
                     #disable fields after deletion
                     self.disable_view_project_fields()

@@ -6,12 +6,13 @@ from src.ClassDatabaseConnection import DatabaseConnection
 
 from sqlalchemy.orm import relationship, aliased, joinedload
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, func
 from datetime import datetime
 
 
 
 class Project(Base):
+
     __tablename__ = 'PROJECT'
 
     project_pkey = Column(Integer, primary_key=True, autoincrement=True)
@@ -31,6 +32,7 @@ class Project(Base):
     communication_log = relationship('CommunicationLog', back_populates='project')
     timeline_events = relationship("TimelineEvent", back_populates="project")
 
+    #
     def number_of_open_tasks(self, session, project_fkey):
         # Retrieve the project from the database
         project = session.query(Project).get(project_fkey)
@@ -227,3 +229,5 @@ class Project(Base):
         except SQLAlchemyError as e:
             # Log or handle the exception
             return f'Error retrieving data: {e}'
+
+
