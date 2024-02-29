@@ -1,6 +1,6 @@
 from src.ClassBase import Base
 from sqlalchemy.orm import relationship, joinedload
-from sqlalchemy import Column, Integer, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, DateTime, ForeignKey, delete
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 
@@ -85,4 +85,24 @@ class ProjectTeam(Base):
             except SQLAlchemyError as e:
                 # Log or handle the exception
                 return f'Error during adding user to project team: {e}'
+
+    def delete_team_member_from_projects(self, session, user_pkey):
+        try:
+            with session() as session:
+                # Get the rows to delete
+                project_teams = (session.query(ProjectTeam)
+                                 .filter(ProjectTeam.user_fkey == user_pkey).all())
+
+                # Delete the rows
+                if project_teams:
+                    session.execute(delete(ProjectTeam)
+                                    .where(ProjectTeam.user_fkey == user_pkey))
+                    session.commit()
+                    return 'Deleted successfully from teams'
+                else:
+                    return 'User not in any teams'
+
+        except SQLAlchemyError as e:
+            return f'Error during removing user from teams: {e}'
+
 

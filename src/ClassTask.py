@@ -2,7 +2,7 @@ from src.ClassBase import Base
 from src.ClassUser import User
 from src.ClassProject import Project
 from sqlalchemy.orm import relationship, joinedload, aliased
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, or_
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 
@@ -54,8 +54,6 @@ class Task(Base):
             # Log or handle the exception
             return f'Error retrieving data: {e}'
 
-
-
     @classmethod
     def get_tasks(cls, session, project_fkey=None):
         # Try to establish connection to db
@@ -78,10 +76,6 @@ class Task(Base):
         except SQLAlchemyError as e:
             # Log or handle the exception
             return f'Error retrieving data: {e}'
-
-
-
-
 
     @classmethod
     def set_task(cls, session, task_pkey, setName=None, setDesc=None, setStatus=None,
@@ -218,6 +212,30 @@ class Task(Base):
         except SQLAlchemyError as e:
             # Log or handle the exception
             return f'Error retrieving data: {e}'
+
+
+    def unassign_tasks(self, session, user_pkey):
+        try:
+            # Create a session
+            with session() as session:
+                # get tasks assigned to or assigned by the user
+                tasks = session.query(Task).filter(
+                    or_(Task.assignee_fkey == user_pkey, Task.assigner_fkey == user_pkey)
+                ).all()
+
+               # un-assign the tasks
+                if tasks:
+                    for task in tasks:
+                        if task.assignee_fkey == user_pkey:
+                            task.assignee_fkey = -1
+                        if task.assigner_fkey == user_pkey:
+                            task.assigner_fkey = -1
+                    session.commit()
+                    return 'Tasks un-assigned successfully'
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error un-assigning tasks: {e}'
 
 
     # def get_project_progress(self, session):

@@ -24,12 +24,17 @@ if __name__ == '__main__':
     # Obtain a session using the get_session() method
     session = db.get_session()
 
-    new_project = Project(name='test', desc='this', start_date=datetime.utcnow, due_date=datetime.utcnow, status='Not Started',
-                          owner_fkey=4, is_removed=0)
+    t = Task()
+    remove_from_tasks = t.unassign_tasks(session, 14)
 
+    p = Project()
+    remove_from_projects = p.unassign_projects(session, 14)
 
-    # log addition as event
-    event = TimelineEvent()
-    addEvent = event.log_project_creation(session, new_project)
+    print(remove_from_tasks)
+    print(remove_from_projects)
 
-    print(addEvent)
+    pt = ProjectTeam()
+    delete_from_teams = pt.delete_team_member_from_projects(session, 14)
+    print(delete_from_teams)
+
+    delete_user = self.activeUserInstance.delete_user(self.session)

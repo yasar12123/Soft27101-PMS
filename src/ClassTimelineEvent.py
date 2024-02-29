@@ -37,3 +37,6 @@ class TimelineEvent(Base):
             # Log or handle the exception
             return f'Error logging project creation: {e}'
 
+
+
+

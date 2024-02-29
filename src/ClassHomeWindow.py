@@ -603,6 +603,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                                                         setUsername=username)
             self.updateStatusLabel.setText(set_user)
             self.on_profile_load_defaults()
+
         # if password changed
         if self.request_password_change is True:
             set_user = self.activeUserInstance.set_user(self.session, user_pkey=user_pkey,
@@ -613,9 +614,23 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
 
     def on_account_deletion_button(self):
-        #admin = self.activeUserInstance.is_user_admin(self.session)
-        #print(admin)
-        return
+        confirmation = self.confirmation_box('Confirm deletion', 'Are you sure you want to delete your account?')
+        if confirmation == QMessageBox.StandardButton.Yes:
+            t = Task()
+            remove_from_tasks = t.unassign_tasks(self.session, self.activeUserInstance.user_pkey)
+            self.deleteStatusLabel.setText(remove_from_tasks)
+
+            p = Project()
+            remove_from_projects = p.unassign_projects(self.session, self.activeUserInstance.user_pkey)
+            self.deleteStatusLabel.setText(remove_from_projects)
+
+            pt=ProjectTeam()
+            delete_from_teams = pt.delete_team_member_from_projects(self.session, self.activeUserInstance.user_pkey)
+            self.deleteStatusLabel.setText(delete_from_teams)
+
+            delete_user = self.activeUserInstance.delete_user(self.session, self.activeUserInstance.user_pkey)
+            self.deleteStatusLabel.setText(delete_user)
+            self.close()
 
 
 class AddProject(QDialog, Ui_AddProjectDialog):
@@ -1476,7 +1491,7 @@ def main():
     # Class user to query
     user = User()
     # authenticate user
-    userAuthentication, userInstance = user.authenticate(session, 'tm1', '12345')
+    userAuthentication, userInstance = user.authenticate_user(session, 'tm1', '12345')
 
     app = QApplication(sys.argv)
     window = HomeWindow(activeUserInstance=userInstance)

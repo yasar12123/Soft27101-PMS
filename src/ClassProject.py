@@ -70,17 +70,17 @@ class Project(Base):
             # Log or handle the exception
             return f'Error retrieving data: {e}'
 
-    @classmethod
-    def get_projects(cls, session):
+
+    def get_projects(self, session):
         # Try to establish connection to db
         try:
             # Create a session
             with session() as session:
                 query = (
-                    session.query(cls)
-                    .join(cls.owner)
-                    .filter(cls.is_removed == 0)
-                    .options(joinedload(cls.owner))
+                    session.query(Project)
+                    .join(Project.owner)
+                    .filter(Project.is_removed == 0)
+                    .options(joinedload(Project.owner))
                 )
                 return query.all()
 
@@ -234,4 +234,21 @@ class Project(Base):
             # Log or handle the exception
             return f'Error retrieving data: {e}'
 
+    def unassign_projects(self, session, user_pkey):
+        try:
+            with session() as session:
+                projects = (
+                    session.query(Project)
+                    .filter(Project.owner_fkey == user_pkey)
+                ).all()
 
+                # un-assign from projects
+                if projects:
+                    for project in projects:
+                        project.owner_fkey = -1
+                    session.commit()
+                    return 'Projects un-assigned successfully'
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error un-assigning projects: {e}'
