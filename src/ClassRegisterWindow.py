@@ -35,6 +35,7 @@ class RegisterWindow(QMainWindow, Ui_RegisterWindow):
             self.RegisterButton.setEnabled(False)
 
     def start_registration_thread(self):
+        self.RegistrationLabel.setText('Please wait while we register you')
         # Start a new thread for registration
         registration_thread = threading.Thread(target=self.on_registration)
         registration_thread.start()
@@ -71,7 +72,7 @@ class RegisterWindow(QMainWindow, Ui_RegisterWindow):
 
     def update_remaining_time(self):
         self.remaining_time -= 1
-        self.loginInstance.signInLabel.setText(
+        self.RegistrationLabel.signInLabel.setText(
             f'You are now registered, Please close this window and sign in. '
             f'\nClosing in {self.remaining_time} seconds')
 
