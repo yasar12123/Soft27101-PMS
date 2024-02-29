@@ -23,6 +23,7 @@ class Project(Base):
     end_date = Column(DateTime)
     due_date = Column(DateTime)
     owner_fkey = Column(Integer, ForeignKey('USER.user_pkey'), nullable=False)
+    project_progress = Column(Integer, default=0)
     is_removed = Column(Integer, default=0)
 
     # Define the relationships

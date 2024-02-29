@@ -18,8 +18,8 @@ class DatabaseConnection:
     def connection_string(self):
         server = os.getenv('AZURE_SQL_SERVER')
         database = os.getenv('AZURE_SQL_DB')
-        #driver = os.getenv('SQL_DRIVER', '{ODBC Driver 17 for SQL Server}')  ## test older version
-        driver = os.getenv('SQL_DRIVER', '{ODBC Driver 18 for SQL Server}') ##pc with driver
+        driver = os.getenv('SQL_DRIVER', '{ODBC Driver 17 for SQL Server}')  ## test older version
+        #driver = os.getenv('SQL_DRIVER', '{ODBC Driver 18 for SQL Server}') ##pc with driver
         #driver = os.getenv('SQL_DRIVER', '{SQL Server Native Client 11.0}') ##laptop with ssms
 
         user = os.getenv('AZURE_SQL_USER')
@@ -44,6 +44,15 @@ class DatabaseConnection:
         except pyodbc.OperationalError as e:
             return RuntimeError("Error establishing connection: {}".format(str(e)))
 
+    def test_connectivity(self):
+        try:
+            # Attempt to create a connection without opening it
+            conn = self.engine.raw_connection()
+            conn.close()
+            return 'Connection Established'
+        except Exception as e:
+            # Raise a RuntimeError if an exception occurs
+            raise RuntimeError(f"Failed to connect to the server: {str(e)}")
 
 
 

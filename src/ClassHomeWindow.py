@@ -34,9 +34,11 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         super().__init__()
         self.setupUi(self)
         self.activeUserInstance = activeUserInstance
+        self.activeUserIsAdmin = False
         self.projectNameItemSelected = None
         self.projectItemSelected = None
         self.taskItemSelected = None
+        self.adminSelectedUserPkey = None
 
         # database connection
         self.dbCon = DatabaseConnection()
@@ -50,6 +52,9 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.TaskAllTable.setColumnHidden(0, True)
         self.TaskAllTable.setColumnHidden(2, True)
         self.taskProjectTable.setColumnHidden(0, True)
+        # hide admin features
+        self.adminSUGB.hide()
+        self.APgrantAdminPermissionButton.hide()
 
         # menu
         self.dashButton.clicked.connect(self.on_dash_button)
@@ -59,6 +64,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.logOutButton.clicked.connect(self.on_logOut_button)
 
         # load on start
+        self.check_if_user_is_admin()
         self.on_dash_button()
         self.populate_projects_all_table_thread()
 
@@ -67,7 +73,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.dashViewTaskButton.clicked.connect(self.on_go_to_task_button)
         self.ProjectsOngoingTable.itemClicked.connect(self.on_project_ongoing_table_item_clicked)
         self.TasksOngoingTable.itemClicked.connect(self.on_task_ongoing_table_item_clicked)
-
 
         # project function
         self.AddProjectButton.clicked.connect(self.on_add_project_button)
@@ -95,11 +100,19 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.request_password_change = False
         self.accountDeleteButton.clicked.connect(self.on_account_deletion_button)
 
+        # on field changed
+        self.userSelectCB.currentIndexChanged.connect(self.on_userSelectCB_changed)
 
-
+    def check_if_user_is_admin(self):
+        check = self.activeUserInstance.is_user_admin(self.session, self.activeUserInstance.user_pkey)
+        if check:
+            self.activeUserIsAdmin = True
+        else:
+            self.activeUserIsAdmin = False
 
     # dashboard page functions
     def on_dash_button(self):
+
         # Switch to the dashboard page
         self.stackedWidget.setCurrentIndex(0)
 
@@ -529,6 +542,10 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
     # profile page functions
     def on_profile_button(self):
         self.stackedWidget.setCurrentIndex(3)
+        # is user is admin then run functions
+        if self.activeUserIsAdmin is True:
+            self.admin_functions()
+
         self.on_profile_load_defaults()
         self.populate_profile_details()
 
@@ -550,6 +567,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.request_password_change = False
         self.pdPasswordLE.setText('**********')
 
+
     def on_change_password_radio_button(self):
         self.pdPasswordLE.setEnabled(True)
         self.pdPasswordLE.clear()
@@ -567,7 +585,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         if self.changeDetailsButton.text() == 'Change Details':
             self.pdNameLE.setEnabled(True)
             self.pdEmailLE.setEnabled(True)
-            self.pdUsernameLE.setEnabled(True)
             self.updateDetailsButton.setEnabled(True)
             self.updateDetailsButton.show()
             self.changePasswordRB.show()
@@ -590,47 +607,111 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.accountDoNotDeleteRB.setChecked(True)
 
     def on_update_details_button(self):
-        user_pkey = self.activeUserInstance.user_pkey
+
+        # if user is admin and user has been selected
+        if self.activeUserIsAdmin and self.adminSelectedUserPkey:
+            user_pkey = self.adminSelectedUserPkey
+        # else use users own pkey
+        else:
+            user_pkey = self.activeUserInstance.user_pkey
+
         name = self.pdNameLE.text()
         emailAdd = self.pdEmailLE.text()
-        username = self.pdUsernameLE.text()
         password = self.pdPasswordLE.text()
 
         #if password not changed
         if self.request_password_change is False:
-            set_user = self.activeUserInstance.set_user(self.session, user_pkey=user_pkey,
-                                                        setFullname=name, setEmailAddress=emailAdd,
-                                                        setUsername=username)
+            set_user = self.activeUserInstance.set_user(self.session, user_to_set_pkey=user_pkey,
+                                                        setFullname=name, setEmailAddress=emailAdd)
             self.updateStatusLabel.setText(set_user)
             self.on_profile_load_defaults()
 
         # if password changed
         if self.request_password_change is True:
-            set_user = self.activeUserInstance.set_user(self.session, user_pkey=user_pkey,
+            set_user = self.activeUserInstance.set_user(self.session, user_to_set_pkey=user_pkey,
                                                         setFullname=name, setEmailAddress=emailAdd,
-                                                        setUsername=username, setPassword=password)
+                                                        setPassword=password)
             self.updateStatusLabel.setText(set_user)
             self.on_profile_load_defaults()
-
+            self.populate_profile_details()
 
     def on_account_deletion_button(self):
-        confirmation = self.confirmation_box('Confirm deletion', 'Are you sure you want to delete your account?')
+
+        confirmation = self.confirmation_box('Confirm deletion', 'Are you sure you want to delete the account?')
         if confirmation == QMessageBox.StandardButton.Yes:
-            t = Task()
-            remove_from_tasks = t.unassign_tasks(self.session, self.activeUserInstance.user_pkey)
-            self.deleteStatusLabel.setText(remove_from_tasks)
 
-            p = Project()
-            remove_from_projects = p.unassign_projects(self.session, self.activeUserInstance.user_pkey)
-            self.deleteStatusLabel.setText(remove_from_projects)
+            # if user is admin and user has been selected
+            if self.activeUserIsAdmin is True and self.adminSelectedUserPkey:
+                user_pkey = self.adminSelectedUserPkey
+            # else use users own pkey
+            else:
+                user_pkey = self.activeUserInstance.user_pkey
 
-            pt=ProjectTeam()
-            delete_from_teams = pt.delete_team_member_from_projects(self.session, self.activeUserInstance.user_pkey)
-            self.deleteStatusLabel.setText(delete_from_teams)
-
-            delete_user = self.activeUserInstance.delete_user(self.session, self.activeUserInstance.user_pkey)
+            # delete from user table
+            delete_user = self.activeUserInstance.delete_user(self.session, user_pkey)
             self.deleteStatusLabel.setText(delete_user)
-            self.close()
+
+            # when user has been removed
+            if delete_user == 'User has been deleted':
+                #remove all roles
+                remove_user_roles = UserRole().delete_user_role(self.session, user_pkey)
+                self.deleteStatusLabel.setText(remove_user_roles)
+
+                #un-assign all tasks
+                remove_from_tasks = Task().unassign_tasks(self.session, user_pkey)
+                self.deleteStatusLabel.setText(remove_from_tasks)
+
+                # un-assign all projects
+                remove_from_projects = Project().unassign_projects(self.session, user_pkey)
+                self.deleteStatusLabel.setText(remove_from_projects)
+
+                # remove from projects team
+                delete_from_teams = ProjectTeam().delete_team_member_from_projects(self.session, user_pkey)
+                self.deleteStatusLabel.setText(delete_from_teams)
+
+                #finally close if user is not admin
+                self.deleteStatusLabel.setText('user has now been deleted')
+                self.on_profile_button()
+                if self.activeUserIsAdmin is False:
+                    self.close()
+
+            else:
+                self.deleteStatusLabel.setText(delete_user)
+
+    def admin_functions(self):
+        self.adminSUGB.show()
+        self.APgrantAdminPermissionButton.show()
+
+        #thread populate combo box
+        populate_admin_su_thread = threading.Thread(target=self.populate_admin_select_user_cb)
+        populate_admin_su_thread.start()
+
+    def populate_admin_select_user_cb(self):
+        # populate select user combo box
+        users = User().get_users(self.session)
+        self.userSelectCB.clear()
+        for user in users:
+            item_text = f'{user.full_name} ({user.username})'
+            item_data = user.user_pkey
+            self.userSelectCB.addItem(item_text, item_data)
+
+        # set current user
+        self.userSelectCB.setCurrentText(
+            f'{self.activeUserInstance.full_name} ({self.activeUserInstance.username})')
+
+    def on_userSelectCB_changed(self):
+        # get user
+        user_selected_index = self.userSelectCB.currentIndex()
+        user_selected_fkey = int(self.userSelectCB.itemData(user_selected_index))
+        user = User().get_user_instance(self.session, user_pkey=user_selected_fkey)
+        self.adminSelectedUserPkey = user_selected_fkey
+        # set fields from the user that is selected
+        self.pdNameLE.setText(user.full_name)
+        self.pdEmailLE.setText(user.email_address)
+        self.pdUsernameLE.setText(user.username)
+        self.pdPasswordLE.setText('**********')
+
+
 
 
 class AddProject(QDialog, Ui_AddProjectDialog):
@@ -763,13 +844,13 @@ class AddTask(QDialog, Ui_AddTaskDialog):
         self.addTaskButton.setEnabled(False)
 
     def populate_assign_to(self):
-        pt = ProjectTeam()
-        project = pt.get_team_of_project(self.session, self.projectPkey)
-
+        project = ProjectTeam().get_team_of_project(self.session, self.projectPkey)
         for user in project:
             item_text = f'{user.user.full_name} ({user.user.username})'
             item_data = user.user.user_pkey
             self.AssignToCB.addItem(item_text, item_data)
+
+
 
     def on_add_task_button(self):
         # get assignee fkey
@@ -843,6 +924,8 @@ class AddTask(QDialog, Ui_AddTaskDialog):
         self.field_changed = True
         self.addTaskButton.setEnabled(True)
         self.exitTaskButton.setText('Exit (without saving')
+
+
 
 class ViewProject(QDialog, Ui_ViewProjectDialog):
     def __init__(self, home_window_instance, project_pkey, activeUserInstance):

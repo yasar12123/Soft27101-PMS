@@ -15,6 +15,23 @@ from src.ClassRegisterWindow import RegisterWindow
 from src.ClassHomeWindow import HomeWindow
 
 
+class ConnectionThread(QThread):
+    connection_status = pyqtSignal(str)
+
+    def __init__(self, db_con):
+        super().__init__()
+        self.db_con = db_con
+
+    def run(self):
+        try:
+            # Test database connectivity
+            self.db_con.test_connectivity()
+            self.connection_status.emit('Connection Established')
+        except RuntimeError as e:
+            # Emit error signal if an exception occurs
+            self.connection_status.emit(str(e))
+
+
 class AuthThread(QThread):
     authentication_done = pyqtSignal(str, object)
 
@@ -26,8 +43,14 @@ class AuthThread(QThread):
         self.password = password
 
     def run(self):
-        userAuthentication, userInstance = self.user.authenticate_user(self.session, self.username, self.password)
-        self.authentication_done.emit(userAuthentication, userInstance)
+        try:
+            # Authenticate user
+            user_authentication, user_instance = self.user.authenticate_user(self.session, self.username, self.password)
+            self.authentication_done.emit(user_authentication, user_instance)
+        except RuntimeError as e:
+            # Emit error signal if an exception occurs
+            self.authentication_done.emit(str(e), None)
+
 
 
 class LoginWindow(QMainWindow, Ui_LoginWindow):
@@ -44,16 +67,25 @@ class LoginWindow(QMainWindow, Ui_LoginWindow):
         self.registerButton.clicked.connect(self.open_register_window)
 
     def on_login(self):
-        # input from window
-        username = self.usernameLE.text()
-        password = self.passwordLE.text()
-
+        #change label
         self.signInLabel.setText(f'Please wait, trying to log you in.')
 
-        # Create authentication thread
-        self.auth_thread = AuthThread(User(), self.session, username, password)
-        self.auth_thread.authentication_done.connect(self.handle_authentication_result)
-        self.auth_thread.start()
+        # Create connection thread and run
+        self.connection_thread = ConnectionThread(self.dbCon)
+        self.connection_thread.connection_status.connect(self.handle_connection_result)
+        self.connection_thread.start()
+
+    def handle_connection_result(self, connection_status):
+        if connection_status == 'Connection Established':
+            # Input from window
+            username = self.usernameLE.text()
+            password = self.passwordLE.text()
+            # Start authentication thread
+            self.auth_thread = AuthThread(User(), self.session, username, password)
+            self.auth_thread.authentication_done.connect(self.handle_authentication_result)
+            self.auth_thread.start()
+        else:
+            self.signInLabel.setText(connection_status)
 
     def handle_authentication_result(self, authentication_status, user_instance):
         if authentication_status == 'Login Successful':
@@ -68,10 +100,6 @@ class LoginWindow(QMainWindow, Ui_LoginWindow):
         self.register_window = RegisterWindow(self)
         self.register_window.show()
 
-
     def open_home_window(self):
         self.home_window = HomeWindow(activeUserInstance=self.activeUserInstance)
         self.home_window.show()
-
-
-

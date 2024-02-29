@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1219</width>
-    <height>683</height>
+    <height>756</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -64,13 +64,6 @@
           <widget class="QPushButton" name="tasksButton">
            <property name="text">
             <string>Tasks</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="workloadButton">
-           <property name="text">
-            <string>Workload</string>
            </property>
           </widget>
          </item>
@@ -803,6 +796,25 @@
               <item>
                <layout class="QVBoxLayout" name="verticalLayout_25">
                 <item>
+                 <widget class="QGroupBox" name="adminSUGB">
+                  <property name="title">
+                   <string/>
+                  </property>
+                  <layout class="QFormLayout" name="formLayout">
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="label_8">
+                     <property name="text">
+                      <string>Select User: </string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1">
+                    <widget class="QComboBox" name="userSelectCB"/>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
                  <widget class="QFrame" name="projectPlotFrame_2">
                   <property name="maximumSize">
                    <size>
@@ -944,6 +956,13 @@
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_19">
                    <item>
+                    <widget class="QPushButton" name="APgrantAdminPermissionButton">
+                     <property name="text">
+                      <string>Grant Admin Permissions</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
                     <widget class="QPushButton" name="changeDetailsButton">
                      <property name="text">
                       <string>Change Details</string>
@@ -1080,7 +1099,7 @@
                    <item>
                     <widget class="QLabel" name="label_9">
                      <property name="text">
-                      <string>&quot;Warning: Deleting your account will permanently remove all associated data and cannot be undone. Are you sure you want to proceed with this action?&quot;</string>
+                      <string>&quot;Warning: Deleting the account will permanently remove all associated data and cannot be undone. Are you sure you want to proceed with this action?&quot;</string>
                      </property>
                      <property name="wordWrap">
                       <bool>true</bool>

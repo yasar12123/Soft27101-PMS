@@ -28,6 +28,7 @@ class User(Base):
     communication_log = relationship('CommunicationLog', back_populates='user')
     timeline_events = relationship("TimelineEvent", back_populates="user")
 
+
     @staticmethod
     def hash_password(password):
         # Generate a salt and hash the password using bcrypt
@@ -171,45 +172,42 @@ class User(Base):
             # Log or handle the exception
             return f'Error connecting: {e}'
 
-    @classmethod
-    def set_user(cls, session, user_pkey, setUsername, setFullname, setEmailAddress, setPassword=None):
-        try:
-            # get a list with all users
-            users_list = cls.get_users(cls, session)
+    def set_user(self, session, user_to_set_pkey, setFullname, setEmailAddress, setPassword=None):
 
-            # check if username has been taken already
-            for userN in users_list:
-                if userN.username == setUsername:
-                    return f'Username: {setUsername} has already been taken \n Please Try Another'
+        # Check if user is an admin or the same as the user performing the update
+        is_admin = self.is_user_admin(session, self.user_pkey)
+        if is_admin or user_to_set_pkey == self.user_pkey:
+            try:
+                with session() as session:
+                    # check if user exists
+                    user = session.query(User).filter_by(user_pkey=user_to_set_pkey).first()
 
-            with session() as session:
-                # check if user exists
-                user = session.query(cls).filter_by(user_pkey=user_pkey).first()
+                    # if user not in db then return message
+                    if user is None:
+                        return 'User does not exist'
 
-                # if user not in db then return message
-                if user is None:
-                    return 'User does not exist'
+                    # else update details
+                    else:
+                        if setFullname:
+                            user.full_name = setFullname
+                            self.full_name = setFullname
+                        if setEmailAddress:
+                            user.email_address = setEmailAddress
+                            self.email_address = setEmailAddress
+                        if setPassword:
+                            user.password_hashed = self.hash_password(setPassword)
+                            self.password_hashed = self.hash_password(setPassword)
 
-                # else update details
-                else:
-                    if setUsername:
-                        user.username = setUsername
-                    if setFullname:
-                        user.full_name = setFullname
-                    if setEmailAddress:
-                        user.email_address = setEmailAddress
-                    if setPassword:
-                        user.password_hashed = setPassword
+                        # commit changes
+                        session.commit()
 
-                    # commit changes
-                    session.commit()
+                    return 'User details updated'
 
-                return 'User details updated'
-
-        except SQLAlchemyError as e:
-            # Log or handle the exception
-            return f'Error setting data: {e}'
-
+            except SQLAlchemyError as e:
+                # Log or handle the exception
+                return f'Error setting data: {e}'
+        else:
+            return 'You do not have permissions to update this user'
 
 
     def is_user_admin(self, session, user_pkey):
@@ -230,21 +228,20 @@ class User(Base):
 
     def delete_user(self, session, user_to_delete_pkey):
         is_admin = self.is_user_admin(session, self.user_pkey)
-
         # Check if user is an admin or the user to be deleted is the same as the user performing the deletion
-        if is_admin or user_to_delete_pkey == self.user_pkey:
+        if is_admin is True or user_to_delete_pkey == self.user_pkey:
             try:
                 with session() as session:
                     # query db for the user
                     session.query(User).filter(User.user_pkey == user_to_delete_pkey).delete()
                     session.commit()
-                    return 'User has been deleted, You will be logged out shortly.'
+                    return 'User has been deleted'
 
             except SQLAlchemyError as e:
                 # Log or handle the exception
                 return f'Error deleting user: {e}'
         else:
-            return 'You do not have the permission to delete this user'
+            return 'You do not have permissions to delete this user'
 
 
 

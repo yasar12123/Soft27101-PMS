@@ -60,7 +60,7 @@ class RegisterWindow(QMainWindow, Ui_RegisterWindow):
             # add user role as standard user
             user_pkey = User().get_user_fkey(self.session, username)
             user_role = UserRole()
-            add_user_role = user_role.add_user_role(self.session, user_pkey, 'StandardUser', 'Standard user of system')
+            add_user_role = user_role.add_user_role(self.session, user_pkey, 'StandardUser')
         else:
             self.RegistrationLabel.setText(registerUser)
 

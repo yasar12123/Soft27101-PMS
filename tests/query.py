@@ -24,17 +24,9 @@ if __name__ == '__main__':
     # Obtain a session using the get_session() method
     session = db.get_session()
 
-    t = Task()
-    remove_from_tasks = t.unassign_tasks(session, 14)
+    u = User().get_user_instance(session, 36)
 
-    p = Project()
-    remove_from_projects = p.unassign_projects(session, 14)
 
-    print(remove_from_tasks)
-    print(remove_from_projects)
+    set_user = u.delete_user(session, 36)
 
-    pt = ProjectTeam()
-    delete_from_teams = pt.delete_team_member_from_projects(session, 14)
-    print(delete_from_teams)
-
-    delete_user = self.activeUserInstance.delete_user(self.session)
+    print(set_user)
