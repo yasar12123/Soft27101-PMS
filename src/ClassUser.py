@@ -275,12 +275,6 @@ class User(Base):
                         if setPassword:
                             user.password_hashed = self.hash_password(setPassword)
 
-                        # set current user details if user is the same as the user performing the update
-                        if user_to_set_pkey == self.user_pkey:
-                            self.full_name = setFullname
-                            self.email_address = setEmailAddress
-                            self.password_hashed = self.hash_password(setPassword)
-
                         # commit changes
                         session.commit()
 

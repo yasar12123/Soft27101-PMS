@@ -30,34 +30,21 @@ class Task(Base):
     communication_log = relationship('CommunicationLog', back_populates='task')
     timeline_events = relationship("TimelineEvent", back_populates="task")
 
-
     @classmethod
-    def get_tasks_for_team_member(cls, session, team_member_user_pkey=None, project_fkey=None):
-        # Try to establish connection to db
+    def get_assigned_tasks(cls, session, user_pkey, project_pkey=None):
         try:
-            # Create a session
             with session() as session:
-                if team_member_user_pkey:
-                    query = (
-                        session.query(cls)
-                        .join(User, cls.assignee_fkey == User.user_pkey)
-                        .join(Project, cls.project_fkey == Project.project_pkey)
-                        .options(joinedload(cls.project))
-                        .filter(User.username == team_member_user_pkey, cls.is_removed == 0)
-                    )
-
-                else:
-                    query = (
-                        session.query(cls)
-                        .join(User, cls.assignee_fkey == User.user_pkey)
-                        .join(Project, cls.project_fkey == Project.project_pkey)
-                        .options(joinedload(cls.project))
-                        .filter(cls.is_removed == 0)
-                    )
+                query = (
+                    session.query(cls)
+                    .join(User, cls.assignee_fkey == User.user_pkey)
+                    .join(Project, cls.project_fkey == Project.project_pkey)
+                    .options(joinedload(cls.project))
+                    .filter(cls.is_removed == 0, cls.assignee_fkey == user_pkey)
+                )
 
                 # If project is specified, filter tasks based on the project
-                if project_fkey:
-                    query = query.filter(Project.project_pkey == project_fkey)
+                if project_pkey:
+                    query = query.filter(Project.project_pkey == project_pkey)
 
                 return query.all()
 
@@ -66,7 +53,7 @@ class Task(Base):
             return f'Error retrieving data: {e}'
 
     @classmethod
-    def get_tasks(cls, session, project_fkey=None, project_not_completed=None):
+    def get_tasks(cls, session, project_pkey=None, project_not_completed=None):
         # Try to establish connection to db
         try:
             # Create a session
@@ -79,8 +66,8 @@ class Task(Base):
                     .filter(Project.is_removed == 0, cls.is_removed == 0)
                 )
                 # If project is specified, filter tasks based on the project
-                if project_fkey:
-                    query = query.filter(Project.project_pkey == project_fkey)
+                if project_pkey:
+                    query = query.filter(Project.project_pkey == project_pkey)
 
                 if project_not_completed:
                     query = query.filter(Project.status != 'Completed')
@@ -251,29 +238,3 @@ class Task(Base):
             # Log or handle the exception
             return f'Error un-assigning tasks: {e}'
 
-
-    # def get_project_progress(self, session):
-    #     """Get the progress of the project in percentage
-    #     :param session: the session to use
-    #     :return: total tasks, completed tasks, progress percentage
-    #     """
-    #     try:
-    #         # Create a session
-    #         with session() as session:
-    #             # Query the database for the total number of tasks in the project
-    #             total_tasks = session.query(func.count(Project.tasks.task_pkey)).filter(
-    #                 Project.Task.project_fkey == self.project_pkey, Project.Task.is_removed == 0).scalar()
-    #             # Query the database for the total number of completed tasks in the project
-    #             completed_tasks = session.query(func.count(Task.task_pkey)).filter(
-    #                 Task.project_fkey == self.project_pkey, Task.status == 'Completed', Task.is_removed == 0).scalar()
-    #
-    #             # If there are no tasks in the project, set to 0
-    #             if total_tasks == 0:
-    #                 return 0
-    #             else:
-    #                 # Calculate the progress percentage
-    #                 progress_percentage = (completed_tasks / total_tasks) * 100
-    #                 return total_tasks, completed_tasks, progress_percentage
-    #
-    #     except SQLAlchemyError as e:
-    #         return f'Error retrieving project progress: {e}'

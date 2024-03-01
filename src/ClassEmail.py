@@ -37,7 +37,7 @@ class EmailSender:
 
     def set_task(self, task_pkey):
         t = Task()
-        task = t.get_tasks(self.session, task_pkey)
+        task = t.get_task(self.session, task_pkey)
         self.task = task
 
     def set_task_name(self, task_name):
@@ -119,4 +119,25 @@ class EmailSender:
         sendEmail = self.send_email(recipient_email=sendList, subject=subject, message=message)
         return sendEmail
 
+    def on_project_delete(self):
+        #send to list
+        sendList = []
 
+        #get list of all team members and append to sendList
+        pt = ProjectTeam()
+        projectTeam = pt.get_team_of_project(self.session, self.project.project_pkey)
+        for user in projectTeam:
+            sendList.append(user.user.email_address)
+
+        # message
+        subject = f'TT_CROP - Project: {self.project.name} - DELETED'
+        message = f'The project named: {self.project.name} has now been deleted by {self.actionUser.full_name} ({self.actionUser.username})'
+        sendEmail = self.send_email(recipient_email=sendList, subject=subject, message=message)
+        return sendEmail
+
+    def on_add_to_project(self):
+        to = self.recipient.email_address
+        subject = f'TT_CROP - Project: {self.project.name} - You have been added'
+        message = f'you have been added to the project: {self.project.name}, by {self.actionUser.full_name} ({self.actionUser.username})'
+        sendEmail = self.send_email(recipient_email=[to], subject=subject, message=message)
+        return sendEmail

@@ -39,7 +39,7 @@ class UserRole(Base):
                     session.add(new_user_role)
                     # Commit the session to persist the changes to the database
                     session.commit()
-                    return 'User role added successfully'
+                    return f'{role_desc_derived} added successfully'
 
             except SQLAlchemyError as e:
                 # Handle the exception or log the error

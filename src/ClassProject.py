@@ -34,8 +34,8 @@ class Project(Base):
     timeline_events = relationship("TimelineEvent", back_populates="project")
 
     @classmethod
-    def get_projects_for_team_member(cls, session, team_member_user_pkey=None, completed=None):
-        """Get all projects for a team member
+    def get_projects(cls, session, team_member_user_pkey=None, completed=None):
+        """Get all projects
         :param session: the session to use
         :type session: sqlalchemy.orm.session.Session
         :param team_member_user_pkey: the team member user primary key
@@ -70,24 +70,6 @@ class Project(Base):
                 if completed:
                     query = query.filter(cls.status != 'Completed')
 
-                return query.all()
-
-        except SQLAlchemyError as e:
-            # Log or handle the exception
-            return f'Error retrieving data: {e}'
-
-
-    def get_projects(self, session):
-        # Try to establish connection to db
-        try:
-            # Create a session
-            with session() as session:
-                query = (
-                    session.query(Project)
-                    .join(Project.owner)
-                    .filter(Project.is_removed == 0)
-                    .options(joinedload(Project.owner))
-                )
                 return query.all()
 
         except SQLAlchemyError as e:

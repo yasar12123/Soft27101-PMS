@@ -12,7 +12,7 @@ from src.ClassTimelineEvent import TimelineEvent
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QDialog, QMessageBox, QSizePolicy, QLabel
-from PyQt6.QtCore import QDate, Qt
+from PyQt6.QtCore import QDate, Qt, QThread
 from PyQt6.QtGui import QColor
 from generated.AddProjectDialog import Ui_AddProjectDialog
 from generated.HomeWindow import Ui_HomeWindow
@@ -20,12 +20,12 @@ from generated.ViewProjectDialog import Ui_ViewProjectDialog
 from generated.ViewTaskDialog import Ui_ViewTaskDialog
 from generated.AddTaskDialog import Ui_AddTaskDialog
 from generated.ViewProjectAddTeamMemberDialog import Ui_ViewProjectAddTeamMemberDialog
-
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import sys
 import datetime
 from datetime import datetime as dt
+from concurrent.futures import ThreadPoolExecutor
 import threading
 
 
@@ -52,21 +52,20 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.TaskAllTable.setColumnHidden(0, True)
         self.TaskAllTable.setColumnHidden(2, True)
         self.taskProjectTable.setColumnHidden(0, True)
-        # hide admin features
-        self.adminSUGB.hide()
-        self.APgrantAdminPermissionButton.hide()
 
-        # menu
+        # load on start
+        self.check_if_user_is_admin()
+        self.on_dash_button()
+        # self.populate_projects_all_table_thread()
+
+
+        # menu buttons
         self.dashButton.clicked.connect(self.on_dash_button)
         self.projectsButton.clicked.connect(self.on_projects_button)
         self.tasksButton.clicked.connect(self.on_tasks_button)
         self.profileButton.clicked.connect(self.on_profile_button)
         self.logOutButton.clicked.connect(self.on_logOut_button)
 
-        # load on start
-        self.check_if_user_is_admin()
-        self.on_dash_button()
-        self.populate_projects_all_table_thread()
 
         # dash functions
         self.dashViewProjectButton.clicked.connect(self.on_go_to_project_button)
@@ -99,20 +98,238 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.updateDetailsButton.clicked.connect(self.on_update_details_button)
         self.request_password_change = False
         self.accountDeleteButton.clicked.connect(self.on_account_deletion_button)
+        self.APgrantAdminPermissionButton.clicked.connect(self.on_grant_admin_access_to_user_button)
 
         # on field changed
         self.userSelectCB.currentIndexChanged.connect(self.on_userSelectCB_changed)
 
+    """Profile Page Methods"""
+    # profile page functions
+    def on_profile_button(self):
+        self.stackedWidget.setCurrentIndex(3)
+        # check if user is admin and run function
+        self.check_if_user_is_admin()
+
+        self.populate_profile_details()
+
+    # permissions and load defaults
     def check_if_user_is_admin(self):
         check = self.activeUserInstance.is_user_admin(self.session, self.activeUserInstance.user_pkey)
         if check:
             self.activeUserIsAdmin = True
-            self.profileLabel.setText(f'Logged in as: \n {self.activeUserInstance.full_name}\n (Admin)')
+            self.on_admin_profile_load_defaults()
         else:
             self.activeUserIsAdmin = False
-            self.profileLabel.setText(f' Logged in as: \n {self.activeUserInstance.full_name}')
+            self.on_profile_load_defaults()
 
-    # dashboard page functions
+    def on_profile_load_defaults(self):
+        self.changeDetailsButton.setText('Change Details')
+        self.newPasswordLabel.setText('Password: ')
+        self.accountDeleteButton.hide()
+        self.pdNameLE.setEnabled(False)
+        self.pdEmailLE.setEnabled(False)
+        self.pdUsernameLE.setEnabled(False)
+        self.pdPasswordLE.setEnabled(False)
+        self.updateDetailsButton.setEnabled(False)
+        self.changePasswordRB.setChecked(False)
+        self.changePasswordRB.hide()
+        self.notChangePasswordRB.setChecked(False)
+        self.notChangePasswordRB.hide()
+        self.updateDetailsButton.hide()
+        self.accountDoNotDeleteRB.setChecked(True)
+        self.request_password_change = False
+        self.pdPasswordLE.setText('**********')
+        self.profileLabel.setText(f' Logged in as: \n {self.activeUserInstance.full_name}')
+        # hide admin features
+        self.adminSUGB.hide()
+        self.APgrantAdminPermissionButton.hide()
+
+    def on_admin_profile_load_defaults(self):
+        self.on_profile_load_defaults()
+        self.activeUserIsAdmin = True
+        self.profileLabel.setText(f'Logged in as: \n {self.activeUserInstance.full_name}\n (Admin)')
+        self.adminSUGB.show()
+        self.APgrantAdminPermissionButton.show()
+        self.populate_admin_select_user_cb_thread()
+
+    def populate_profile_details(self):
+        #refresh active user instance after changing details
+        self.activeUserInstance = User.get_user_instance(self.session, self.activeUserInstance.user_pkey)
+
+        self.pdNameLE.setText(self.activeUserInstance.full_name)
+        self.pdEmailLE.setText(self.activeUserInstance.email_address)
+        self.pdUsernameLE.setText(self.activeUserInstance.username)
+        self.pdPasswordLE.setText('**********')
+
+    def populate_admin_select_user_cb(self):
+        # populate select user combo box
+        users = User().get_users(self.session)
+        self.userSelectCB.clear()
+        for user in users:
+            item_text = f'{user.full_name} ({user.username})'
+            item_data = user.user_pkey
+            self.userSelectCB.addItem(item_text, item_data)
+
+        # set current user
+        self.userSelectCB.setCurrentText(
+            f'{self.activeUserInstance.full_name} ({self.activeUserInstance.username})')
+
+    def on_userSelectCB_changed(self):
+        # get user
+        user_selected_index = self.userSelectCB.currentIndex()
+        user_selected_fkey = int(self.userSelectCB.itemData(user_selected_index))
+        user = User().get_user_instance(self.session, user_pkey=user_selected_fkey)
+        self.adminSelectedUserPkey = user_selected_fkey
+        # set fields from the user that is selected
+        self.pdNameLE.setText(user.full_name)
+        self.pdEmailLE.setText(user.email_address)
+        self.pdUsernameLE.setText(user.username)
+        self.pdPasswordLE.setText('**********')
+
+    def populate_admin_select_user_cb_thread(self):
+        # thread populate combo box
+        populate_admin_su_thread = threading.Thread(target=self.populate_admin_select_user_cb)
+        populate_admin_su_thread.start()
+        populate_admin_su_thread.join()
+
+    # profile page buttons
+    def on_change_password_radio_button(self):
+        self.pdPasswordLE.setEnabled(True)
+        self.pdPasswordLE.clear()
+        self.newPasswordLabel.setText('Input New Password: ')
+        self.request_password_change = True
+        self.notChangePasswordRB.show()
+
+    def on_not_change_password_radio_button(self):
+        self.pdPasswordLE.setEnabled(False)
+        self.request_password_change = False
+        self.newPasswordLabel.setText('Password: ')
+        self.pdPasswordLE.setText('**********')
+
+    def on_change_personal_details_button(self):
+        if self.changeDetailsButton.text() == 'Change Details':
+            self.pdNameLE.setEnabled(True)
+            self.pdEmailLE.setEnabled(True)
+            self.updateDetailsButton.setEnabled(True)
+            self.updateDetailsButton.show()
+            self.changePasswordRB.show()
+            self.changeDetailsButton.setText('Discard Changes')
+        else:
+            if self.activeUserIsAdmin:
+                self.on_admin_profile_load_defaults()
+            else:
+                self.on_profile_load_defaults()
+            self.populate_profile_details()
+
+    def on_account_deletion_understand_button(self):
+        self.accountDeleteButton.show()
+
+    def on_account_deletion_cancel_button(self):
+        self.accountDeleteButton.hide()
+        self.accountDoNotDeleteRB.setChecked(True)
+
+    def on_update_details_button(self):
+        # input from window
+        name = self.pdNameLE.text()
+        emailAdd = self.pdEmailLE.text()
+        password = self.pdPasswordLE.text()
+
+        # if user is admin and they have selected a user from user combo box
+        # then get the selected user pkey
+        if self.activeUserIsAdmin and self.adminSelectedUserPkey:
+            user_pkey = self.adminSelectedUserPkey
+
+        # else use users own pkey
+        else:
+            user_pkey = self.activeUserInstance.user_pkey
+
+        # if password not changed then update without password
+        if self.request_password_change is False:
+            set_user = self.activeUserInstance.set_user(self.session, user_to_set_pkey=user_pkey,
+                                                        setFullname=name, setEmailAddress=emailAdd)
+
+        # if password changed then update with password
+        if self.request_password_change is True:
+            set_user = self.activeUserInstance.set_user(self.session, user_to_set_pkey=user_pkey,
+                                                        setFullname=name, setEmailAddress=emailAdd,
+                                                        setPassword=password)
+        # set label and reload profile
+        self.updateStatusLabel.setText(set_user)
+        self.on_profile_button()
+
+    def on_account_deletion_button(self):
+
+        # confirmation box
+        confirmation = self.confirmation_box('Confirm deletion', 'Are you sure you want to delete the account?')
+        if confirmation == QMessageBox.StandardButton.Yes:
+
+            # if user is admin and they have selected a user from user combo box
+            # then get the selected user pkey
+            if self.activeUserIsAdmin is True and self.adminSelectedUserPkey:
+                user_pkey = self.adminSelectedUserPkey
+
+            # else use the users own pkey
+            else:
+                user_pkey = self.activeUserInstance.user_pkey
+
+            # delete from user table
+            delete_user = self.activeUserInstance.delete_user(self.session, user_pkey)
+            self.deleteStatusLabel.setText(delete_user)
+
+            # when user has been removed
+            if delete_user == 'User has been deleted':
+
+                #remove all roles
+                remove_user_roles = UserRole().delete_user_role(self.session, user_pkey)
+                self.deleteStatusLabel.setText(remove_user_roles)
+
+                #un-assign all tasks
+                remove_from_tasks = Task().unassign_tasks(self.session, user_pkey)
+                self.deleteStatusLabel.setText(remove_from_tasks)
+
+                # un-assign all projects
+                remove_from_projects = Project().unassign_projects(self.session, user_pkey)
+                self.deleteStatusLabel.setText(remove_from_projects)
+
+                # remove from projects team
+                delete_from_teams = ProjectTeam().delete_team_member_from_projects(self.session, user_pkey)
+                self.deleteStatusLabel.setText(delete_from_teams)
+
+                # lable that the use has been delete
+                self.deleteStatusLabel.setText('user has now been deleted')
+                self.on_profile_button()
+
+                # finally close if user is not admin
+                if self.activeUserIsAdmin is False:
+                    self.close()
+
+            # set label if error deleting user
+            else:
+                self.deleteStatusLabel.setText(delete_user)
+
+    def on_grant_admin_access_to_user_button(self):
+        # confirmation box
+        confirmation = self.confirmation_box('Confirm Admin Access', 'Are you sure you want to grant '
+                                                                     '\n Admin permissions to the account?')
+        if confirmation == QMessageBox.StandardButton.Yes:
+
+            # if user is admin and they have selected a user from user combo box
+            # then get the selected user pkey
+            if self.activeUserIsAdmin and self.adminSelectedUserPkey:
+                user_pkey = self.adminSelectedUserPkey
+
+            # else use users own pkey
+            else:
+                user_pkey = self.activeUserInstance.user_pkey
+
+            if user_pkey:
+                grantAccess = UserRole.add_user_role(self.session, user_pkey, 'Admin')
+                self.updateStatusLabel.setText(grantAccess)
+                self.on_profile_button()
+
+
+
+    """ Dashboard page methods """
     def on_dash_button(self):
 
         # Switch to the dashboard page
@@ -122,33 +339,38 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.dashViewProjectButton.setEnabled(False)
         self.dashViewTaskButton.setEnabled(False)
 
-        if self.activeUserIsAdmin:
-            project_thread = threading.Thread(target=self.populate_projects_ongoing_table)
-            task_thread = threading.Thread(target=self.populate_tasks_ongoing_table)
-            task_thread.start()
-            project_thread.start()
-        else:
-            # thread project ongoing and tasks table
-            project_thread = threading.Thread(target=self.populate_projects_ongoing_table(user_pkey=self.activeUserInstance.user_pkey))
-            task_thread = threading.Thread(target=self.populate_tasks_ongoing_table)
-            project_thread.start()
-            task_thread.start()
+        # run thread functions
+        project_thread = threading.Thread(target=self.populate_projects_ongoing_table)
+        project_thread.start()
+        project_thread.join()
+        task_thread = threading.Thread(target=self.populate_tasks_ongoing_table)
+        task_thread.start()
+        task_thread.join()
 
-        # other funcs
+        # run stats
         self.display_stat_counts()
 
     def display_stat_counts(self):
-        t = Task()
-        tasks = t.get_tasks_for_team_member(self.session, self.activeUserInstance.username)
-        projects = sum(1 for task in tasks if task.project_fkey)
+        # if user is admin then get all tasks
+        if self.activeUserIsAdmin:
+            tasks = Task().get_tasks(self.session)
+            pts = ProjectTeam().get_project_teams_for_user(self.session)
+        else:
+            tasks = Task().get_assigned_tasks(self.session, self.activeUserInstance.user_pkey)
+            pts = ProjectTeam().get_project_teams_for_user(self.session, self.activeUserInstance.user_pkey)
+
+        # calc metrics
+        distinct_projects = set(pt.project_fkey for pt in pts if pt.project_fkey)
+        projects = len(distinct_projects)
         completed_tasks = sum(1 for task in tasks if task.status == 'Completed')
         in_progress_tasks = sum(1 for task in tasks if task.status == 'In-Progress')
         not_started_tasks = sum(1 for task in tasks if task.status == 'Not Started')
         pending_review_tasks = sum(1 for task in tasks if task.status == 'Pending Review')
 
+        # set layout
         layout = QVBoxLayout(self.statsFrame)
 
-        # Add labels for task counts
+        # Add labels for counts
         project_label = QLabel(f'No of Projects: {projects}')
         layout.addWidget(project_label)
 
@@ -167,11 +389,14 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # Set size policy to automatically adjust size
         self.statsFrame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-    def populate_projects_ongoing_table(self, user_pkey=None):
-        # project instance
-        user_key = user_pkey
-        p = Project()
-        projects = p.get_projects_for_team_member(self.session, user_key, completed=True)
+    def populate_projects_ongoing_table(self):
+        # if user is admin the get all ongoing projects
+        if self.activeUserIsAdmin:
+            projects = Project().get_projects(self.session, completed=True)
+
+        # else display ongoing projects in which the user is a team member
+        else:
+            projects = Project().get_projects(self.session, self.activeUserInstance.user_pkey, completed=True)
 
         # Populate the projects table
         row = 0
@@ -188,17 +413,24 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 row += 1
 
     def populate_tasks_ongoing_table(self, projectPkey=None):
-        #clear table
+        # clear table
         self.TasksOngoingTable.setRowCount(0)
 
-        # task instance
-        t = Task()
+        # if user is admin then get all tasks
         if self.activeUserIsAdmin:
-            tasks = t.get_tasks(self.session, project_fkey=projectPkey, project_not_completed=True)
+            tasks = Task().get_tasks(self.session, project_not_completed=True)
+
+        # if user is admin and project pkey has been specified
+        elif self.activeUserIsAdmin and projectPkey:
+            tasks = Task().get_tasks(self.session, project_pkey=projectPkey, project_not_completed=True)
+
+        # if project pkey specified then all tasks for that project and user
         elif projectPkey:
-            tasks = t.get_tasks_for_team_member(self.session, self.activeUserInstance.username, project_fkey=projectPkey)
+            tasks = Task().get_assigned_tasks(self.session, self.activeUserInstance.user_pkey, project_pkey=projectPkey)
+
+        # else if user is not admin then all tasks assigned to that user
         else:
-            tasks = t.get_tasks_for_team_member(self.session, self.activeUserInstance.username)
+            tasks = Task().get_assigned_tasks(self.session, self.activeUserInstance.user_pkey)
 
         # Populate the tasks table
         if tasks:
@@ -218,6 +450,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         if item:
             # get project pkey of row selected
             row = item.row()
+
             #set selected project
             projectPkey = self.ProjectsOngoingTable.item(row, 0).text()
             self.projectItemSelected = int(projectPkey)
@@ -226,8 +459,9 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             # enable button
             self.dashViewProjectButton.setEnabled(True)
 
-
-            self.populate_tasks_ongoing_table(projectPkey=int(projectPkey))
+            # thread and populate tasks ongoing table with the specified project pkey
+            task_thread = threading.Thread(target=self.populate_tasks_ongoing_table(projectPkey=int(projectPkey)))
+            task_thread.start()
 
     def on_task_ongoing_table_item_clicked(self, item):
         if item:
@@ -242,8 +476,10 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
     def on_go_to_project_button(self):
         # Switch to the projects page
         self.on_projects_button()
+        self.go_to_all_project_table()
 
-        # find a select the project in the project table
+    def go_to_all_project_table(self):
+        # find and select the project in the project table
         for row in range(self.ProjectsAllTable.rowCount()):
             # Get the value of the pkey in the table
             item = self.ProjectsAllTable.item(row, 0)
@@ -256,7 +492,10 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
     def on_go_to_task_button(self):
         # Switch to the tasks page
         self.on_tasks_button()
+        # Create a thread and run the function in it
+        self.go_to_all_tasks_table()
 
+    def go_to_all_tasks_table(self):
         # find and select row in the projects table
         for row in range(self.taskProjectTable.rowCount()):
             # Get the value of the pkey in the table
@@ -276,8 +515,8 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 self.TaskAllTable.itemClicked.emit(item)
 
 
+    """ Project page functions """
 
-    # project page functions
     def on_projects_button(self):
         # switch to project page
         self.stackedWidget.setCurrentIndex(1)
@@ -315,6 +554,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # Create threads for populating project all table
         populate_projects_all_thread = threading.Thread(target=self.populate_projects_all_table)
         populate_projects_all_thread.start()
+        populate_projects_all_thread.join()
 
     def populate_project_comments(self, projectPkey):
         # get project communication log
@@ -347,6 +587,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             project_comments_thread.start()
             # clear comment box
             self.newCommentTE.clear()
+            project_comments_thread.join()
         else:
             return addComment
 
@@ -363,6 +604,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             # populate comments via threading
             project_comments_thread = threading.Thread(target=self.populate_project_comments(self.projectItemSelected))
             project_comments_thread.start()
+            project_comments_thread.join()
 
     def on_add_project_button(self):
         # open add project class
@@ -371,9 +613,8 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
 
 
+    """ Task page functions """
 
-
-    # task page functions
     def on_tasks_button(self):
         # switch Tasks page
         self.stackedWidget.setCurrentIndex(2)
@@ -388,13 +629,9 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.taskCommentListWidget.clear()
         self.TaskAllTable.setRowCount(0)
 
-        # Create thread for populating task project table
-        populate_task_project_thread = threading.Thread(target=self.populate_task_project_table)
-        populate_task_project_thread.start()
-
-        # Create thread for populating task project table
-        populate_task_thread = threading.Thread(target=self.populate_task_all_table(projectPKEY=-1))
-        populate_task_thread.start()
+        # run thread functions
+        self.populate_task_project_table_thread()
+        self.populate_task_all_table_thread(project_pkey=-1)
 
     def populate_task_project_table(self):
         # project instance
@@ -410,13 +647,19 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 self.taskProjectTable.setItem(row, 0, QtWidgets.QTableWidgetItem(str(project.project_pkey)))
                 self.taskProjectTable.setItem(row, 1, QtWidgets.QTableWidgetItem(project.name))
 
-    def populate_task_all_table(self, projectPKEY):
+    def populate_task_project_table_thread(self):
+        # Create thread for populating task project table
+        populate_task_project_thread = threading.Thread(target=self.populate_task_project_table)
+        populate_task_project_thread.start()
+        populate_task_project_thread.join()
+
+    def populate_task_all_table(self, project_pkey):
         #clear table
         self.TaskAllTable.setRowCount(0)
 
         # get all tasks for project
         t = Task()
-        tasks = t.get_tasks(self.session, projectPKEY)
+        tasks = t.get_tasks(self.session, project_pkey)
 
         # Populate the tasks table
         if tasks:
@@ -436,6 +679,12 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 self.TaskAllTable.setItem(row, 9, QtWidgets.QTableWidgetItem(task.assigner.full_name))
                 row += 1
 
+    def populate_task_all_table_thread(self, project_pkey):
+        # Create thread for populating task project table
+        populate_task_thread = threading.Thread(target=self.populate_task_all_table(project_pkey=project_pkey))
+        populate_task_thread.start()
+        populate_task_thread.join()
+
     def on_task_project_all_table_item_clicked(self, item):
         if item:
             # clear task comments table
@@ -447,8 +696,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             self.projectNameItemSelected = self.taskProjectTable.item(row, 1).text()
 
             # populate tasks table via threading
-            task_all_table_thread = threading.Thread(target=self.populate_task_all_table(projectPKEY=self.projectItemSelected))
-            task_all_table_thread.start()
+            self.populate_task_all_table_thread(project_pkey=self.projectItemSelected)
 
             # enable buttons
             self.AddTaskButton.setEnabled(True)
@@ -486,6 +734,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             # thread task comments
             task_comment_thread = threading.Thread(target=self.populate_task_comments(taskPkey=self.taskItemSelected))
             task_comment_thread.start()
+            task_comment_thread.join()
 
             # enable buttons
             self.ViewTaskButton.setEnabled(True)
@@ -507,6 +756,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             # thread task comments
             task_comment_thread = threading.Thread(target=self.populate_task_comments(taskPkey=self.taskItemSelected))
             task_comment_thread.start()
+            task_comment_thread.join()
 
             # clear comment box
             self.newTaskCommentTE.clear()
@@ -520,9 +770,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                                        activeUserInstance=self.activeUserInstance)
         self.add_task_window.show()
 
-
-
-    # on view project and task buttons
+    """ Buttons Connected to multiple pages"""
     def on_view_project_button(self):
         projectPk = self.projectItemSelected
         self.view_project_window = ViewProject(self, project_pkey=projectPk, activeUserInstance=self.activeUserInstance)
@@ -535,7 +783,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.view_task_window.show()
 
 
-    # log out func and confirmation box
+    """ Log out """
     def confirmation_box(self, title, display_text):
         if title and display_text:
             confirmation = QMessageBox.question(self, title, display_text,
@@ -550,183 +798,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
 
 
-    # profile page functions
-    def on_profile_button(self):
-        self.stackedWidget.setCurrentIndex(3)
-        # is user is admin then run functions
-        if self.activeUserIsAdmin is True:
-            self.admin_functions()
-
-        self.on_profile_load_defaults()
-        self.populate_profile_details()
-
-    def on_profile_load_defaults(self):
-        self.changeDetailsButton.setText('Change Details')
-        self.newPasswordLabel.setText('Password: ')
-        self.accountDeleteButton.hide()
-        self.pdNameLE.setEnabled(False)
-        self.pdEmailLE.setEnabled(False)
-        self.pdUsernameLE.setEnabled(False)
-        self.pdPasswordLE.setEnabled(False)
-        self.updateDetailsButton.setEnabled(False)
-        self.changePasswordRB.setChecked(False)
-        self.changePasswordRB.hide()
-        self.notChangePasswordRB.setChecked(False)
-        self.notChangePasswordRB.hide()
-        self.updateDetailsButton.hide()
-        self.accountDoNotDeleteRB.setChecked(True)
-        self.request_password_change = False
-        self.pdPasswordLE.setText('**********')
-
-    def populate_profile_details(self):
-        self.pdNameLE.setText(self.activeUserInstance.full_name)
-        self.pdEmailLE.setText(self.activeUserInstance.email_address)
-        self.pdUsernameLE.setText(self.activeUserInstance.username)
-        self.pdPasswordLE.setText('**********')
-
-    def populate_admin_select_user_cb(self):
-        # populate select user combo box
-        users = User().get_users(self.session)
-        self.userSelectCB.clear()
-        for user in users:
-            item_text = f'{user.full_name} ({user.username})'
-            item_data = user.user_pkey
-            self.userSelectCB.addItem(item_text, item_data)
-
-        # set current user
-        self.userSelectCB.setCurrentText(
-            f'{self.activeUserInstance.full_name} ({self.activeUserInstance.username})')
-
-    def populate_admin_select_user_cb_thread(self):
-        # thread populate combo box
-        populate_admin_su_thread = threading.Thread(target=self.populate_admin_select_user_cb)
-        populate_admin_su_thread.start()
-
-    def admin_functions(self):
-        self.adminSUGB.show()
-        self.APgrantAdminPermissionButton.show()
-        self.populate_admin_select_user_cb_thread()
-
-
-    # profile page buttons
-    def on_change_password_radio_button(self):
-        self.pdPasswordLE.setEnabled(True)
-        self.pdPasswordLE.clear()
-        self.newPasswordLabel.setText('Input New Password: ')
-        self.request_password_change = True
-        self.notChangePasswordRB.show()
-
-    def on_not_change_password_radio_button(self):
-        self.pdPasswordLE.setEnabled(False)
-        self.request_password_change = False
-        self.newPasswordLabel.setText('Password: ')
-        self.pdPasswordLE.setText('**********')
-
-    def on_change_personal_details_button(self):
-        if self.changeDetailsButton.text() == 'Change Details':
-            self.pdNameLE.setEnabled(True)
-            self.pdEmailLE.setEnabled(True)
-            self.updateDetailsButton.setEnabled(True)
-            self.updateDetailsButton.show()
-            self.changePasswordRB.show()
-            self.changeDetailsButton.setText('Discard Changes')
-        else:
-            self.on_profile_load_defaults()
-            self.populate_profile_details()
-
-    def on_account_deletion_understand_button(self):
-        self.accountDeleteButton.show()
-
-    def on_account_deletion_cancel_button(self):
-        self.accountDeleteButton.hide()
-        self.accountDoNotDeleteRB.setChecked(True)
-
-    def on_update_details_button(self):
-
-        # if user is admin and user has been selected
-        if self.activeUserIsAdmin and self.adminSelectedUserPkey:
-            user_pkey = self.adminSelectedUserPkey
-        # else use users own pkey
-        else:
-            user_pkey = self.activeUserInstance.user_pkey
-
-        name = self.pdNameLE.text()
-        emailAdd = self.pdEmailLE.text()
-        password = self.pdPasswordLE.text()
-
-        # if password not changed
-        if self.request_password_change is False:
-            set_user = self.activeUserInstance.set_user(self.session, user_to_set_pkey=user_pkey,
-                                                        setFullname=name, setEmailAddress=emailAdd)
-
-
-        # if password changed
-        if self.request_password_change is True:
-            set_user = self.activeUserInstance.set_user(self.session, user_to_set_pkey=user_pkey,
-                                                        setFullname=name, setEmailAddress=emailAdd,
-                                                        setPassword=password)
-        self.updateStatusLabel.setText(set_user)
-        self.on_profile_button()
-
-    def on_account_deletion_button(self):
-
-        confirmation = self.confirmation_box('Confirm deletion', 'Are you sure you want to delete the account?')
-        if confirmation == QMessageBox.StandardButton.Yes:
-
-            # if user is admin and user has been selected
-            if self.activeUserIsAdmin is True and self.adminSelectedUserPkey:
-                user_pkey = self.adminSelectedUserPkey
-            # else use users own pkey
-            else:
-                user_pkey = self.activeUserInstance.user_pkey
-
-            # delete from user table
-            delete_user = self.activeUserInstance.delete_user(self.session, user_pkey)
-            self.deleteStatusLabel.setText(delete_user)
-
-            # when user has been removed
-            if delete_user == 'User has been deleted':
-                #remove all roles
-                remove_user_roles = UserRole().delete_user_role(self.session, user_pkey)
-                self.deleteStatusLabel.setText(remove_user_roles)
-
-                #un-assign all tasks
-                remove_from_tasks = Task().unassign_tasks(self.session, user_pkey)
-                self.deleteStatusLabel.setText(remove_from_tasks)
-
-                # un-assign all projects
-                remove_from_projects = Project().unassign_projects(self.session, user_pkey)
-                self.deleteStatusLabel.setText(remove_from_projects)
-
-                # remove from projects team
-                delete_from_teams = ProjectTeam().delete_team_member_from_projects(self.session, user_pkey)
-                self.deleteStatusLabel.setText(delete_from_teams)
-
-                #finally close if user is not admin
-                self.deleteStatusLabel.setText('user has now been deleted')
-                self.on_profile_button()
-                if self.activeUserIsAdmin is False:
-                    self.close()
-
-            else:
-                self.deleteStatusLabel.setText(delete_user)
-
-
-
-
-
-
-    def on_userSelectCB_changed(self):
-        # get user
-        user_selected_index = self.userSelectCB.currentIndex()
-        user_selected_fkey = int(self.userSelectCB.itemData(user_selected_index))
-        user = User().get_user_instance(self.session, user_pkey=user_selected_fkey)
-        self.adminSelectedUserPkey = user_selected_fkey
-        # set fields from the user that is selected
-        self.pdNameLE.setText(user.full_name)
-        self.pdEmailLE.setText(user.email_address)
-        self.pdUsernameLE.setText(user.username)
-        self.pdPasswordLE.setText('**********')
 
 
 class AddProject(QDialog, Ui_AddProjectDialog):
@@ -783,7 +854,7 @@ class AddProject(QDialog, Ui_AddProjectDialog):
 
         if addProject == 'successful':
             self.addProjectStatusLabel.setText(f'The project, {Pname}! has now been added.')
-            self.home_window_instance.populate_projects_all_table()
+            self.home_window_instance.populate_projects_all_table_thread()
 
             # disable fields
             self.projectNameLE.setEnabled(False)
@@ -817,8 +888,6 @@ class AddProject(QDialog, Ui_AddProjectDialog):
         self.exitProjectButton.setText('Exit (without saving')
 
 
-
-
 class AddTask(QDialog, Ui_AddTaskDialog):
     def __init__(self, home_window_instance, projectName, projectPkey, activeUserInstance):
         super().__init__()
@@ -836,6 +905,7 @@ class AddTask(QDialog, Ui_AddTaskDialog):
         #thread assign to field populate
         populate_assign_to_thread = threading.Thread(target=self.populate_assign_to)
         populate_assign_to_thread.start()
+        populate_assign_to_thread.join()
 
         # buttons
         self.addTaskButton.clicked.connect(self.on_add_task_button)
@@ -896,7 +966,7 @@ class AddTask(QDialog, Ui_AddTaskDialog):
 
         if addTask == 'successful':
             self.addTaskStatusLabel.setText(f'The task, {Tname}! has now been added in to project: {self.projectName}.')
-            self.home_window_instance.populate_task_all_table(projectPKEY=self.projectPkey)
+            self.home_window_instance.populate_task_all_table_thread(project_pkey=self.projectPkey)
 
             # disable fields
             self.projectNameLE.setEnabled(False)
@@ -1031,6 +1101,7 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
     def populate_team_members_table_thread(self):
         populate_team_members_thread = threading.Thread(target=self.populate_team_members_table)
         populate_team_members_thread.start()
+        populate_team_members_thread.join()
 
     def check_project_status(self):
         # if the project has ended then disable fields
@@ -1167,7 +1238,7 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
             if updateProject:
                 print(projectProgress)
                 self.projectChangesLabel.setText(f'The project, {currentName}! has now been updated.')
-                self.home_window_instance.populate_projects_all_table()
+                self.home_window_instance.populate_projects_all_table_thread()
                 self.exitWithoutSavingButton.setText('Exit')
                 self.saveChangesButton.setEnabled(False)
             else:
@@ -1182,9 +1253,17 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
                 closeProject = self.projectInstance.close_project(self.session, self.projectInstance.project_pkey)
                 if closeProject == 'Project Closed':
                     self.projectChangesLabel.setText(f'The project, {self.projectInstance.name}! has now been closed.')
-                    self.home_window_instance.populate_projects_all_table()
+                    self.home_window_instance.populate_projects_all_table_thread()
                     # disable fields after deletion
                     self.disable_view_project_fields()
+
+                    # start email thread to all team members
+                    emailSender = EmailSender()
+                    emailSender.set_action_user(self.activeUserInstance.user_pkey)
+                    emailSender.set_project(self.project_pkey)
+                    # Create thread for email
+                    email_thread = threading.Thread(target=emailSender.on_project_delete)
+                    email_thread.start()
                 else:
                     return closeProject
         else:
@@ -1218,6 +1297,7 @@ class AddTeamMemberDialog(QDialog, Ui_ViewProjectAddTeamMemberDialog):
         # thread username combo box
         populate_user_name_thread = threading.Thread(target=self.populate_user_name)
         populate_user_name_thread.start()
+        populate_user_name_thread.join()
 
         #on button
         self.addUserButton.clicked.connect(self.on_add_user_button)
@@ -1246,6 +1326,15 @@ class AddTeamMemberDialog(QDialog, Ui_ViewProjectAddTeamMemberDialog):
         if addToPT == 'successful':
             self.addUserConfirmLE.setText(f'{self.userCB.itemText(index)}! has now been added to {self.projectInstance.name}.')
             self.view_project_instance.populate_team_members_table()
+
+            # thread send email to user who has been added
+            emailSender = EmailSender()
+            emailSender.set_action_user(self.activeUserInstance.user_pkey)
+            emailSender.set_project(self.projectInstance.project_pkey)
+            emailSender.set_recipient(user_pkey)
+            # Create thread for email
+            email_thread = threading.Thread(target=emailSender.on_add_to_project)
+            email_thread.start()
         else:
             self.addUserConfirmLE.setText(addToPT)
 
@@ -1291,7 +1380,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         self.get_task_instance()
         self.check_permissions()
         self.check_task_status()
-        self.populate_task_assignee()
+        self.populate_task_assignee_thread()
         self.populate_task()
         self.change_review_button_state()
 
@@ -1350,9 +1439,14 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             item_data = user.user.user_pkey
             self.taskAssigneeCB.addItem(item_text, item_data)
 
+    def populate_task_assignee_thread(self):
+        populate_task_assignee_thread = threading.Thread(target=self.populate_task_assignee)
+        populate_task_assignee_thread.start()
+
     #permissions
     def no_permission_to_perform_action(self):
-        QMessageBox.critical(self, "Permission denied", "You do not have permissions to perform this action",
+        QMessageBox.critical(self, "Permission denied", "You do not have permissions to perform this action"
+                                                        "\n because you are not the project owner",
                              QMessageBox.StandardButton.Close)
 
     def check_permissions(self):
@@ -1371,9 +1465,6 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         # check if task is assigned to active  user
         if self.taskInstance.assignee.username == self.activeUserInstance.username:
             self.edit_permissions = True
-
-        print(self.edit_permissions)
-        print(self.admin_permissions)
 
     # widget states
     def on_field_changed(self):
@@ -1433,7 +1524,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
                 if delete_task == 'Task deleted successfully':
                     # update table
                     self.taskChangesLabel.setText(f'The Task, {self.taskInstance.name}! has now been removed.')
-                    self.home_window_instance.populate_task_all_table(projectPKEY=self.project_pkey)
+                    self.home_window_instance.populate_task_all_table_thread(project_pkey=self.project_pkey)
                     # disable fields after deletion
                     self.disable_view_task_fields()
                 else:
@@ -1474,7 +1565,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             # if task has been updated
             if update_task:
                 self.taskChangesLabel.setText(f'The task, {currentTaskName}! has now been updated.')
-                self.home_window_instance.populate_task_all_table(projectPKEY=self.project_pkey)
+                self.home_window_instance.populate_task_all_table_thread(project_pkey=self.project_pkey)
                 self.exitWithoutSavingButton.setText('Exit')
                 self.saveChangesButton.setEnabled(False)
 
@@ -1516,7 +1607,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
                     self.taskStatusCB.setCurrentText('Completed')
                     self.taskEndLE.setText(dt.utcnow().strftime('%d/%m/%Y %H:%M:%S'))
                     self.exitWithoutSavingButton.setText('Exit')
-                    self.home_window_instance.populate_task_all_table(projectPKEY=self.project_pkey)
+                    self.home_window_instance.populate_task_all_table_thread(project_pkey=self.project_pkey)
 
                     # disable fields after deletion
                     self.disable_view_task_fields()
@@ -1546,7 +1637,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             if updateTask:
                 self.taskStatusCB.setCurrentText('In-Progress')
                 self.taskChangesLabel.setText(f'The task, {currentTaskName}! has now been sent back.')
-                self.home_window_instance.populate_task_all_table(projectPKEY=self.project_pkey)
+                self.home_window_instance.populate_task_all_table_thread(project_pkey=self.project_pkey)
                 self.sendReviewtButton.setEnabled(False)
                 self.saveChangesButton.setEnabled(False)
                 self.exitWithoutSavingButton.setText('Exit')
@@ -1561,7 +1652,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             if updateTask:
                 self.taskStatusCB.setCurrentText('Pending Review')
                 self.taskChangesLabel.setText(f'The task, {currentTaskName}! has now been sent for review.')
-                self.home_window_instance.populate_task_all_table(projectPKEY=self.project_pkey)
+                self.home_window_instance.populate_task_all_table_thread(project_pkey=self.project_pkey)
                 self.sendReviewtButton.setEnabled(False)
                 self.saveChangesButton.setEnabled(False)
                 self.exitWithoutSavingButton.setText('Exit')

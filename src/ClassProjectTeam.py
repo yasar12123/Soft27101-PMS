@@ -23,6 +23,33 @@ class ProjectTeam(Base):
     project = relationship('Project', back_populates='project_team_members')
     team = relationship('Team', back_populates='project_associations')
 
+
+    def get_project_teams_for_user(self, session, user_pkey=None):
+        # Try to establish connection to db
+        try:
+            # Create a session
+            with session() as session:
+                query = (
+                    session.query(ProjectTeam)
+                    .join(ProjectTeam.user)
+                    .join(ProjectTeam.project)
+                    .options(joinedload(ProjectTeam.user))
+                    .options(joinedload(ProjectTeam.project))
+                    .filter(ProjectTeam.is_removed == 0)
+                )
+
+                # If project is specified, filter on project name
+                if user_pkey:
+                    query = (
+                        query.join(ProjectTeam.project)
+                        .filter(ProjectTeam.user_fkey == user_pkey)
+                    )
+
+                return query.all()
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error retrieving data: {e}'
+
     def get_team_of_project(self, session, projectPkey=None):
         # Try to establish connection to db
         try:

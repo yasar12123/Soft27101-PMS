@@ -24,5 +24,6 @@ if __name__ == '__main__':
     # Obtain a session using the get_session() method
     session = db.get_session()
 
-    p = Project().get_project(session, 33)
-    p.set_project()
+    emailSender = EmailSender()
+    emailSender.set_action_user(14)
+    emailSender.set_project(37)
