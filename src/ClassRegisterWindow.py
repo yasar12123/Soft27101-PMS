@@ -1,20 +1,25 @@
 from PyQt6.QtWidgets import QMainWindow
-from PyQt6.QtCore import QTimer
+from PyQt6.QtCore import QTimer, pyqtSignal
 from generated.RegisterWindow import Ui_RegisterWindow
 from src.ClassDatabaseConnection import DatabaseConnection
 from src.ClassUser import User
 from src.ClassUserRole import UserRole
-from src.ClassProject import Project
-from src.ClassProjectTeam import ProjectTeam
-from src.ClassTeam import Team
-from src.ClassTask import Task
-from src.ClassCommunicationLog import CommunicationLog
-from src.ClassAttachment import Attachment
 import threading
 
 
 class RegisterWindow(QMainWindow, Ui_RegisterWindow):
+    """Register window class.
+    :param loginInstance: Instance of the login window
+    :type loginInstance: LoginWindow
+    :return: None"""
+
+    # Signals
+    registration_completed = pyqtSignal()
     def __init__(self, loginInstance=None):
+        """Constructor method
+        :param loginInstance: Instance of the login window
+        :type loginInstance: LoginWindow
+        :return: None"""
         super().__init__()
         self.setupUi(self)
         self.loginInstance = loginInstance
@@ -24,23 +29,37 @@ class RegisterWindow(QMainWindow, Ui_RegisterWindow):
         self.dbCon = DatabaseConnection()
         self.session = self.dbCon.get_session()
 
-        # Connect signals to slots
+        # Connect signals to functions
         self.AcceptRadioButton.toggled.connect(self.toggle_register_button)
         self.RegisterButton.clicked.connect(self.start_registration_thread)
+        # Connect registration_completed signal to close_window slot
+        self.registration_completed.connect(self.close_window)
 
     def toggle_register_button(self, state):
+        """Toggle the register button based on the state of the accept radio button.
+        :param state: State of the accept radio button
+        :type state: bool
+        :return: None"""
         if state:
             self.RegisterButton.setEnabled(True)
         else:
             self.RegisterButton.setEnabled(False)
 
     def start_registration_thread(self):
+        """Start the registration thread.
+        :return: None"""
+
+        # update the label to show the user that registration is in progress
         self.RegistrationLabel.setText('Please wait while we register you')
+
         # Start a new thread for registration
         registration_thread = threading.Thread(target=self.on_registration)
         registration_thread.start()
 
     def on_registration(self):
+        """Register the user.
+        :return: None"""
+
         # get input from window
         fullname = self.FullnameLE.text()
         email = self.EmailLE.text()
@@ -50,41 +69,42 @@ class RegisterWindow(QMainWindow, Ui_RegisterWindow):
         # Create a new user instance
         new_user = User(username=username, password_hashed=password, email_address=email, full_name=fullname)
         # register user
-        registerUser = new_user.register_user(self.session)
+        register_user = new_user.register_user(self.session)
 
-        if registerUser == 'Registration Successful':
-            self.RegistrationLabel.setText(f'You are now registered, please close this window and sign in.')
+        # update the label to show the user the result of the registration
+        if register_user == 'Registration Successful':
             self.disable_fields()
-            self.after_registration()
 
             # add user role as standard user
             user_pkey = User().get_user_fkey(self.session, username)
-            user_role = UserRole()
-            add_user_role = user_role.add_user_role(self.session, user_pkey, 'StandardUser')
+            add_user_role = UserRole().add_user_role(self.session, user_pkey, 'StandardUser')
+
+            # Once registration is completed, emit the registration_completed signal
+            self.registration_completed.emit()
+
+        # If the registration fails, display the error message
         else:
-            self.RegistrationLabel.setText(registerUser)
-
-    def after_registration(self):
-        # Start a timer to update the remaining time every second
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_remaining_time)
-        self.timer.start(1000)  # Update every 1000 milliseconds (1 second)
-
-    def update_remaining_time(self):
-        self.remaining_time -= 1
-        self.RegistrationLabel.signInLabel.setText(
-            f'You are now registered, Please close this window and sign in. '
-            f'\nClosing in {self.remaining_time} seconds')
-
-        if self.remaining_time <= 0:
-            # Close the window after 5 seconds
-            self.timer.stop()
-            self.close()
+            self.RegistrationLabel.setText(register_user)
 
     def disable_fields(self):
+        """Disable the input fields and buttons in the window.
+        :return: None"""
         self.FullnameLE.setEnabled(False)
         self.EmailLE.setEnabled(False)
         self.UsernameLE.setEnabled(False)
         self.PasswordLE.setEnabled(False)
         self.AcceptRadioButton.setEnabled(False)
+        self.NotAcceptRadioButton.setEnabled(False)
+        self.TermsAndCondTE.setEnabled(False)
         self.RegisterButton.setEnabled(False)
+
+    def close_window(self):
+        """Close the window after a certain time.
+        :return: None"""
+        self.remaining_time -= 1
+        if self.remaining_time == 0:
+            self.close()
+        else:
+            self.RegistrationLabel.setText(f'You are now registered, please close this window and sign in. This window will close in {self.remaining_time} seconds.')
+            QTimer.singleShot(1000, self.close_window)
+

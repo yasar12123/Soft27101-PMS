@@ -32,18 +32,29 @@ class Task(Base):
 
 
     @classmethod
-    def get_tasks_for_team_member(cls, session, team_member_username, project_fkey=None):
+    def get_tasks_for_team_member(cls, session, team_member_user_pkey=None, project_fkey=None):
         # Try to establish connection to db
         try:
             # Create a session
             with session() as session:
-                query = (
-                    session.query(cls)
-                    .join(User, cls.assignee_fkey == User.user_pkey)
-                    .join(Project, cls.project_fkey == Project.project_pkey)
-                    .options(joinedload(cls.project))
-                    .filter(User.username == team_member_username, cls.is_removed == 0)
-                )
+                if team_member_user_pkey:
+                    query = (
+                        session.query(cls)
+                        .join(User, cls.assignee_fkey == User.user_pkey)
+                        .join(Project, cls.project_fkey == Project.project_pkey)
+                        .options(joinedload(cls.project))
+                        .filter(User.username == team_member_user_pkey, cls.is_removed == 0)
+                    )
+
+                else:
+                    query = (
+                        session.query(cls)
+                        .join(User, cls.assignee_fkey == User.user_pkey)
+                        .join(Project, cls.project_fkey == Project.project_pkey)
+                        .options(joinedload(cls.project))
+                        .filter(cls.is_removed == 0)
+                    )
+
                 # If project is specified, filter tasks based on the project
                 if project_fkey:
                     query = query.filter(Project.project_pkey == project_fkey)
@@ -55,7 +66,7 @@ class Task(Base):
             return f'Error retrieving data: {e}'
 
     @classmethod
-    def get_tasks(cls, session, project_fkey=None):
+    def get_tasks(cls, session, project_fkey=None, project_not_completed=None):
         # Try to establish connection to db
         try:
             # Create a session
@@ -70,6 +81,9 @@ class Task(Base):
                 # If project is specified, filter tasks based on the project
                 if project_fkey:
                     query = query.filter(Project.project_pkey == project_fkey)
+
+                if project_not_completed:
+                    query = query.filter(Project.status != 'Completed')
 
                 return query.all()
 

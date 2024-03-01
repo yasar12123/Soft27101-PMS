@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1219</width>
-    <height>756</height>
+    <height>761</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -73,9 +73,9 @@
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>450</y>
+          <y>410</y>
           <width>81</width>
-          <height>111</height>
+          <height>151</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_17">
@@ -83,6 +83,13 @@
           <widget class="QPushButton" name="profileButton">
            <property name="text">
             <string>Profile</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="profileLabel">
+           <property name="text">
+            <string/>
            </property>
           </widget>
          </item>
@@ -956,13 +963,6 @@
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_19">
                    <item>
-                    <widget class="QPushButton" name="APgrantAdminPermissionButton">
-                     <property name="text">
-                      <string>Grant Admin Permissions</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QPushButton" name="changeDetailsButton">
                      <property name="text">
                       <string>Change Details</string>
@@ -987,32 +987,6 @@
                  </widget>
                 </item>
                 <item>
-                 <spacer name="verticalSpacer_3">
-                  <property name="orientation">
-                   <enum>Qt::Vertical</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>20</width>
-                    <height>40</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
-                 <spacer name="verticalSpacer_5">
-                  <property name="orientation">
-                   <enum>Qt::Vertical</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>20</width>
-                    <height>40</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
                  <spacer name="verticalSpacer_4">
                   <property name="orientation">
                    <enum>Qt::Vertical</enum>
@@ -1024,6 +998,20 @@
                    </size>
                   </property>
                  </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="APgrantAdminPermissionButton">
+                  <property name="styleSheet">
+                   <string notr="true">background-color: darkred;
+border: 2px solid darkred;
+border-radius: 5px;
+color: white; /* Set text color to white */
+</string>
+                  </property>
+                  <property name="text">
+                   <string>Grant Admin Permissions</string>
+                  </property>
+                 </widget>
                 </item>
                 <item>
                  <spacer name="verticalSpacer_9">
@@ -1092,6 +1080,16 @@
                 </item>
                 <item>
                  <widget class="QGroupBox" name="groupBox_12">
+                  <property name="layoutDirection">
+                   <enum>Qt::LeftToRight</enum>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QGroupBox {
+    border: 2px solid #8B0000; /* Dark red border with 2px width */
+    border-radius: 5px; /* Rounded corners */
+}
+</string>
+                  </property>
                   <property name="title">
                    <string>Delete Account</string>
                   </property>
@@ -1128,6 +1126,16 @@
                       </item>
                       <item>
                        <widget class="QPushButton" name="accountDeleteButton">
+                        <property name="layoutDirection">
+                         <enum>Qt::LeftToRight</enum>
+                        </property>
+                        <property name="styleSheet">
+                         <string notr="true">background-color: darkred;
+border: 2px solid darkred;
+border-radius: 5px;
+color: white; /* Set text color to white */
+</string>
+                        </property>
                         <property name="text">
                          <string>Delete Account</string>
                         </property>

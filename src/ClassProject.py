@@ -33,36 +33,41 @@ class Project(Base):
     communication_log = relationship('CommunicationLog', back_populates='project')
     timeline_events = relationship("TimelineEvent", back_populates="project")
 
-    #
-    def number_of_open_tasks(self, session, project_fkey):
-        # Retrieve the project from the database
-        project = session.query(Project).get(project_fkey)
-        if project is None:
-            return "Project not found"
-
-        # Count the number of open tasks for the project
-        open_tasks_count = sum(1 for task in project.tasks if not task.is_completed)
-        return open_tasks_count
-
     @classmethod
-    def get_projects_for_team_member(cls, session, team_member_username, completed=None):
-        # Try to establish connection to db
+    def get_projects_for_team_member(cls, session, team_member_user_pkey=None, completed=None):
+        """Get all projects for a team member
+        :param session: the session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param team_member_user_pkey: the team member user primary key
+        :type team_member_user_pkey: int
+        :param completed: the status of the project
+        :type completed: bool
+        :return: all projects for a team member
+        """
         try:
-            # Create a session
             with session() as session:
-                teamUser = aliased(User)
-                query = (
-                    session.query(cls)
-                    .join(cls.owner)
-                    .join(cls.project_team_members)
-                    .join(teamUser, ProjectTeam.user_fkey == teamUser.user_pkey)
-                    .filter(teamUser.username == team_member_username,
-                            cls.is_removed == 0,
-                            ProjectTeam.is_removed == 0)
-                    .options(joinedload(Project.owner))
-                )
-                # If completed is specified as n then remove completed projects
-                if completed == 'n':
+
+                # if team_member_user_pkey is not None, then query for projects assigned to the team member
+                if team_member_user_pkey:
+                    teamUser = aliased(User)
+                    query = (
+                        session.query(cls)
+                        .join(cls.owner)
+                        .join(cls.project_team_members)
+                        .join(teamUser, ProjectTeam.user_fkey == teamUser.user_pkey)
+                        .filter(cls.is_removed == 0, ProjectTeam.is_removed == 0)
+                        .options(joinedload(Project.owner)))
+
+                # if team_member_user_pkey is None, then query for all projects
+                else:
+                    query = (
+                        session.query(cls)
+                        .join(cls.owner)
+                        .filter(cls.is_removed == 0)
+                        .options(joinedload(Project.owner)))
+
+                # if completed is not None, then query for completed projects
+                if completed:
                     query = query.filter(cls.status != 'Completed')
 
                 return query.all()
@@ -141,7 +146,7 @@ class Project(Base):
                 return f'Error during adding project: {e}'
 
     @classmethod
-    def set_project(cls, session, projectPkey, setName, setDesc, setStatus, setStartDate, setDueDate):
+    def set_project(cls, session, projectPkey, setName, setDesc, setStatus, setStartDate, setDueDate, setProjectProgress):
         # Try to establish connection to db
         try:
             # Create a session
@@ -156,6 +161,7 @@ class Project(Base):
                     project.status = setStatus
                     project.start_date = setStartDate
                     project.due_date = setDueDate
+                    project.project_progress = setProjectProgress
                     session.commit()
                 return 'Project updated'
 
@@ -194,6 +200,7 @@ class Project(Base):
                 else:
                     project.status = 'Completed'
                     project.end_date = datetime.utcnow()
+                    project.project_progress = 100
                     session.commit()
                 return 'Project Closed'
 

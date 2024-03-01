@@ -24,9 +24,5 @@ if __name__ == '__main__':
     # Obtain a session using the get_session() method
     session = db.get_session()
 
-    u = User().get_user_instance(session, 36)
-
-
-    set_user = u.delete_user(session, 36)
-
-    print(set_user)
+    p = Project().get_project(session, 33)
+    p.set_project()
