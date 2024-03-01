@@ -7,7 +7,6 @@ from src.ClassTeam import Team
 from src.ClassTask import Task
 from src.ClassCommunicationLog import CommunicationLog
 from src.ClassAttachment import Attachment
-from src.ClassTimelineEvent import TimelineEvent
 from src.ClassEmail import EmailSender
 
 import matplotlib.pyplot as plt
@@ -24,6 +23,8 @@ if __name__ == '__main__':
     # Obtain a session using the get_session() method
     session = db.get_session()
 
-    emailSender = EmailSender()
-    emailSender.set_action_user(14)
-    emailSender.set_project(37)
+    #projects = Project().get_project_for_user(session, 4)
+    projects = Project().get_project_team(session, 54)
+    #print(projects)
+    for projects in projects:
+        print(projects.user_fkey)

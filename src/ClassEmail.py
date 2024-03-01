@@ -7,7 +7,6 @@ from src.ClassTeam import Team
 from src.ClassTask import Task
 from src.ClassCommunicationLog import CommunicationLog
 from src.ClassAttachment import Attachment
-from src.ClassTimelineEvent import TimelineEvent
 
 import smtplib
 from email.mime.text import MIMEText
@@ -108,8 +107,8 @@ class EmailSender:
         sendList = []
 
         #get list of all team members and append to sendList
-        pt = ProjectTeam()
-        projectTeam = pt.get_team_of_project(self.session, self.project.project_pkey)
+        pt = Project()
+        projectTeam = pt.get_project_team(self.session, self.project.project_pkey)
         for user in projectTeam:
             sendList.append(user.user.email_address)
 
@@ -124,8 +123,8 @@ class EmailSender:
         sendList = []
 
         #get list of all team members and append to sendList
-        pt = ProjectTeam()
-        projectTeam = pt.get_team_of_project(self.session, self.project.project_pkey)
+        pt = Project()
+        projectTeam = pt.get_project_team(self.session, self.project.project_pkey)
         for user in projectTeam:
             sendList.append(user.user.email_address)
 

@@ -31,7 +31,6 @@ class Project(Base):
     tasks = relationship('Task', back_populates='project')
     project_team_members = relationship('ProjectTeam', back_populates='project')
     communication_log = relationship('CommunicationLog', back_populates='project')
-    timeline_events = relationship("TimelineEvent", back_populates="project")
 
     @classmethod
     def get_projects(cls, session, team_member_user_pkey=None, completed=None):
@@ -242,3 +241,34 @@ class Project(Base):
         except SQLAlchemyError as e:
             # Log or handle the exception
             return f'Error un-assigning projects: {e}'
+
+
+    def get_project_team(self, session, projectPkey=None, userPkey=None):
+        # Try to establish connection to db
+        try:
+            # Create a session
+            with session() as session_obj:
+                query = (
+                    session_obj.query(ProjectTeam)
+                    .join(ProjectTeam.user)
+                    .join(ProjectTeam.project)
+                    .options(joinedload(ProjectTeam.user))
+                    .options(joinedload(ProjectTeam.project))
+                    .filter(ProjectTeam.is_removed == 0, Project.is_removed == 0)
+                )
+
+                # If projectPkey is specified, filter on project primary key
+                if projectPkey:
+                    query = query.filter(ProjectTeam.project.has(project_pkey=projectPkey))
+
+                # If userPkey is specified, filter on user primary key
+                if userPkey:
+                    query = query.filter(ProjectTeam.user.has(user_pkey=userPkey))
+
+                return query.all()
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error retrieving data: {e}'
+
+

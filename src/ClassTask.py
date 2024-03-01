@@ -28,7 +28,6 @@ class Task(Base):
     assignee = relationship('User', back_populates='assigned_tasks', foreign_keys=[assignee_fkey])
     assigner = relationship('User', back_populates='assigner_of_tasks', foreign_keys=[assigner_fkey])
     communication_log = relationship('CommunicationLog', back_populates='task')
-    timeline_events = relationship("TimelineEvent", back_populates="task")
 
     @classmethod
     def get_assigned_tasks(cls, session, user_pkey, project_pkey=None):

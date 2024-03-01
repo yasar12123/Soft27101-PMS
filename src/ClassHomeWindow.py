@@ -8,7 +8,6 @@ from src.ClassTeam import Team
 from src.ClassTask import Task
 from src.ClassCommunicationLog import CommunicationLog
 from src.ClassAttachment import Attachment
-from src.ClassTimelineEvent import TimelineEvent
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QDialog, QMessageBox, QSizePolicy, QLabel
@@ -354,10 +353,10 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # if user is admin then get all tasks
         if self.activeUserIsAdmin:
             tasks = Task().get_tasks(self.session)
-            pts = ProjectTeam().get_project_teams_for_user(self.session)
+            pts = Project().get_project_team(self.session)
         else:
             tasks = Task().get_assigned_tasks(self.session, self.activeUserInstance.user_pkey)
-            pts = ProjectTeam().get_project_teams_for_user(self.session, self.activeUserInstance.user_pkey)
+            pts = Project().get_project_team(self.session, userPkey=self.activeUserInstance.user_pkey)
 
         # calc metrics
         distinct_projects = set(pt.project_fkey for pt in pts if pt.project_fkey)
@@ -865,9 +864,6 @@ class AddProject(QDialog, Ui_AddProjectDialog):
             self.addProjectButton.setEnabled(False)
             self.exitProjectButton.setText('Exit')
 
-            #log event of creation
-            event = TimelineEvent()
-            addEvent = event.log_project_creation(self.session, new_project)
 
         else:
             self.addProjectStatusLabel.setText(addProject)
@@ -929,7 +925,7 @@ class AddTask(QDialog, Ui_AddTaskDialog):
         self.addTaskButton.setEnabled(False)
 
     def populate_assign_to(self):
-        project = ProjectTeam().get_team_of_project(self.session, self.projectPkey)
+        project = Project().get_project_team(self.session, self.projectPkey)
         for user in project:
             item_text = f'{user.user.full_name} ({user.user.username})'
             item_data = user.user.user_pkey
@@ -1084,8 +1080,8 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
 
     def populate_team_members_table(self):
         # project team instance
-        pt = ProjectTeam()
-        teamMembers = pt.get_team_of_project(self.session, self.projectInstance.project_pkey)
+        pt = Project()
+        teamMembers = pt.get_project_team(self.session, self.projectInstance.project_pkey)
 
         # Populate the projects table
         row = 0
@@ -1431,8 +1427,8 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         self.project_owner_fkey = self.taskInstance.project.owner_fkey
 
     def populate_task_assignee(self):
-        pt = ProjectTeam()
-        project = pt.get_team_of_project(self.session, self.project_pkey)
+        pt = Project()
+        project = pt.get_project_team(self.session, self.project_pkey)
 
         for user in project:
             item_text = f'{user.user.full_name} ({user.user.username})'
