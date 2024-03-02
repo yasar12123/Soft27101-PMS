@@ -69,6 +69,9 @@ class Project(Base):
                 if completed:
                     query = query.filter(cls.status != 'Completed')
 
+                # Order by due date
+                query = query.order_by(cls.due_date)
+
                 return query.all()
 
         except SQLAlchemyError as e:

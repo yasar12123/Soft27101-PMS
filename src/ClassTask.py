@@ -45,6 +45,9 @@ class Task(Base):
                 if project_pkey:
                     query = query.filter(Project.project_pkey == project_pkey)
 
+                # Order by due date
+                query = query.order_by(cls.due_date)
+
                 return query.all()
 
         except SQLAlchemyError as e:
@@ -70,6 +73,9 @@ class Task(Base):
 
                 if project_not_completed:
                     query = query.filter(Project.status != 'Completed')
+
+                    # Order by due date
+                    query = query.order_by(cls.due_date)
 
                 return query.all()
 
@@ -221,6 +227,30 @@ class Task(Base):
                 # get tasks assigned to or assigned by the user
                 tasks = session.query(Task).filter(
                     or_(Task.assignee_fkey == user_pkey, Task.assigner_fkey == user_pkey)
+                ).all()
+
+               # un-assign the tasks
+                if tasks:
+                    for task in tasks:
+                        if task.assignee_fkey == user_pkey:
+                            task.assignee_fkey = -1
+                        if task.assigner_fkey == user_pkey:
+                            task.assigner_fkey = -1
+                    session.commit()
+                    return 'Tasks un-assigned successfully'
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error un-assigning tasks: {e}'
+
+    def unassign_tasks_from_project(self, session, user_pkey, project_pkey):
+        try:
+            # Create a session
+            with session() as session:
+                # get tasks assigned to or assigned by the user for the project
+                tasks = session.query(Task).filter(
+                    or_(Task.assignee_fkey == user_pkey, Task.assigner_fkey == user_pkey),
+                    Task.project_fkey == project_pkey
                 ).all()
 
                # un-assign the tasks

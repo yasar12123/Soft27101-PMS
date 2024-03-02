@@ -75,6 +75,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # project function
         self.AddProjectButton.clicked.connect(self.on_add_project_button)
         self.ViewProjectButton.clicked.connect(self.on_view_project_button)
+        self.projectViewTasksButton.clicked.connect(self.on_got_to_project_tasks_button)
         self.addCommentButton.clicked.connect(self.on_add_project_comment_button)
         self.ProjectsAllTable.itemClicked.connect(self.on_project_all_table_item_clicked)
 
@@ -110,6 +111,11 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.check_if_user_is_admin()
 
         self.populate_profile_details()
+
+        # thread and populate user timeline
+        user_timeline_thread = threading.Thread(target=self.populate_user_timeline)
+        user_timeline_thread.start()
+        user_timeline_thread.join()
 
     # permissions and load defaults
     def check_if_user_is_admin(self):
@@ -184,6 +190,11 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.pdEmailLE.setText(user.email_address)
         self.pdUsernameLE.setText(user.username)
         self.pdPasswordLE.setText('**********')
+
+        # # thread and populate user timeline
+        user_timeline_thread = threading.Thread(target=self.populate_user_timeline(userPkey=user_selected_fkey))
+        user_timeline_thread.start()
+        user_timeline_thread.join()
 
     def populate_admin_select_user_cb_thread(self):
         # thread populate combo box
@@ -326,6 +337,27 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 self.updateStatusLabel.setText(grantAccess)
                 self.on_profile_button()
 
+    def populate_user_timeline(self, userPkey=None):
+        # get project communication log
+        comLog = CommunicationLog()
+        if userPkey:
+            userLog = comLog.get_user_communication_log(self.session, userPkey)
+        else:
+            userLog = comLog.get_user_communication_log(self.session, self.activeUserInstance.user_pkey)
+        # Sort the projectLog list by timestamp
+        userLog.sort(key=lambda log: log.timestamp, reverse=True)
+        # clear comments list
+        self.userTimeLineLW.clear()
+        # load project comments
+        for log in userLog:
+            # add new line to space out comments
+            timestamp = log.timestamp.strftime('%d/%m/%Y %H:%M:%S')
+            self.userTimeLineLW.addItem('\n')
+            if log.task_fkey == -1:
+                log.task.name = 'N/A'
+            self.userTimeLineLW.addItem(f'Datetime: {timestamp}, User: {log.user.full_name} '
+                                        f'\nProject: {log.project.name}, Task:{log.task.name}'
+                                        f'\n{log.comment} ')
 
 
     """ Dashboard page methods """
@@ -398,18 +430,16 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             projects = Project().get_projects(self.session, self.activeUserInstance.user_pkey, completed=True)
 
         # Populate the projects table
-        row = 0
         if projects:
             self.ProjectsOngoingTable.setRowCount(0)
-            for project in projects:
+            for row, project in enumerate(projects):
                 self.ProjectsOngoingTable.insertRow(row)
                 self.ProjectsOngoingTable.setItem(row, 0, QtWidgets.QTableWidgetItem(str(project.project_pkey)))
                 self.ProjectsOngoingTable.setItem(row, 1, QtWidgets.QTableWidgetItem(project.name))
-                self.ProjectsOngoingTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(project.start_date)))
-                self.ProjectsOngoingTable.setItem(row, 3, QtWidgets.QTableWidgetItem(str(project.due_date)))
+                self.ProjectsOngoingTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(project.start_date.strftime('%d-%m-%Y'))))
+                self.ProjectsOngoingTable.setItem(row, 3, QtWidgets.QTableWidgetItem(str(project.due_date.strftime('%d-%m-%Y'))))
                 self.ProjectsOngoingTable.setItem(row, 4, QtWidgets.QTableWidgetItem(str(project.status)))
                 self.ProjectsOngoingTable.setItem(row, 5, QtWidgets.QTableWidgetItem(str(project.owner.full_name)))
-                row += 1
 
     def populate_tasks_ongoing_table(self, projectPkey=None):
         # clear table
@@ -434,16 +464,14 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # Populate the tasks table
         if tasks:
             self.TasksOngoingTable.setRowCount(0)
-            row = 0
-            for task in tasks:
+            for row, task in enumerate(tasks):
                 self.TasksOngoingTable.insertRow(row)
                 self.TasksOngoingTable.setItem(row, 0, QtWidgets.QTableWidgetItem(str(task.task_pkey)))
                 self.TasksOngoingTable.setItem(row, 1, QtWidgets.QTableWidgetItem(task.name))
-                self.TasksOngoingTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(task.start_date)))
-                self.TasksOngoingTable.setItem(row, 3, QtWidgets.QTableWidgetItem(str(task.due_date)))
+                self.TasksOngoingTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(task.start_date.strftime('%d-%m-%Y'))))
+                self.TasksOngoingTable.setItem(row, 3, QtWidgets.QTableWidgetItem(str(task.due_date.strftime('%d-%m-%Y'))))
                 self.TasksOngoingTable.setItem(row, 4, QtWidgets.QTableWidgetItem(str(task.status)))
                 self.TasksOngoingTable.setItem(row, 5, QtWidgets.QTableWidgetItem(str(task.project_fkey)))
-                row += 1
 
     def on_project_ongoing_table_item_clicked(self, item):
         if item:
@@ -475,9 +503,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
     def on_go_to_project_button(self):
         # Switch to the projects page
         self.on_projects_button()
-        self.go_to_all_project_table()
 
-    def go_to_all_project_table(self):
         # find and select the project in the project table
         for row in range(self.ProjectsAllTable.rowCount()):
             # Get the value of the pkey in the table
@@ -491,11 +517,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
     def on_go_to_task_button(self):
         # Switch to the tasks page
         self.on_tasks_button()
-        # Create a thread and run the function in it
-        self.go_to_all_tasks_table()
 
-    def go_to_all_tasks_table(self):
-        # find and select row in the projects table
         for row in range(self.taskProjectTable.rowCount()):
             # Get the value of the pkey in the table
             item = self.taskProjectTable.item(row, 0)
@@ -513,6 +535,27 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 self.TaskAllTable.selectRow(row)
                 self.TaskAllTable.itemClicked.emit(item)
 
+    def on_got_to_project_tasks_button(self):
+        # Switch to the tasks page
+        self.on_tasks_button()
+
+        for row in range(self.taskProjectTable.rowCount()):
+            # Get the value of the pkey in the table
+            item = self.taskProjectTable.item(row, 0)
+            if item is not None and item.text() == str(self.projectItemSelected):
+                # Select the row if the value matches
+                self.taskProjectTable.selectRow(row)
+                self.taskProjectTable.itemClicked.emit(item)
+
+    def go_to_all_project_task_table(self):
+        # find and select row in the projects table
+        for row in range(self.taskProjectTable.rowCount()):
+            # Get the value of the pkey in the table
+            item = self.taskProjectTable.item(row, 0)
+            if item is not None and item.text() == str(self.projectItemSelected):
+                # Select the row if the value matches
+                self.taskProjectTable.selectRow(row)
+                self.taskProjectTable.itemClicked.emit(item)
 
     """ Project page functions """
 
@@ -523,6 +566,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.commentListWidget.clear()
         # disable button
         self.ViewProjectButton.setEnabled(False)
+        self.projectViewTasksButton.setEnabled(False)
         # load all projects using threading
         self.populate_projects_all_table_thread()
 
@@ -531,23 +575,24 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         p = Project()
         projects = p.get_projects(self.session)
 
+
         # Populate the projects table
         if projects:
-            # set row number and increment within for loop
-            row = 0
             # clear projects table
             self.ProjectsAllTable.setRowCount(0)
             # load data into table
-            for project in projects:
+            for row, project in enumerate(sorted(projects, key=lambda x: x.name.lower())):
                 self.ProjectsAllTable.insertRow(row)
                 self.ProjectsAllTable.setItem(row, 0, QtWidgets.QTableWidgetItem(str(project.project_pkey)))
                 self.ProjectsAllTable.setItem(row, 1, QtWidgets.QTableWidgetItem(project.name))
-                self.ProjectsAllTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(project.start_date)))
-                self.ProjectsAllTable.setItem(row, 3, QtWidgets.QTableWidgetItem(str(project.due_date)))
-                self.ProjectsAllTable.setItem(row, 4, QtWidgets.QTableWidgetItem(str(project.end_date)))
+                self.ProjectsAllTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(project.start_date.strftime('%d-%m-%Y'))))
+                self.ProjectsAllTable.setItem(row, 3, QtWidgets.QTableWidgetItem(str(project.due_date.strftime('%d-%m-%Y'))))
+                if project.end_date is not None:
+                    self.ProjectsAllTable.setItem(row, 4, QtWidgets.QTableWidgetItem(project.end_date.strftime('%d-%m-%Y %H:%M:%S')))
+                else:
+                    self.ProjectsAllTable.setItem(row, 4, QtWidgets.QTableWidgetItem(''))
                 self.ProjectsAllTable.setItem(row, 5, QtWidgets.QTableWidgetItem(str(project.status)))
                 self.ProjectsAllTable.setItem(row, 6, QtWidgets.QTableWidgetItem(str(project.owner.full_name)))
-                row += 1
 
     def populate_projects_all_table_thread(self):
         # Create threads for populating project all table
@@ -599,6 +644,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
             # set button to enable
             self.ViewProjectButton.setEnabled(True)
+            self.projectViewTasksButton.setEnabled(True)
 
             # populate comments via threading
             project_comments_thread = threading.Thread(target=self.populate_project_comments(self.projectItemSelected))
@@ -639,9 +685,8 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
         # Populate the projects table
         if projects:
-            row = 0
             self.taskProjectTable.setRowCount(0)
-            for project in projects:
+            for row, project in enumerate(sorted(projects, key=lambda x: x.name.lower())):
                 self.taskProjectTable.insertRow(row)
                 self.taskProjectTable.setItem(row, 0, QtWidgets.QTableWidgetItem(str(project.project_pkey)))
                 self.taskProjectTable.setItem(row, 1, QtWidgets.QTableWidgetItem(project.name))
@@ -662,21 +707,22 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
         # Populate the tasks table
         if tasks:
-            row = 0
             self.TaskAllTable.setRowCount(0)
-            for task in tasks:
+            for row, task in enumerate(sorted(tasks, key=lambda x: x.name.lower())):
                 self.TaskAllTable.insertRow(row)
                 self.TaskAllTable.setItem(row, 0, QtWidgets.QTableWidgetItem(str(task.project_fkey)))
                 self.TaskAllTable.setItem(row, 1, QtWidgets.QTableWidgetItem(task.project.name))
                 self.TaskAllTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(task.task_pkey)))
                 self.TaskAllTable.setItem(row, 3, QtWidgets.QTableWidgetItem(task.name))
-                self.TaskAllTable.setItem(row, 4, QtWidgets.QTableWidgetItem(str(task.start_date)))
+                self.TaskAllTable.setItem(row, 4, QtWidgets.QTableWidgetItem(str(task.start_date.strftime('%d-%m-%Y'))))
                 self.TaskAllTable.setItem(row, 5, QtWidgets.QTableWidgetItem(task.status))
-                self.TaskAllTable.setItem(row, 6, QtWidgets.QTableWidgetItem(str(task.due_date)))
-                self.TaskAllTable.setItem(row, 7, QtWidgets.QTableWidgetItem(str(task.end_date)))
+                self.TaskAllTable.setItem(row, 6, QtWidgets.QTableWidgetItem(str(task.due_date.strftime('%d-%m-%Y'))))
+                if task.end_date is not None:
+                    self.TaskAllTable.setItem(row, 7, QtWidgets.QTableWidgetItem(task.end_date.strftime('%d-%m-%Y %H:%M:%S')))
+                else:
+                    self.TaskAllTable.setItem(row, 7, QtWidgets.QTableWidgetItem(''))
                 self.TaskAllTable.setItem(row, 8, QtWidgets.QTableWidgetItem(task.assignee.full_name))
                 self.TaskAllTable.setItem(row, 9, QtWidgets.QTableWidgetItem(task.assigner.full_name))
-                row += 1
 
     def populate_task_all_table_thread(self, project_pkey):
         # Create thread for populating task project table
@@ -1018,6 +1064,7 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         self.field_changed = False
         self.is_admin = False
         self.is_owner = False
+        self.selected_team_user_pkey = None
 
         # database connection
         self.dbCon = DatabaseConnection()
@@ -1034,6 +1081,9 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         self.projectProgressHS.setEnabled(False)
         self.projectStatusCB.model().item(2).setEnabled(False)
 
+        # hide table columns
+        self.TeamMembersTable.setColumnHidden(3, True)
+
         # run functions
         self.get_project_instance()
         self.check_project_status()
@@ -1047,6 +1097,8 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         self.exitWithoutSavingButton.clicked.connect(self.on_exit_without_save)
         self.closeProjectButton.clicked.connect(self.on_close_project)
         self.addMemberButton.clicked.connect(self.on_add_member_button)
+        self.removeMemberButton.clicked.connect(self.on_remove_member_button)
+        self.TeamMembersTable.itemClicked.connect(self.on_team_members_table_item_clicked)
 
         # check if fields have changed
         self.projectNameLE.textChanged.connect(self.on_field_changed)
@@ -1092,6 +1144,7 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
                 self.TeamMembersTable.setItem(row, 0, QtWidgets.QTableWidgetItem(teamMember.user.username))
                 self.TeamMembersTable.setItem(row, 1, QtWidgets.QTableWidgetItem(teamMember.user.full_name))
                 self.TeamMembersTable.setItem(row, 2, QtWidgets.QTableWidgetItem(str(teamMember.start_date)))
+                self.TeamMembersTable.setItem(row, 3, QtWidgets.QTableWidgetItem(str(teamMember.user.user_pkey)))
                 row += 1
 
     def populate_team_members_table_thread(self):
@@ -1273,6 +1326,52 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         else:
             self.no_permission_to_perform_action()
 
+    def on_remove_member_button(self):
+        if self.is_admin is True or self.is_owner is True:
+            confirmation = self.confirmation_box("Confirm Team Member Removal",
+                                                 "Are you sure you want to remove this user from the project?")
+            if confirmation == QMessageBox.StandardButton.Yes:
+                # delete project team instance
+                deleteMember = ProjectTeam().delete_team_member_from_project(self.session, self.selected_team_user_pkey,
+                                                                             self.projectInstance.project_pkey)
+
+                if deleteMember == 'Deleted successfully from team':
+                    self.populate_team_members_table_thread()
+                    self.projectChangesLabel.setText(deleteMember)
+                    self.removeMemberButton.setEnabled(False)
+
+                    # thread unassign tasks from project
+                    unassign_tasks_thread = threading.Thread(target=Task()
+                                                             .unassign_tasks_from_project(self.session,
+                                                                                          self.selected_team_user_pkey,
+                                                                                          self.projectInstance.project_pkey))
+                    unassign_tasks_thread.start()
+                    unassign_tasks_thread.join()
+
+                    # refresh task table on home window
+                    self.home_window_instance.populate_task_all_table_thread(project_pkey=self.projectInstance.project_pkey)
+
+                    # start email thread to user who has been removed
+                    emailSender = EmailSender()
+                    emailSender.set_action_user(self.activeUserInstance.user_pkey)
+                    emailSender.set_project(self.projectInstance.project_pkey)
+                    emailSender.set_recipient(self.selected_team_user_pkey)
+                    # Create thread for email
+                    email_thread = threading.Thread(target=emailSender.on_remove_from_project)
+                    email_thread.start()
+
+                else:
+                    self.projectChangesLabel.setText(deleteMember)
+        else:
+            self.no_permission_to_perform_action()
+
+    def on_team_members_table_item_clicked(self, item):
+        if item:
+            self.selected_team_user_pkey = int(self.TeamMembersTable.item(item.row(), 3).text())
+            self.removeMemberButton.setEnabled(True)
+
+
+
 
 class AddTeamMemberDialog(QDialog, Ui_ViewProjectAddTeamMemberDialog):
     def __init__(self, view_project_instance, projectInstance, activeUserInstance):
@@ -1441,9 +1540,14 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
 
     #permissions
     def no_permission_to_perform_action(self):
-        QMessageBox.critical(self, "Permission denied", "You do not have permissions to perform this action"
-                                                        "\n because you are not the project owner",
-                             QMessageBox.StandardButton.Close)
+        if self.taskInstance.assignee_fkey != self.activeUserInstance.user_pkey:
+            QMessageBox.critical(self, "Permission denied", "You do not have permissions to perform this action"
+                                                            "\n because you are not the assinged user.",
+                                 QMessageBox.StandardButton.Close)
+        else:
+            QMessageBox.critical(self, "Permission denied", "You do not have permissions to perform this action"
+                                                            "\n because you are not the project owner.",
+                                 QMessageBox.StandardButton.Close)
 
     def check_permissions(self):
         # if active user is project owner

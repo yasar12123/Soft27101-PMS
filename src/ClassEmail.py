@@ -140,3 +140,10 @@ class EmailSender:
         message = f'you have been added to the project: {self.project.name}, by {self.actionUser.full_name} ({self.actionUser.username})'
         sendEmail = self.send_email(recipient_email=[to], subject=subject, message=message)
         return sendEmail
+
+    def on_remove_from_project(self):
+        to = self.recipient.email_address
+        subject = f'TT_CROP - Project: {self.project.name} - You have been removed'
+        message = f'you have been removed from the project: {self.project.name}, by {self.actionUser.full_name} ({self.actionUser.username})'
+        sendEmail = self.send_email(recipient_email=[to], subject=subject, message=message)
+        return sendEmail

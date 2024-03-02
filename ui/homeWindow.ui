@@ -400,6 +400,16 @@
                    </widget>
                   </item>
                   <item>
+                   <widget class="QPushButton" name="projectViewTasksButton">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
+                    <property name="text">
+                     <string>View Tasks</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
                    <widget class="QPushButton" name="AddProjectButton">
                     <property name="text">
                      <string>Add Project</string>
@@ -1002,11 +1012,7 @@
                 <item>
                  <widget class="QPushButton" name="APgrantAdminPermissionButton">
                   <property name="styleSheet">
-                   <string notr="true">background-color: darkred;
-border: 2px solid darkred;
-border-radius: 5px;
-color: white; /* Set text color to white */
-</string>
+                   <string notr="true"/>
                   </property>
                   <property name="text">
                    <string>Grant Admin Permissions</string>
@@ -1166,7 +1172,7 @@ color: white; /* Set text color to white */
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_20">
               <item>
-               <widget class="QListWidget" name="TasksOngoingTable_2">
+               <widget class="QListWidget" name="userTimeLineLW">
                 <property name="editTriggers">
                  <set>QAbstractItemView::NoEditTriggers</set>
                 </property>

@@ -84,3 +84,24 @@ class CommunicationLog(Base):
             # Log or handle the exception
             return f'Error retrieving data: {e}'
 
+    @classmethod
+    def get_user_communication_log(cls, session, user_fkey):
+        # Try to establish connection to db
+        try:
+            # Create a session
+            with session() as session:
+                query = (
+                    session.query(cls)
+                    .join(cls.project)
+                    .join(cls.task)
+                    .join(cls.user)
+                    .options(joinedload(cls.project))
+                    .options(joinedload(cls.user))
+                    .filter(User.user_pkey == user_fkey)
+                )
+
+            return query.all()
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error retrieving data: {e}'

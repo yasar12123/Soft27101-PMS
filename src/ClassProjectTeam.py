@@ -62,23 +62,26 @@ class ProjectTeam(Base):
                 # Log or handle the exception
                 return f'Error during adding user to project team: {e}'
 
-    def delete_team_member_from_projects(self, session, user_pkey):
+    @classmethod
+    def delete_team_member_from_project(cls, session, user_pkey, project_pkey):
         try:
             with session() as session:
                 # Get the rows to delete
-                project_teams = (session.query(ProjectTeam)
-                                 .filter(ProjectTeam.user_fkey == user_pkey).all())
+                project_teams = (session.query(cls)
+                                 .filter(cls.user_fkey == user_pkey,
+                                         cls.project_fkey == project_pkey).all())
 
                 # Delete the rows
                 if project_teams:
-                    session.execute(delete(ProjectTeam)
-                                    .where(ProjectTeam.user_fkey == user_pkey))
+                    session.execute(delete(cls)
+                                    .where(cls.user_fkey == user_pkey
+                                           and cls.project_fkey == project_pkey))
                     session.commit()
-                    return 'Deleted successfully from teams'
+                    return 'Deleted successfully from team'
                 else:
-                    return 'User not in any teams'
+                    return 'User not in team'
 
         except SQLAlchemyError as e:
-            return f'Error during removing user from teams: {e}'
+            return f'Error during removing user from team: {e}'
 
 
