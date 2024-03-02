@@ -23,8 +23,8 @@ if __name__ == '__main__':
     # Obtain a session using the get_session() method
     session = db.get_session()
 
-    #projects = Project().get_project_for_user(session, 4)
-    projects = Project().get_project_team(session, 54)
-    #print(projects)
-    for projects in projects:
-        print(projects.user_fkey)
+    user = User.get_user_instance(session, 4)
+    roles = user.get_roles(session)
+
+    for role in roles:
+        print(role.role_type)

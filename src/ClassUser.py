@@ -308,4 +308,16 @@ class User(Base):
         else:
             return 'You do not have permissions to delete this user'
 
+    def get_roles(self, session):
+        try:
+            # Create a session
+            with session() as session:
+                # Query the database to fetch user roles
+                user_roles = session.query(UserRole).filter(UserRole.user_fkey == self.user_pkey).all()
+                # Return the list of user roles
+                return user_roles
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error fetching user roles: {e}'
+
 

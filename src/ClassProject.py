@@ -130,8 +130,10 @@ class Project(Base):
                 return f'Error during adding project: {e}'
 
     @classmethod
-    def set_project(cls, session, projectPkey, setName, setDesc, setStatus, setStartDate, setDueDate, setProjectProgress):
-        # Try to establish connection to db
+    def set_project(cls, session, userInstance, projectPkey, setName, setDesc, setStatus, setStartDate, setDueDate, setProjectProgress):
+        # Check if user is an admin
+        is_admin = userInstance.is_user_admin(session, userInstance.user_pkey)
+
         try:
             # Create a session
             with session() as session:
@@ -140,14 +142,19 @@ class Project(Base):
                     return 'Project does not exist'
 
                 else:
-                    project.name = setName
-                    project.desc = setDesc
-                    project.status = setStatus
-                    project.start_date = setStartDate
-                    project.due_date = setDueDate
-                    project.project_progress = setProjectProgress
-                    session.commit()
-                return 'Project updated'
+                    # check if user is admin or the project owner
+                    if is_admin or userInstance.user_pkey == project.owner_fkey:
+                        project.name = setName
+                        project.desc = setDesc
+                        project.status = setStatus
+                        project.start_date = setStartDate
+                        project.due_date = setDueDate
+                        project.project_progress = setProjectProgress
+                        session.commit()
+                        return 'Project updated'
+                    # else return no permissions to upate
+                    else:
+                        return 'You do not have permissions to update this project'
 
         except SQLAlchemyError as e:
             # Log or handle the exception

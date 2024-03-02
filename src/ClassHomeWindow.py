@@ -55,8 +55,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # load on start
         self.check_if_user_is_admin()
         self.on_dash_button()
-        # self.populate_projects_all_table_thread()
-
+        self.populate_projects_all_table_thread()
 
         # menu buttons
         self.dashButton.clicked.connect(self.on_dash_button)
@@ -115,7 +114,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # thread and populate user timeline
         user_timeline_thread = threading.Thread(target=self.populate_user_timeline)
         user_timeline_thread.start()
-        user_timeline_thread.join()
 
     # permissions and load defaults
     def check_if_user_is_admin(self):
@@ -194,13 +192,12 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # # thread and populate user timeline
         user_timeline_thread = threading.Thread(target=self.populate_user_timeline(userPkey=user_selected_fkey))
         user_timeline_thread.start()
-        user_timeline_thread.join()
 
     def populate_admin_select_user_cb_thread(self):
         # thread populate combo box
         populate_admin_su_thread = threading.Thread(target=self.populate_admin_select_user_cb)
         populate_admin_su_thread.start()
-        populate_admin_su_thread.join()
+        #populate_admin_su_thread.join()
 
     # profile page buttons
     def on_change_password_radio_button(self):
@@ -321,6 +318,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # confirmation box
         confirmation = self.confirmation_box('Confirm Admin Access', 'Are you sure you want to grant '
                                                                      '\n Admin permissions to the account?')
+
         if confirmation == QMessageBox.StandardButton.Yes:
 
             # if user is admin and they have selected a user from user combo box
@@ -333,6 +331,15 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 user_pkey = self.activeUserInstance.user_pkey
 
             if user_pkey:
+
+                user_roles = self.activeUserInstance.get_roles(self.session)
+                if user_roles:
+                    for user_role in user_roles:
+                        if user_role.role_type == 'Admin':
+                            self.updateStatusLabel.setText('User already has Admin permissions')
+                            return
+
+            else:
                 grantAccess = UserRole.add_user_role(self.session, user_pkey, 'Admin')
                 self.updateStatusLabel.setText(grantAccess)
                 self.on_profile_button()
@@ -564,6 +571,8 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.stackedWidget.setCurrentIndex(1)
         # clear the comments
         self.commentListWidget.clear()
+        # clear projects table
+        self.ProjectsAllTable.setRowCount(0)
         # disable button
         self.ViewProjectButton.setEnabled(False)
         self.projectViewTasksButton.setEnabled(False)
@@ -574,7 +583,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # project instance
         p = Project()
         projects = p.get_projects(self.session)
-
 
         # Populate the projects table
         if projects:
@@ -631,7 +639,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             project_comments_thread.start()
             # clear comment box
             self.newCommentTE.clear()
-            project_comments_thread.join()
         else:
             return addComment
 
@@ -670,9 +677,10 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.AddTaskButton.setEnabled(False)
         self.addTaskCommentButton.setEnabled(False)
 
-        # clear comments and task table
+        # clear comments and project, task table
         self.taskCommentListWidget.clear()
         self.TaskAllTable.setRowCount(0)
+        self.taskProjectTable.setRowCount(0)
 
         # run thread functions
         self.populate_task_project_table_thread()
@@ -698,9 +706,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         populate_task_project_thread.join()
 
     def populate_task_all_table(self, project_pkey):
-        #clear table
-        self.TaskAllTable.setRowCount(0)
-
         # get all tasks for project
         t = Task()
         tasks = t.get_tasks(self.session, project_pkey)
@@ -734,6 +739,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         if item:
             # clear task comments table
             self.taskCommentListWidget.clear()
+            self.TaskAllTable.setRowCount(0)
 
             # set project pkey
             row = item.row()
@@ -779,7 +785,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             # thread task comments
             task_comment_thread = threading.Thread(target=self.populate_task_comments(taskPkey=self.taskItemSelected))
             task_comment_thread.start()
-            task_comment_thread.join()
 
             # enable buttons
             self.ViewTaskButton.setEnabled(True)
@@ -801,7 +806,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
             # thread task comments
             task_comment_thread = threading.Thread(target=self.populate_task_comments(taskPkey=self.taskItemSelected))
             task_comment_thread.start()
-            task_comment_thread.join()
 
             # clear comment box
             self.newTaskCommentTE.clear()
@@ -1073,13 +1077,14 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         # disable fields
         self.projectNameLE.setReadOnly(True)
         self.projectDescTE.setReadOnly(True)
+        self.projectStatusCB.model().item(2).setEnabled(False)
         self.projectStatusCB.setEnabled(False)
         self.projectStartDE.setReadOnly(True)
         self.projectDueDE.setReadOnly(True)
         self.projectEndLE.setReadOnly(True)
         self.projectOwnerLE.setReadOnly(True)
         self.projectProgressHS.setEnabled(False)
-        self.projectStatusCB.model().item(2).setEnabled(False)
+
 
         # hide table columns
         self.TeamMembersTable.setColumnHidden(3, True)
@@ -1154,7 +1159,7 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
 
     def check_project_status(self):
         # if the project has ended then disable fields
-        if self.projectInstance.status == 'Completed':
+        if self.projectInstance.end_date:
             self.disable_view_project_fields()
             self.projectProgressHS.setEnabled(False)
             self.projectStatusCB.setEnabled(False)
@@ -1187,7 +1192,6 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         self.projectDueDE.setEnabled(False)
         self.projectEndLE.setEnabled(False)
         self.projectOwnerLE.setEnabled(False)
-        self.projectStatusCB.setEnabled(False)
         self.saveChangesButton.setEnabled(False)
         self.closeProjectButton.setEnabled(False)
         self.deleteProjectButton.setEnabled(False)
@@ -1281,11 +1285,10 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
             projectProgress = int(self.projectProgressHS.value())
 
             # update project
-            updateProject = self.projectInstance.set_project(self.session, self.projectInstance.project_pkey,
+            updateProject = self.projectInstance.set_project(self.session, self.activeUserInstance, self.projectInstance.project_pkey,
                                                              currentName, currentDesc, currentStatus, Pstart, Pdue,
                                                              projectProgress)
             if updateProject:
-                print(projectProgress)
                 self.projectChangesLabel.setText(f'The project, {currentName}! has now been updated.')
                 self.home_window_instance.populate_projects_all_table_thread()
                 self.exitWithoutSavingButton.setText('Exit')

@@ -50,9 +50,18 @@ class DatabaseConnection:
             conn = self.engine.raw_connection()
             conn.close()
             return 'Connection Established'
+        except pyodbc.Error as e:
+            # Handle specific pyodbc errors
+            error_code = e.args[0]
+            if error_code == '08001':
+                return 'Failed to connect: Server not found or inaccessible'
+            elif error_code == '28000':
+                return 'Failed to connect: Authentication failed'
+            else:
+                return f'Failed to connect: {str(e)}'
         except Exception as e:
-            # Raise a RuntimeError if an exception occurs
-            raise RuntimeError(f"Failed to connect to the server: {str(e)}")
+            # Handle other exceptions
+            return f"Failed to connect: {str(e)}"
 
 
 

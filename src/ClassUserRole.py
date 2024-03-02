@@ -33,6 +33,7 @@ class UserRole(Base):
         if add_role:
             try:
                 with session() as session:
+
                     # Create a new UserRole instance with the provided values
                     new_user_role = cls(user_fkey=user_fkey, role_type=role_type_specified, role_desc=role_desc_derived)
                     # Add the new user role instance to the session
@@ -43,7 +44,7 @@ class UserRole(Base):
 
             except SQLAlchemyError as e:
                 # Handle the exception or log the error
-                print(f"Error adding user role: {e}")
+                return f"Error adding user role: {e}"
         else:
             return 'Specified role is not a part of the system'
 
@@ -67,5 +68,7 @@ class UserRole(Base):
                         return "No user roles found for deletion"
         except SQLAlchemyError as e:
             # Log or handle the exception
-            print(f'Error deleting user role(s): {e}')
+            return f'Error deleting user role(s): {e}'
+
+
 
