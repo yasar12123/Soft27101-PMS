@@ -283,6 +283,21 @@
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
              <widget class="QPushButton" name="closeTaskButton">
+              <property name="styleSheet">
+               <string notr="true">QPushButton#closeTaskButton {
+    background-color: #e74c3c; /* Red color */
+    color: white;
+    border: 2px solid #c0392b; /* Darker red border */
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+QPushButton#closeTaskButton:hover {
+    background-color: #c0392b; /* Darker red on hover */
+}
+</string>
+              </property>
               <property name="text">
                <string>End Task</string>
               </property>
@@ -290,6 +305,21 @@
             </item>
             <item>
              <widget class="QPushButton" name="deleteTaskButton">
+              <property name="styleSheet">
+               <string notr="true">QPushButton#deleteTaskButton {
+    background-color: #e74c3c; /* Red color */
+    color: white;
+    border: 2px solid #c0392b; /* Darker red border */
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+QPushButton#deleteTaskButton:hover {
+    background-color: #c0392b; /* Darker red on hover */
+}
+</string>
+              </property>
               <property name="text">
                <string>Delete Task</string>
               </property>

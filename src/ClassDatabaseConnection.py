@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 import pyodbc
+import time
 
 class DatabaseConnection:
     def __init__(self):
@@ -24,7 +25,10 @@ class DatabaseConnection:
 
         user = os.getenv('AZURE_SQL_USER')
         password = os.getenv('AZURE_SQL_PASS')
-        conStr = f'Driver={driver};Server=tcp:{server},1433;Database={database};Uid={user};Pwd={password};Encrypt=yes;TrustServerCertificate=no;'
+        conStr = f'Driver={driver};Server=tcp:{server},1433;Database={database}' \
+                 f';Uid={user};Pwd={password}' \
+                 f';Encrypt=yes;TrustServerCertificate=no; Connect Timeout=5;'
+
         params = urllib.parse.quote_plus(conStr)
         return 'mssql+pyodbc:///?autocommit=true&odbc_connect={}'.format(params)
 
@@ -44,24 +48,33 @@ class DatabaseConnection:
         except pyodbc.OperationalError as e:
             return RuntimeError("Error establishing connection: {}".format(str(e)))
 
-    def test_connectivity(self):
-        try:
-            # Attempt to create a connection without opening it
-            conn = self.engine.raw_connection()
-            conn.close()
-            return 'Connection Established'
-        except pyodbc.Error as e:
-            # Handle specific pyodbc errors
-            error_code = e.args[0]
-            if error_code == '08001':
-                return 'Failed to connect: Server not found or inaccessible'
-            elif error_code == '28000':
-                return 'Failed to connect: Authentication failed'
-            else:
-                return f'Failed to connect: {str(e)}'
-        except Exception as e:
-            # Handle other exceptions
-            return f"Failed to connect: {str(e)}"
+    def test_connectivity(self, max_attempts=3, delay_between_attempts=1):
+        for attempt in range(max_attempts):
+            try:
+                # Attempt to create a connection without opening it
+                conn = self.engine.raw_connection()
+                conn.close()
+                return 'Connection Established'
+            except pyodbc.Error as e:
+                # Handle specific pyodbc errors
+                error_code = e.args[0]
+                if error_code == '08001':
+                    return 'Failed to connect: Server not found or inaccessible'
+                elif error_code == '28000':
+                    return 'Failed to connect: Authentication failed'
+                else:
+                    if attempt < max_attempts - 1:
+                        time.sleep(delay_between_attempts)
+                        continue
+                    else:
+                        return f'Failed to connect after {max_attempts} attempts: {str(e)}'
+            except Exception as e:
+                # Handle other exceptions
+                if attempt < max_attempts - 1:
+                    time.sleep(delay_between_attempts)
+                    continue
+                else:
+                    return f"Failed to connect after {max_attempts} attempts: {str(e)}"
 
 
 

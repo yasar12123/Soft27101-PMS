@@ -429,6 +429,7 @@ class Project(Base):
                 query = (session.query(Project)
                          .join(Project.owner)
                          .join(Project.project_team_members)
+                         .options(joinedload(Project.owner))
                          .filter(Project.is_removed == 0,
                                  ProjectTeam.is_removed == 0,
                                  ProjectTeam.user.has(User.user_pkey == user_pkey)))

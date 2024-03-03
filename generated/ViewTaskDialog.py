@@ -145,9 +145,35 @@ class Ui_ViewTaskDialog(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.groupBox_4)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.closeTaskButton = QtWidgets.QPushButton(parent=self.groupBox_4)
+        self.closeTaskButton.setStyleSheet("QPushButton#closeTaskButton {\n"
+"    background-color: #e74c3c; /* Red color */\n"
+"    color: white;\n"
+"    border: 2px solid #c0392b; /* Darker red border */\n"
+"    border-radius: 5px;\n"
+"    font-size: 14px;\n"
+"    font-weight: bold;\n"
+"}\n"
+"\n"
+"QPushButton#closeTaskButton:hover {\n"
+"    background-color: #c0392b; /* Darker red on hover */\n"
+"}\n"
+"")
         self.closeTaskButton.setObjectName("closeTaskButton")
         self.horizontalLayout.addWidget(self.closeTaskButton)
         self.deleteTaskButton = QtWidgets.QPushButton(parent=self.groupBox_4)
+        self.deleteTaskButton.setStyleSheet("QPushButton#deleteTaskButton {\n"
+"    background-color: #e74c3c; /* Red color */\n"
+"    color: white;\n"
+"    border: 2px solid #c0392b; /* Darker red border */\n"
+"    border-radius: 5px;\n"
+"    font-size: 14px;\n"
+"    font-weight: bold;\n"
+"}\n"
+"\n"
+"QPushButton#deleteTaskButton:hover {\n"
+"    background-color: #c0392b; /* Darker red on hover */\n"
+"}\n"
+"")
         self.deleteTaskButton.setObjectName("deleteTaskButton")
         self.horizontalLayout.addWidget(self.deleteTaskButton)
         self.verticalLayout_4.addWidget(self.groupBox_4)

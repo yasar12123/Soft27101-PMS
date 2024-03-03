@@ -23,7 +23,4 @@ if __name__ == '__main__':
     # Obtain a session using the get_session() method
     session = db.get_session()
 
-    pts = Project().get_projects_user_member_of(session, user_pkey=4)
-
-    for pt in pts:
-        print(pt.user_fkey, pt.project.name, pt.project.is_removed, pt.is_removed)
+    (db.test_connectivity())

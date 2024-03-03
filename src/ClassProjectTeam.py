@@ -6,7 +6,6 @@ from datetime import datetime
 
 
 
-
 class ProjectTeam(Base):
     __tablename__ = 'PROJECT_TEAM'
 
@@ -24,6 +23,13 @@ class ProjectTeam(Base):
     team = relationship('Team', back_populates='project_associations')
 
     def add_team_member_to_project(self, session):
+        """
+        Add a team member to a project
+        :param session: the session to use
+        :type session: sqlalchemy.orm.session.Session
+        :return: a string indicating the result of the operation
+        :rtype: str
+        """
 
         # check if fields are null
         field_to_check = {"Project": self.project_fkey, "User": self.user_fkey, "Team": self.team_fkey}
@@ -34,6 +40,7 @@ class ProjectTeam(Base):
         else:
             try:
                 with session() as session:
+
                     # query db for the project team
                     projectTeam = (session.query(ProjectTeam)
                                    .filter(ProjectTeam.project_fkey == self.project_fkey,
@@ -55,25 +62,39 @@ class ProjectTeam(Base):
                 return f'Error during adding user to project team: {e}'
 
     @classmethod
-    def delete_team_member_from_project(cls, session, user_pkey, project_pkey):
+    def delete_team_member_from_projects(cls, session, user_pkey, project_pkey=None):
+        """
+        Remove a user from all project teams or a specific project team
+        :param session: the session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param user_pkey: the primary key of the user to remove
+        :type user_pkey: int
+        :param proect_pkey: the primary key of the project to remove the user from
+        :type proect_pkey: int
+        :return: a string indicating the result of the operation
+        :rtype: str
+        """
         try:
             with session() as session:
-                # Get the rows to delete
-                project_teams = (session.query(cls)
-                                 .filter(cls.user_fkey == user_pkey,
-                                         cls.project_fkey == project_pkey).all())
+
+                # Query the database for user in project
+                if project_pkey:
+                    project_teams = (session.query(cls)
+                                     .filter(cls.user_fkey == user_pkey,
+                                             cls.project_fkey == project_pkey).all())
+                else:
+                    # Query the database for user in project team
+                    project_teams = (session.query(cls)
+                                     .filter(cls.user_fkey == user_pkey).all())
 
                 # Delete the rows
                 if project_teams:
-                    session.execute(delete(cls)
-                                    .where(cls.user_fkey == user_pkey
-                                           and cls.project_fkey == project_pkey))
+                    session.execute(delete(cls).where(cls.user_fkey == user_pkey))
                     session.commit()
-                    return 'Deleted successfully from team'
+                    return 'Deleted successfully from teams'
                 else:
                     return 'User not in team'
 
         except SQLAlchemyError as e:
             return f'Error during removing user from team: {e}'
-
 

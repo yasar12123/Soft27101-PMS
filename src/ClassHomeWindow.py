@@ -29,6 +29,54 @@ import threading
 
 
 class HomeWindow(QMainWindow, Ui_HomeWindow):
+    """
+    Home window class
+    defines the home window and its functions
+    methods:
+    - __init__(self, activeUserInstance)
+    - on_load_defaults(self)
+    - check_if_user_is_admin(self)
+    - on_profile_load_defaults(self)
+    - on_admin_profile_load_defaults(self)
+    - populate_profile_details(self)
+    - populate_admin_select_user_cb(self)
+    - on_userSelectCB_changed(self)
+    - populate_admin_select_user_cb_thread(self)
+    - on_change_password_radio_button(self)
+    - on_not_change_password_radio_button(self)
+    - on_change_personal_details_button(self)
+    - on_account_deletion_understand_button(self)
+    - on_account_deletion_cancel_button(self)
+    - on_update_details_button(self)
+    - on_account_deletion_button(self)
+    - on_grant_admin_access_to_user_button(self)
+    - populate_user_timeline(self, userPkey=None)
+    - on_profile_button(self)
+    - on_dash_button(self)
+    - display_project_stats(self)
+    - display_task_stats(self)
+    - populate_projects_ongoing_table(self)
+    - populate_tasks_ongoing_table(self, projectPkey=None)
+    - on_project_ongoing_table_item_clicked(self, item)
+    - on_task_ongoing_table_item_clicked(self, item)
+    - on_go_to_project_button(self)
+    - on_go_to_task_button(self)
+    - on_got_to_project_tasks_button(self)
+    - go_to_all_project_task_table(self)
+    - on_projects_button(self)
+    - populate_projects_all_table(self)
+    - populate_projects_all_table_thread(self)
+    - populate_project_comments(self, projectPkey)
+    - on_add_project_comment_button(self)
+    - on_project_all_table_item_clicked(self, item)
+    - on_add_project_button(self)
+    - on_tasks_button(self)
+    - populate_task_project_table(self)
+    - populate_task_project_table_thread(self)
+    - populate_task_all_table(self, project_pkey)
+    - populate_task_all_table_thread(self, project_pkey)
+    - on_task_project_all_table_item_clicked(self, item)
+    """
     def __init__(self, activeUserInstance):
         super().__init__()
         self.setupUi(self)
@@ -299,7 +347,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
                 delete_from_teams = ProjectTeam().delete_team_member_from_projects(self.session, user_pkey)
                 self.deleteStatusLabel.setText(delete_from_teams)
 
-                # lable that the use has been delete
+                # label that the user has been deleted
                 self.deleteStatusLabel.setText('user has now been deleted')
                 self.on_profile_button()
 
@@ -460,7 +508,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
         # else display ongoing projects in which the user is a team member
         else:
-            projects = Project().get_projects(self.session, self.activeUserInstance.user_pkey, completed=False)
+            projects = Project().get_projects_user_member_of(self.session, self.activeUserInstance.user_pkey)
 
         # Populate the projects table
         if projects:
@@ -943,6 +991,16 @@ class AddProject(QDialog, Ui_AddProjectDialog):
             self.addProjectButton.setEnabled(False)
             self.exitProjectButton.setText('Exit')
 
+            # prompt to add team members
+            confirmation = QMessageBox.question(self, "Add Team Members",
+                                                "Do you want to add team members to the project now?",
+                                                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if confirmation == QMessageBox.StandardButton.Yes:
+                project_pkey = new_project.project_pkey
+                self.view_project_window = ViewProject(self.home_window_instance, project_pkey=project_pkey,
+                                                       activeUserInstance=self.activeUserInstance)
+                self.view_project_window.show()
+                self.close()
 
         else:
             self.addProjectStatusLabel.setText(addProject)
@@ -1043,7 +1101,7 @@ class AddTask(QDialog, Ui_AddTaskDialog):
         new_task = Task(project_fkey=self.projectPkey, name=Tname, desc=Tdesc, start_date=Tstart, due_date=Tdue, status=Tstatus,
                         assigner_fkey=assignerfkey, assignee_fkey=assignee_fkey, is_removed=0)
         # add project to db
-        addTask = new_task.add_task(self.session)
+        addTask = new_task.add_task(self.session, self.activeUserInstance, self.projectPkey)
 
         if addTask == 'successful':
             self.addTaskStatusLabel.setText(f'The task, {Tname}! has now been added in to project: {self.projectName}.')
@@ -1377,19 +1435,18 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
                                                  "Are you sure you want to remove this user from the project?")
             if confirmation == QMessageBox.StandardButton.Yes:
                 # delete project team instance
-                deleteMember = ProjectTeam().delete_team_member_from_project(self.session, self.selected_team_user_pkey,
-                                                                             self.projectInstance.project_pkey)
+                deleteMember = ProjectTeam().delete_team_member_from_projects(self.session, self.selected_team_user_pkey,
+                                                                              self.projectInstance.project_pkey)
 
-                if deleteMember == 'Deleted successfully from team':
+                if deleteMember == 'Deleted successfully from teams':
                     self.populate_team_members_table_thread()
                     self.projectChangesLabel.setText(deleteMember)
                     self.removeMemberButton.setEnabled(False)
 
                     # thread unassign tasks from project
-                    unassign_tasks_thread = threading.Thread(target=Task()
-                                                             .unassign_tasks_from_project(self.session,
-                                                                                          self.selected_team_user_pkey,
-                                                                                          self.projectInstance.project_pkey))
+                    unassign_tasks_thread = threading.Thread(target=Task().unassign_tasks_from_project(self.session,
+                                                                                                       self.selected_team_user_pkey,
+                                                                                                       self.projectInstance.project_pkey))
                     unassign_tasks_thread.start()
                     unassign_tasks_thread.join()
 
@@ -1647,6 +1704,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         self.closeTaskButton.setEnabled(False)
         self.deleteTaskButton.setEnabled(False)
         self.taskProgressHS.setEnabled(False)
+        self.sendReviewtButton.setEnabled(False)
 
     def enable_edit_features(self):
         self.taskNameLE.setReadOnly(False)
@@ -1709,8 +1767,9 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             update_task = self.taskInstance.set_task(session=self.session, userInstance=self.activeUserInstance,
                                                      project_pkey=self.project_pkey, task_pkey=self.task_pkey,
                                                      setName=currentTaskName, setDesc=currentDesc,
-                                                     taskProgress=taskProgress, setStatus=currentStatus,
-                                                     setStartDate=Pstart, setDueDate=Pdue, assigneeFkey=self.assignee_fkey)
+                                                     setStatus=currentStatus, setTaskProgress=taskProgress,
+                                                     setStartDate=Pstart, setDueDate=Pdue, setAssigneeFkey=self.assignee_fkey)
+
             # if task has been updated
             if update_task == 'Task updated':
                 self.taskChangesLabel.setText(f'The task, {currentTaskName}! has now been updated.')

@@ -34,6 +34,7 @@ class Task(Base):
         """
         Get tasks assigned to a user (for a project if specified)
         :param session: The session to use
+        :type session: sqlalchemy.orm.session.Session
         :param user_pkey: The user primary key
         :param project_pkey: The project primary key
         :return: A list of tasks assigned to the user (for the project if specified)
@@ -41,20 +42,28 @@ class Task(Base):
         """
         try:
             with session() as session:
-                # query database for tasks
-                query = (
-                    session.query(cls)
-                    .join(User, cls.assignee_fkey == User.user_pkey)
-                    .join(Project, cls.project_fkey == Project.project_pkey)
-                    .options(joinedload(cls.project))
-                    .filter(cls.is_removed == 0, cls.assignee_fkey == user_pkey))
 
-                # If project is specified, filter tasks based on the project
+                # query database for tasks assigned to a user for a project if specified
                 if project_pkey:
-                    query = query.filter(Project.project_pkey == project_pkey)
+                    query = (
+                        session.query(cls)
+                        .join(User, cls.assignee_fkey == User.user_pkey)
+                        .join(Project, cls.project_fkey == Project.project_pkey)
+                        .options(joinedload(cls.project))
+                        .filter(cls.is_removed == 0, cls.assignee_fkey == user_pkey, cls.project_fkey == project_pkey))
+
+                # query the database for all tasks assigned to the user
+                else:
+                    query = (
+                        session.query(cls)
+                        .join(User, cls.assignee_fkey == User.user_pkey)
+                        .join(Project, cls.project_fkey == Project.project_pkey)
+                        .options(joinedload(cls.project))
+                        .filter(cls.is_removed == 0, cls.assignee_fkey == user_pkey))
 
                 # Order by due date
-                query = query.order_by(cls.due_date)
+                if query:
+                    query = query.order_by(cls.due_date)
 
                 return query.all()
 
@@ -67,8 +76,11 @@ class Task(Base):
         """
         Get tasks (for a project if specified) and or (completed or uncompleted if specified)
         :param session: The session to use
+        :type session: sqlalchemy.orm.session.Session
         :param project_pkey: The project primary key
+        :type project_pkey: int
         :param project_completed: The project status
+        :type project_completed: bool
         :return: A list of tasks (for the project if specified) and or (completed or uncompleted if specified)
         :rtype: list
         """
@@ -108,16 +120,48 @@ class Task(Base):
 
     @classmethod
     def set_task(cls, session, userInstance, project_pkey, task_pkey, setName=None, setDesc=None, setStatus=None,
-                 setStartDate=None, setDueDate=None, assigneeFkey=None, assignerFkey = None, taskProgress=None):
+                 setStartDate=None, setDueDate=None, setAssigneeFkey=None, setAssignerFkey = None, setTaskProgress=None):
+        """
+        Update a task
+        :param session: The session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param userInstance: The user instance
+        :type userInstance: src.ClassUser.User
+        :param project_pkey: The project primary key
+        :type project_pkey: int
+        :param task_pkey: The task primary key
+        :type task_pkey: int
+        :param setName: The name of the task
+        :type setName: str
+        :param setDesc: The description of the task
+        :type setDesc: str
+        :param setStatus: The status of the task ( 'Not Started', 'In Progress', 'Completed', 'Pending Review').
+        :type setStatus: str
+        :param setStartDate: The start date of the task
+        :type setStartDate: datetime
+        :param setDueDate: The due date of the task
+        :type setDueDate: datetime
+        :param setAssigneeFkey: The assignee primary key
+        :type setAssigneeFkey: int
+        :param setAssignerFkey: The assigner primary key
+        :type setAssignerFkey: int
+        :param setTaskProgress: The progress of the task (0-100)
+        :type setTaskProgress: int
+        :return: A message indicating the status of the operation
+        :rtype: str
+        """
 
-        # find out if the user is an admin or the owner of the project
+        # find out if the user is an admin or owner of the project
         is_admin = userInstance.is_user_admin(session, userInstance.user_pkey)
         owner = Project.is_user_project_owner(session, userInstance.user_pkey, project_pkey)
 
         try:
             with session() as session:
+
+                # query db for the task
                 task = session.query(cls).filter_by(task_pkey=task_pkey).first()
 
+                # if the task does not exist
                 if task is None:
                     return 'Task does not exist'
 
@@ -133,13 +177,22 @@ class Task(Base):
                         if setStartDate:
                             task.start_date = setStartDate
                         if setDueDate:
-                            task.due_date = setDueDate
-                        if assigneeFkey:
-                            task.assignee_fkey = assigneeFkey
-                        if assignerFkey:
-                            task.assigner_fkey = assignerFkey
-                        if taskProgress:
-                            task.task_progress = taskProgress
+                            # check if the due date is after the start date
+                            if setDueDate < task.start_date:
+                                return 'Due date must be after the start date'
+                            else:
+                                task.due_date = setDueDate
+                        if setAssigneeFkey:
+                            task.assignee_fkey = setAssigneeFkey
+                        if setAssignerFkey:
+                            task.assigner_fkey = setAssignerFkey
+                        if setTaskProgress:
+                            # check if the task progress is between 0 and 100
+                            if setTaskProgress < 0 or setTaskProgress > 100:
+                                return 'Task progress must be between 0 and 100'
+                            else:
+                                task.task_progress = setTaskProgress
+
                         session.commit()
                         return 'Task updated'
 
@@ -152,6 +205,19 @@ class Task(Base):
 
     @classmethod
     def delete_task(cls, session, userInstance, project_pkey, task_pkey):
+        """
+        Delete a task
+        :param session: The session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param userInstance: The user instance
+        :type userInstance: src.ClassUser.User
+        :param project_pkey: The project primary key
+        :type project_pkey: int
+        :param task_pkey: The task primary key
+        :type task_pkey: int
+        :return: A message indicating the status of the operation
+        :rtype: str
+        """
 
         # find out if the user is an admin or the owner of the project
         is_admin = userInstance.is_user_admin(session, userInstance.user_pkey)
@@ -159,11 +225,12 @@ class Task(Base):
 
         try:
             with session() as session:
+
                 # query db for the task
                 task = session.query(cls).filter_by(task_pkey=task_pkey).first()
 
+                # if task exists
                 if task:
-
                     # check if the user has permission to delete the task
                     if is_admin or owner:
                         task.is_removed = 1
@@ -183,12 +250,25 @@ class Task(Base):
 
     @classmethod
     def delete_tasks_for_project(cls, session, userInstance, project_pkey):
+        """
+        Delete tasks for a project
+        :param session: The session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param userInstance: The user instance
+        :type userInstance: src.ClassUser.User
+        :param project_pkey: The project primary key
+        :type project_pkey: int
+        :return: A message indicating the status of the operation
+        :rtype: str
+        """
+
         # find if the user is an admin
         is_admin = userInstance.is_user_admin(session, userInstance.user_pkey)
         owner = Project.is_user_project_owner(session, userInstance.user_pkey, project_pkey)
 
         try:
             with session() as session:
+
                 # query db for the tasks in project
                 tasks = session.query(cls).filter_by(project_fkey=project_pkey).all()
 
@@ -215,6 +295,20 @@ class Task(Base):
 
     @classmethod
     def close_task(cls, session, userInstance, project_pkey, task_pkey):
+        """
+        Close a task
+        :param session: The session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param userInstance: The user instance
+        :type userInstance: src.ClassUser.User
+        :param project_pkey: The project primary key
+        :type project_pkey: int
+        :param task_pkey: The task primary key
+        :type task_pkey: int
+        :return: A message indicating the status of the operation
+        :rtype: str
+        """
+
         # find out if the user is an admin or the owner of the project
         is_admin = userInstance.is_user_admin(session, userInstance.user_pkey)
         owner = Project.is_user_project_owner(session, userInstance.user_pkey, project_pkey)
@@ -224,109 +318,147 @@ class Task(Base):
                 # query db for the task
                 task = session.query(cls).filter_by(task_pkey=task_pkey).first()
 
-                if is_admin or owner:
-                    # if the task does not exist
-                    if task is None:
-                        return 'Task does not exist'
+                # check if the task exists
+                if task:
 
-                    # if the task has already been closed
-                    if task.end_date:
-                        return 'The task has already been closed'
+                    # check if the user has permission to close the task
+                    if is_admin or owner:
 
-                    # if the task exists and has not been closed
+                        # if the task has already been closed
+                        if task.end_date:
+                            return 'The task has already been closed'
+
+                        # if the task has not been closed
+                        else:
+                            task.status = 'Completed'
+                            task.task_progress = 100
+                            task.end_date = datetime.utcnow()
+                            session.commit()
+                            return 'Task Closed'
+
+                    # if the user does not have permission to close the task
                     else:
-                        task.status = 'Completed'
-                        task.task_progress = 100
-                        task.end_date = datetime.utcnow()
-                        session.commit()
-                        return 'Task Closed'
-
+                        return 'You do not have permission to close this task'
                 else:
-                    return 'You do not have permission to close this task'
+                    return 'Task not found'
 
         except SQLAlchemyError as e:
             # Log or handle the exception
             return f'Error closing project: {e}'
 
+    def add_task(self, session, userInstance, project_pkey):
+        """
+        Add a task to a project
+        :param userInstance: The user instance
+        :type userInstance: src.ClassUser.User
+        :param project_pkey: The project primary key
+        :type project_pkey: int
+        :param session: The session to use
+        :type session: sqlalchemy.orm.session.Session
+        :return: A message indicating the status of the operation
+        :rtype: str
+        """
 
-    def add_task(self, session):
-
-        dictToCheck = {"Project FKEY": self.project_fkey,
-                       "Task Name": self.name,
-                       "Task Description": self.desc,
-                       "Task Status": self.status,
-                       "Task Stat Date": self.start_date,
-                       "Task Due Date": self.due_date,
-                       "Assignee": self.assignee_fkey,
-                       "Assigner": self.assigner_fkey}
         # check if fields are null
-        for attribute, val in dictToCheck.items():
+        fields_to_check = {"Project FKEY": self.project_fkey, "Task Name": self.name,  "Task Description": self.desc,
+                           "Task Status": self.status, "Task Stat Date": self.start_date, "Task Due Date": self.due_date,
+                           "Assignee": self.assignee_fkey, "Assigner": self.assigner_fkey}
+        for attribute, val in fields_to_check.items():
             if val == '':
                 return f'the field {attribute} can not be empty'
 
-        # if fields are not null
+        if self.due_date < self.start_date:
+            return 'Due date must be after the start date'
+
+        # if fields are good to go
         else:
+
+            # find out if the user is an admin or the owner of the project
+            is_admin = userInstance.is_user_admin(session, userInstance.user_pkey)
+            owner = Project.is_user_project_owner(session, userInstance.user_pkey, project_pkey)
+
             try:
-                # Create a session
                 with session() as session:
+
                     # query db for the task
-                    projectTask = (
-                        session.query(Project)
-                        .options(joinedload(Project.tasks))
-                        .filter(Project.project_pkey == self.project_fkey,
-                                Project.is_removed == 0,
-                                Task.is_removed == 0,
-                                Task.name == self.name)
-                        .join(Task)
-                        .first())
+                    projectTask = (session.query(Project).options(joinedload(Project.tasks))
+                                   .filter(Project.project_pkey == self.project_fkey,
+                                           Project.is_removed == 0,
+                                           Task.is_removed == 0,
+                                           Task.name == self.name)
+                                   .join(Task).first())
 
-                    # if the task of project already exists in the database
-                    if projectTask:
-                        return f'Error!, the task: {self.name} already exists'
+                    # check if the user has permission to close the task
+                    if is_admin or owner:
 
-                    # if project is not in the database the add
-                    if projectTask is None:
-                        session.add(self)
-                        session.commit()
-                        return 'successful'
+                        # if the task already exist in the project
+                        if projectTask:
+                            return f'Error!, the task: {self.name} already exists'
 
-            #exception with sql alchemy
+                        # if the task does not exist in the project
+                        if projectTask is None:
+                            session.add(self)
+                            session.commit()
+                            return 'successful'
+                    else:
+                        return 'You do not have permission to add a task to this project'
+
             except SQLAlchemyError as e:
                 return f'Error during adding project: {e}'
 
-    def get_task(self, session, task_pkey):
-        # Try to establish connection to db
-        try:
-            # Create a session
-            with session() as session:
-                # query db for project
-                task = (
-                    session.query(Task)
-                    .join(User, Task.assignee_fkey == User.user_pkey)
-                    .join(Project, Task.project_fkey == Project.project_pkey)
-                    .options(joinedload(Task.assignee), joinedload(Task.assigner), joinedload(Task.project))
-                    .filter(Project.is_removed == 0, Task.is_removed == 0, Task.task_pkey == task_pkey)
-                    .first()
-                )
+    @classmethod
+    def get_task(cls, session, task_pkey):
+        """
+        Get a task
+        :param session: The session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param task_pkey: The task primary key
+        :type task_pkey: int
+        :return: The task
+        :rtype: src.ClassTask.Task
+        """
 
+        try:
+            with session() as session:
+                # query db for task
+                task = (session.query(cls)
+                        .join(User, cls.assignee_fkey == User.user_pkey)
+                        .join(Project, cls.project_fkey == Project.project_pkey)
+                        .options(joinedload(cls.assignee), joinedload(cls.assigner), joinedload(cls.project))
+                        .filter(Project.is_removed == 0, cls.is_removed == 0, cls.task_pkey == task_pkey).first())
+
+                # if task exists
                 if task:
                     return task
+                else:
+                    return 'Task not found'
 
         except SQLAlchemyError as e:
             # Log or handle the exception
             return f'Error retrieving data: {e}'
 
-    def unassign_tasks(self, session, user_pkey):
+    @classmethod
+    def unassign_tasks(cls, session, user_pkey):
+        """
+        Un-assign tasks from a user
+        :param session: The session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param user_pkey: The user primary key
+        :type user_pkey: int
+        :return: A message indicating the status of the operation
+        :rtype: str
+        """
+
         try:
-            # Create a session
             with session() as session:
                 # get tasks assigned to or assigned by the user
-                tasks = session.query(Task).filter(
-                    or_(Task.assignee_fkey == user_pkey, Task.assigner_fkey == user_pkey)
-                ).all()
+                tasks = session.query(cls).filter(or_(cls.assignee_fkey == user_pkey, cls.assigner_fkey == user_pkey)
+                                                  ).all()
 
-               # un-assign the tasks
+                # if tasks exist
                 if tasks:
+
+                    # un-assign the tasks in project
                     for task in tasks:
                         if task.assignee_fkey == user_pkey:
                             task.assignee_fkey = -1
@@ -339,18 +471,29 @@ class Task(Base):
             # Log or handle the exception
             return f'Error un-assigning tasks: {e}'
 
-    def unassign_tasks_from_project(self, session, user_pkey, project_pkey):
+    @classmethod
+    def unassign_tasks_from_project(cls, session, user_pkey, project_pkey):
+        """
+        Un-assign tasks from a user for a project
+        :param session: The session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param user_pkey: The user primary key
+        :type user_pkey: int
+        :param project_pkey: The project primary key
+        :type project_pkey: int
+        :return: A message indicating the status of the operation
+        :rtype: str
+        """
+
         try:
-            # Create a session
             with session() as session:
                 # get tasks assigned to or assigned by the user for the project
-                tasks = session.query(Task).filter(
-                    or_(Task.assignee_fkey == user_pkey, Task.assigner_fkey == user_pkey),
-                    Task.project_fkey == project_pkey
-                ).all()
+                tasks = session.query(cls).filter(or_(cls.assignee_fkey == user_pkey, cls.assigner_fkey == user_pkey),
+                                                  cls.project_fkey == project_pkey).all()
 
-               # un-assign the tasks
+                # if tasks exist for the project
                 if tasks:
+                    # un-assign the tasks in project for the user
                     for task in tasks:
                         if task.assignee_fkey == user_pkey:
                             task.assignee_fkey = -1

@@ -156,9 +156,36 @@ class Ui_ViewProjectDialog(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.groupBox_4)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.closeProjectButton = QtWidgets.QPushButton(parent=self.groupBox_4)
+        self.closeProjectButton.setAutoFillBackground(False)
+        self.closeProjectButton.setStyleSheet("QPushButton#closeProjectButton {\n"
+"    background-color: #e74c3c; /* Red color */\n"
+"    color: white;\n"
+"    border: 2px solid #c0392b; /* Darker red border */\n"
+"    border-radius: 5px;\n"
+"    font-size: 14px;\n"
+"    font-weight: bold;\n"
+"}\n"
+"\n"
+"QPushButton#closeProjectButton:hover {\n"
+"    background-color: #c0392b; /* Darker red on hover */\n"
+"}\n"
+"")
         self.closeProjectButton.setObjectName("closeProjectButton")
         self.horizontalLayout.addWidget(self.closeProjectButton)
         self.deleteProjectButton = QtWidgets.QPushButton(parent=self.groupBox_4)
+        self.deleteProjectButton.setStyleSheet("QPushButton#deleteProjectButton {\n"
+"    background-color: #e74c3c; /* Red color */\n"
+"    color: white;\n"
+"    border: 2px solid #c0392b; /* Darker red border */\n"
+"    border-radius: 5px;\n"
+"    font-size: 14px;\n"
+"    font-weight: bold;\n"
+"}\n"
+"\n"
+"QPushButton#deleteProjectButton:hover {\n"
+"    background-color: #c0392b; /* Darker red on hover */\n"
+"}\n"
+"")
         self.deleteProjectButton.setObjectName("deleteProjectButton")
         self.horizontalLayout.addWidget(self.deleteProjectButton)
         self.verticalLayout_4.addWidget(self.groupBox_4)
@@ -214,6 +241,6 @@ class Ui_ViewProjectDialog(object):
         self.label_13.setText(_translate("ViewProjectDialog", "Project Progress: "))
         self.saveChangesButton.setText(_translate("ViewProjectDialog", "Save Changes"))
         self.exitWithoutSavingButton.setText(_translate("ViewProjectDialog", "Exit"))
-        self.closeProjectButton.setText(_translate("ViewProjectDialog", "Close Project"))
+        self.closeProjectButton.setText(_translate("ViewProjectDialog", "End Project"))
         self.deleteProjectButton.setText(_translate("ViewProjectDialog", "Delete Project"))
         self.label_6.setText(_translate("ViewProjectDialog", "View Project"))

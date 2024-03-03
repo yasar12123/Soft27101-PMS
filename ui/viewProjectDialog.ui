@@ -295,13 +295,46 @@
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
              <widget class="QPushButton" name="closeProjectButton">
+              <property name="autoFillBackground">
+               <bool>false</bool>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QPushButton#closeProjectButton {
+    background-color: #e74c3c; /* Red color */
+    color: white;
+    border: 2px solid #c0392b; /* Darker red border */
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+QPushButton#closeProjectButton:hover {
+    background-color: #c0392b; /* Darker red on hover */
+}
+</string>
+              </property>
               <property name="text">
-               <string>Close Project</string>
+               <string>End Project</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="deleteProjectButton">
+              <property name="styleSheet">
+               <string notr="true">QPushButton#deleteProjectButton {
+    background-color: #e74c3c; /* Red color */
+    color: white;
+    border: 2px solid #c0392b; /* Darker red border */
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+QPushButton#deleteProjectButton:hover {
+    background-color: #c0392b; /* Darker red on hover */
+}
+</string>
+              </property>
               <property name="text">
                <string>Delete Project</string>
               </property>
