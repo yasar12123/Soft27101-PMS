@@ -1,18 +1,45 @@
 from src.ClassBase import Base
 from src.ClassUser import User
 from src.ClassProjectTeam import ProjectTeam
-
-from src.ClassDatabaseConnection import DatabaseConnection
-
 from sqlalchemy.orm import relationship, aliased, joinedload
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, func
 from datetime import datetime
 
 
-
 class Project(Base):
+    """
+    Class to represent the Project table in the database.
 
+    Attributes:
+        project_pkey: int, primary key, autoincrement
+        name: str, not null
+        desc: str, not null
+        status: str, not null
+        start_date: datetime, not null
+        end_date: datetime
+        due_date: datetime
+        owner_fkey: int, foreign key, not null
+        project_progress: int, default 0
+        is_removed: int, default 0
+        owner: relationship, back_populates='owner_of_projects'
+        tasks: relationship, back_populates='project'
+        project_team_members: relationship, back_populates='project'
+        communication_log: relationship, back_populates='project'
+
+    Methods:
+        get_projects: Get all projects from the database
+        add_owner_to_project_team: Add the owner to the project team
+        add_project: Add a project to the database and add the owner to the project team
+        set_project: Set the project details
+        delete_project: Delete a project from the database
+        close_project: Close a project
+        unassign_projects: Un-assign projects from a user
+        get_project: Get a project from the database
+        get_project_team: Get all users assigned to a project
+        get_projects_user_member_of: Get all projects that a user is a member of
+    """
+    # Define the table name
     __tablename__ = 'PROJECT'
 
     project_pkey = Column(Integer, primary_key=True, autoincrement=True)
@@ -34,14 +61,21 @@ class Project(Base):
 
     @classmethod
     def get_projects(cls, session, team_member_user_pkey=None, completed=None):
-        """Get all projects
+        """
+        Get all projects from the database
+        if task_member_user_pkey is not None, then query for projects assigned to the team member
+        if task_member_user_pkey is None, then query for all projects
+        if completed is True, then filter by project status for completed projects
+        if completed is False, then filter by project status for non-completed projects
+
         :param session: the session to use
         :type session: sqlalchemy.orm.session.Session
-        :param team_member_user_pkey: the team member user primary key
+        :param team_member_user_pkey: the team members user primary key
         :type team_member_user_pkey: int
-        :param completed: the status of the project
+        :param completed: the project status (true or false)
         :type completed: bool
-        :return: all projects for a team member
+        :return: a list of projects
+        :rtype: list
         """
         try:
             with session() as session:
@@ -49,28 +83,31 @@ class Project(Base):
                 # if team_member_user_pkey is not None, then query for projects assigned to the team member
                 if team_member_user_pkey:
                     teamUser = aliased(User)
-                    query = (
-                        session.query(cls)
-                        .join(cls.owner)
-                        .join(cls.project_team_members)
-                        .join(teamUser, ProjectTeam.user_fkey == teamUser.user_pkey)
-                        .filter(cls.is_removed == 0, ProjectTeam.is_removed == 0)
-                        .options(joinedload(Project.owner)))
+                    query = (session.query(cls)
+                             .join(cls.owner)
+                             .join(cls.project_team_members)
+                             .join(teamUser, ProjectTeam.user_fkey == teamUser.user_pkey)
+                             .filter(cls.is_removed == 0, ProjectTeam.is_removed == 0, cls.project_pkey != -1)
+                             .options(joinedload(cls.owner)))
 
                 # if team_member_user_pkey is None, then query for all projects
                 else:
-                    query = (
-                        session.query(cls)
-                        .join(cls.owner)
-                        .filter(cls.is_removed == 0)
-                        .options(joinedload(Project.owner)))
+                    query = (session.query(cls)
+                             .join(cls.owner)
+                             .filter(cls.is_removed == 0)
+                             .options(joinedload(cls.owner)))
 
-                # if completed is not None, then query for completed projects
-                if completed:
+                # if completed is True, then filter by project status for completed projects
+                if query and completed is True:
+                    query = query.filter(cls.status == 'Completed')
+
+                # if completed is False, then filter by project status for non-completed projects
+                if query and completed is False:
                     query = query.filter(cls.status != 'Completed')
 
                 # Order by due date
-                query = query.order_by(cls.due_date)
+                if query:
+                    query = query.order_by(cls.due_date)
 
                 return query.all()
 
@@ -78,71 +115,104 @@ class Project(Base):
             # Log or handle the exception
             return f'Error retrieving data: {e}'
 
-    def add_owner_to_project_team(self, owner_fkey):
-        # Create a session
-        db = DatabaseConnection()
-        session = db.get_session()
-
-        pt = ProjectTeam(user_fkey=owner_fkey, project_fkey=self.project_pkey, team_fkey=-1)
+    def add_owner_to_project_team(self, session):
+        """
+        Add the owner to the project team
+        :param session: the session to use
+        :type session: sqlalchemy.orm.session.Session
+        :return: a string indicating the result of the operation
+        :rtype: str
+        """
+        pt = ProjectTeam(user_fkey=self.owner_fkey, project_fkey=self.project_pkey, team_fkey=-1)
         projectUser = pt.add_team_member_to_project(session)
         if projectUser == 'successful':
             return 'owner has been added'
         else:
             return projectUser
 
-    def add_project(self, session, owner_fkey):
-
+    def add_project(self, session):
+        """
+        Add a project to the database and add the owner to the project team
+        :param session: the session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param owner_fkey: the owner's user primary key
+        :type owner_fkey: int
+        :return: a string indicating the result of the operation
+        :rtype: str
+        """
+        session1 = session
+        session2 = session
         # check if fields are null
-        dictToCheck = {"Project Name": self.name,
-                       "Project Description": self.desc,
-                       "Project Status": self.status,
-                       "Project Stat Date": self.start_date,
-                       "Project Due Date": self.due_date}
-
-        for attribute, val in dictToCheck.items():
+        fields_to_check = {"Project Name": self.name, "Project Description": self.desc, "Project Status": self.status,
+                           "Project Stat Date": self.start_date, "Project Due Date": self.due_date}
+        for attribute, val in fields_to_check.items():
             if val == '':
                 return f'the field {attribute} can not be empty'
 
         else:
-            # Try to establish connection to db
             try:
-                # Create a session
-                with session() as session:
+                with session1() as session:
+
                     # query db for the project
-                    project = (
-                        session.query(Project)
-                        .filter(Project.name == self.name,  # Filter by project name
-                                Project.is_removed == 0)  # Filter by is_removed status
-                        .first()
-                    )
-                    # if the project already exists in the database
+                    project = (session.query(Project)
+                               .filter(Project.name == self.name, Project.is_removed == 0).first())
+
+                    # if project is in the database
                     if project:
                         return f'Error!, the project: {self.name} already exists'
+
                     # if project is not in the database
                     if project is None:
                         session.add(self)
                         session.commit()
-                        #add owner to project team
-                        self.add_owner_to_project_team(owner_fkey=owner_fkey)
+
+                        # add the owner to the project team
+                        self.add_owner_to_project_team(session2)
+
                         return 'successful'
+
             except SQLAlchemyError as e:
                 # Log or handle the exception
                 return f'Error during adding project: {e}'
 
     @classmethod
     def set_project(cls, session, userInstance, projectPkey, setName, setDesc, setStatus, setStartDate, setDueDate, setProjectProgress):
-        # Check if user is an admin
+        """
+        Set the project details
+        :param session: the session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param userInstance: the user instance
+        :type userInstance: src.ClassUser.User
+        :param projectPkey: the project primary key
+        :type projectPkey: int
+        :param setName: the project name
+        :type setName: str
+        :param setDesc: the project description
+        :type setDesc: str
+        :param setStatus: the project status
+        :type setStatus: str
+        :param setStartDate: the project start date
+        :type setStartDate: datetime
+        :param setDueDate: the project due date
+        :type setDueDate: datetime
+        :param setProjectProgress: the project progress
+        :type setProjectProgress: int
+        """
+
+        # find if user is admin
         is_admin = userInstance.is_user_admin(session, userInstance.user_pkey)
 
         try:
-            # Create a session
+
             with session() as session:
+                # query db for the project
                 project = session.query(cls).filter_by(project_pkey=projectPkey).first()
+                # if project does not exit
                 if project is None:
                     return 'Project does not exist'
 
                 else:
-                    # check if user is admin or the project owner
+                    # check if user is an admin or the project owner
                     if is_admin or userInstance.user_pkey == project.owner_fkey:
                         project.name = setName
                         project.desc = setDesc
@@ -152,7 +222,8 @@ class Project(Base):
                         project.project_progress = setProjectProgress
                         session.commit()
                         return 'Project updated'
-                    # else return no permissions to upate
+
+                    # else return no permissions to update
                     else:
                         return 'You do not have permissions to update this project'
 
@@ -161,119 +232,179 @@ class Project(Base):
             return f'Error setting data: {e}'
 
     @classmethod
-    def delete_project(cls, session, project_pkey):
+    def delete_project(cls, session, user_instance, project_pkey):
+        """
+        Delete a project from the database
+        :param session: the session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param user_instance: the user instance
+        :type user_instance: src.ClassUser.User
+        :param project_pkey: the project primary key
+        :type project_pkey: int
+        :return: a string indicating the result of the operation
+        :rtype: str
+        """
+
+        # find if user is admin
+        is_admin = user_instance.is_user_admin(session, user_instance.user_pkey)
+
         try:
-            # Create a session
+
             with session() as session:
+                # query db for the project
                 project = session.query(cls).filter_by(project_pkey=project_pkey).first()
-                if project:
-                    project.is_removed = 1
-                    session.commit()
-                    return 'Project deleted successfully'
+
+                # check if user is an admin or the project owner
+                if is_admin or user_instance.user_pkey == project.owner_fkey:
+
+                    if project:
+                        project.is_removed = 1
+                        session.commit()
+                        return 'Project deleted successfully'
+                    else:
+                        return 'Project not found'
+
+                # else return no permissions to delete
                 else:
-                    return 'Project not found'
+                    return 'You do not have permissions to delete this project'
+
         except SQLAlchemyError as e:
             # Log or handle the exception
             return f'Error deleting project: {e}'
 
     @classmethod
-    def close_project(cls, session, project_pkey):
-        # Try to establish connection to db
-        try:
-            # Create a session
-            with session() as session:
-                project = session.query(cls).filter_by(project_pkey=project_pkey).first()
-                # if project does not exit
-                if project is None:
-                    return 'Project does not exist'
+    def close_project(cls, session, user_instance, project_pkey):
+        """
+        Close a project
+        :param session: the session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param user_instance: the user instance
+        :type user_instance: src.ClassUser.User
+        :param project_pkey: the project primary key
+        :type project_pkey: int
+        :return: a string indicating the result of the operation
+        :rtype: str
+        """
 
+        # find if user is admin
+        is_admin = user_instance.is_user_admin(session, user_instance.user_pkey)
+
+        try:
+            with session() as session:
+                # query db for the project
+                project = session.query(cls).filter_by(project_pkey=project_pkey).first()
+
+                # check if user is an admin or the project owner
+                if is_admin or user_instance.user_pkey == project.owner_fkey:
+
+                    # if project does not exit
+                    if project is None:
+                        return 'Project does not exist'
+
+                    # mark project as completed, update the end date and project progress to 100
+                    else:
+                        project.status = 'Completed'
+                        project.end_date = datetime.utcnow()
+                        project.project_progress = 100
+                        session.commit()
+                        return 'Project Closed'
 
                 else:
-                    project.status = 'Completed'
-                    project.end_date = datetime.utcnow()
-                    project.project_progress = 100
-                    session.commit()
-                return 'Project Closed'
+                    return 'You do not have permissions to close this project'
 
         except SQLAlchemyError as e:
             # Log or handle the exception
             return f'Error closing project: {e}'
 
     @classmethod
-    def get_project_fkey(cls, session, projectName):
-        # Try to establish connection to db
-        try:
-            # Create a session
-            with session() as session:
-                # query db for the user
-                project = session.query(cls).filter_by(name=projectName).first()
-                return project.project_pkey
+    def unassign_projects(cls, session, user_pkey):
+        """
+        Un-assign projects from a user
+        :param session: the session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param user_pkey: the user primary key
+        :type user_pkey: int
+        :return: a string indicating the result of the operation
+        :rtype: str
+        """
 
-        except SQLAlchemyError as e:
-            # Log or handle the exception
-            return f'Error connecting: {e}'
-
-    def get_project(self, session, project_pkey):
-        # Try to establish connection to db
-        try:
-            # Create a session
-            with session() as session:
-                # query db for project
-                project = (
-                    session.query(Project)
-                    .options(joinedload(Project.owner))
-                    .filter_by(project_pkey=project_pkey)
-                    .first()
-                )
-
-                if project:
-                    return project
-
-        except SQLAlchemyError as e:
-            # Log or handle the exception
-            return f'Error retrieving data: {e}'
-
-    def unassign_projects(self, session, user_pkey):
         try:
             with session() as session:
-                projects = (
-                    session.query(Project)
-                    .filter(Project.owner_fkey == user_pkey)
-                ).all()
+                # query db for the projects assigned to the user
+                projects = (session.query(cls)
+                            .filter(cls.owner_fkey == user_pkey)).all()
 
-                # un-assign from projects
+                # if user has projects assigned
                 if projects:
                     for project in projects:
                         project.owner_fkey = -1
                     session.commit()
                     return 'Projects un-assigned successfully'
 
+                # if user has no projects assigned
+                else:
+                    return 'User has no projects assigned'
+
         except SQLAlchemyError as e:
             # Log or handle the exception
             return f'Error un-assigning projects: {e}'
 
+    @staticmethod
+    def get_project(session, project_pkey):
+        """
+        Get a project from the database
+        :param session: the session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param project_pkey: the project primary key
+        :type project_pkey: int
+        :return: the project
+        :rtype: src.ClassProject.Project
+        """
 
-    def get_project_team(self, session, projectPkey=None, userPkey=None):
-        # Try to establish connection to db
         try:
-            # Create a session
-            with session() as session_obj:
-                query = (
-                    session_obj.query(ProjectTeam)
-                    .join(ProjectTeam.user)
-                    .join(ProjectTeam.project)
-                    .options(joinedload(ProjectTeam.user))
-                    .options(joinedload(ProjectTeam.project))
-                    .filter(ProjectTeam.is_removed == 0, Project.is_removed == 0)
-                )
+            with session() as session:
+                # query db for the project
+                project = (session.query(Project)
+                           .options(joinedload(Project.owner))
+                           .filter_by(project_pkey=project_pkey)
+                           .first())
+
+                # if project is in the database
+                if project:
+                    return project
+                # if project is not in the database
+                else:
+                    return 'Project not found'
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error retrieving data: {e}'
+
+    @staticmethod
+    def get_project_team(session, project_pkey=None):
+        """
+        Get all users assigned to a project
+        :param session: the session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param project_pkey: the project primary key
+        :type project_pkey: int
+        :return: a list of project team members
+        :rtype: list
+        """
+
+        try:
+            with session() as session:
+                # query db for the project team
+                query = (session.query(ProjectTeam)
+                         .join(ProjectTeam.user)
+                         .join(ProjectTeam.project)
+                         .options(joinedload(ProjectTeam.user))
+                         .options(joinedload(ProjectTeam.project))
+                         .filter(ProjectTeam.is_removed == 0, Project.is_removed == 0))
 
                 # If projectPkey is specified, filter on project primary key
-                if projectPkey:
-                    query = query.filter(ProjectTeam.project.has(project_pkey=projectPkey))
-
-                # If userPkey is specified, filter on user primary key
-                if userPkey:
-                    query = query.filter(ProjectTeam.user.has(user_pkey=userPkey))
+                if project_pkey:
+                    query = query.filter(ProjectTeam.project.has(project_pkey=project_pkey))
 
                 return query.all()
 
@@ -281,4 +412,75 @@ class Project(Base):
             # Log or handle the exception
             return f'Error retrieving data: {e}'
 
+    @staticmethod
+    def get_projects_user_member_of(session, user_pkey):
+        """
+        Get all projects that a user is a member of
+        :param session: the session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param user_pkey: the user primary key
+        :type user_pkey: int
+        :return: a list of projects
+        :rtype: list
+        """
+        try:
+            with session() as session:
+                # query db for the projects that the user is a member of
+                query = (session.query(Project)
+                         .join(Project.owner)
+                         .join(Project.project_team_members)
+                         .filter(Project.is_removed == 0,
+                                 ProjectTeam.is_removed == 0,
+                                 ProjectTeam.user.has(User.user_pkey == user_pkey)))
+
+                # Order by due date
+                if query:
+                    query = query.order_by(Project.due_date)
+                    return query.all()
+                else:
+                    return 'No projects found'
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error retrieving data: {e}'
+
+    @staticmethod
+    def is_user_project_owner(session, user_pkey, project_pkey):
+        """
+        Check if a user is the owner of a project
+        :param session: the session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param user_pkey: the user primary key
+        :type user_pkey: int
+        :param project_pkey: the project primary key
+        :type project_pkey: int
+        :return: a boolean indicating if the user is the owner of the project
+        :rtype: bool
+        """
+        try:
+            with session() as session:
+
+                # query db for the project
+                project = (session.query(Project)
+                           .filter_by(project_pkey=project_pkey)
+                           .first())
+
+                # if project is in the database
+                if project:
+
+                    # check if user is the owner of the project
+                    if project.owner_fkey == user_pkey:
+                        return True
+
+                    # if user is not the owner of the project
+                    else:
+                        return False
+
+                # if project is not in the database
+                else:
+                    return False
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error retrieving data: {e}'
 

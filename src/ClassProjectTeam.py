@@ -23,41 +23,33 @@ class ProjectTeam(Base):
     project = relationship('Project', back_populates='project_team_members')
     team = relationship('Team', back_populates='project_associations')
 
-
-
     def add_team_member_to_project(self, session):
 
         # check if fields are null
-        dictToCheck = {"Project": self.project_fkey,
-                       "User": self.user_fkey,
-                       "Team": self.team_fkey}
-
-        for attribute, val in dictToCheck.items():
+        field_to_check = {"Project": self.project_fkey, "User": self.user_fkey, "Team": self.team_fkey}
+        for attribute, val in field_to_check.items():
             if val == '':
                 return f'the field {attribute} can not be empty'
 
         else:
-            # Try to establish connection to db
             try:
-                # Create a session
                 with session() as session:
                     # query db for the project team
-                    projectTeam = (
-                        session.query(ProjectTeam)
-                        .filter(ProjectTeam.project_fkey == self.project_fkey,
-                                ProjectTeam.user_fkey == self.user_fkey,
-                                ProjectTeam.is_removed == 0)
-                        .first()
-                    )
+                    projectTeam = (session.query(ProjectTeam)
+                                   .filter(ProjectTeam.project_fkey == self.project_fkey,
+                                           ProjectTeam.user_fkey == self.user_fkey,
+                                           ProjectTeam.is_removed == 0).first())
 
                     # if the user already exists in the team
                     if projectTeam:
                         return f'Error!, {projectTeam.user.full_name} ({projectTeam.user.username}) is already a team member'
-                    # if project is not in the database
+
+                    # if project is not in the database then add
                     if projectTeam is None:
                         session.add(self)
                         session.commit()
                         return 'successful'
+
             except SQLAlchemyError as e:
                 # Log or handle the exception
                 return f'Error during adding user to project team: {e}'

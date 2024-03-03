@@ -39,7 +39,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.taskItemSelected = None
         self.adminSelectedUserPkey = None
 
-        # database connection
+        # Database connection
         self.dbCon = DatabaseConnection()
         self.session = self.dbCon.get_session()
 
@@ -53,9 +53,7 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.taskProjectTable.setColumnHidden(0, True)
 
         # load on start
-        self.check_if_user_is_admin()
-        self.on_dash_button()
-        self.populate_projects_all_table_thread()
+        self.on_load_defaults()
 
         # menu buttons
         self.dashButton.clicked.connect(self.on_dash_button)
@@ -63,7 +61,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.tasksButton.clicked.connect(self.on_tasks_button)
         self.profileButton.clicked.connect(self.on_profile_button)
         self.logOutButton.clicked.connect(self.on_logOut_button)
-
 
         # dash functions
         self.dashViewProjectButton.clicked.connect(self.on_go_to_project_button)
@@ -78,7 +75,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.addCommentButton.clicked.connect(self.on_add_project_comment_button)
         self.ProjectsAllTable.itemClicked.connect(self.on_project_all_table_item_clicked)
 
-
         # task functions
         self.ViewTaskButton.clicked.connect(self.on_view_task_button)
         self.AddTaskButton.clicked.connect(self.on_add_task_button)
@@ -86,7 +82,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.viewProjectButtonB.clicked.connect(self.on_view_project_button)
         self.taskProjectTable.itemClicked.connect(self.on_task_project_all_table_item_clicked)
         self.TaskAllTable.itemClicked.connect(self.on_task_table_item_clicked)
-
 
         # profile - On button click
         self.changeDetailsButton.clicked.connect(self.on_change_personal_details_button)
@@ -102,13 +97,16 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # on field changed
         self.userSelectCB.currentIndexChanged.connect(self.on_userSelectCB_changed)
 
+    def on_load_defaults(self):
+        self.check_if_user_is_admin()
+        self.on_dash_button()
+        self.populate_projects_all_table_thread()
+
     """Profile Page Methods"""
     # profile page functions
     def on_profile_button(self):
         self.stackedWidget.setCurrentIndex(3)
-        # check if user is admin and run function
         self.check_if_user_is_admin()
-
         self.populate_profile_details()
 
         # thread and populate user timeline
@@ -156,9 +154,8 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.populate_admin_select_user_cb_thread()
 
     def populate_profile_details(self):
-        #refresh active user instance after changing details
+        # refresh active user instance after changing details
         self.activeUserInstance = User.get_user_instance(self.session, self.activeUserInstance.user_pkey)
-
         self.pdNameLE.setText(self.activeUserInstance.full_name)
         self.pdEmailLE.setText(self.activeUserInstance.email_address)
         self.pdUsernameLE.setText(self.activeUserInstance.username)
@@ -373,9 +370,13 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         # Switch to the dashboard page
         self.stackedWidget.setCurrentIndex(0)
 
-        #disable buttons
+        # disable buttons
         self.dashViewProjectButton.setEnabled(False)
         self.dashViewTaskButton.setEnabled(False)
+
+        # run stats
+        self.display_project_stats()
+        self.display_task_stats()
 
         # run thread functions
         project_thread = threading.Thread(target=self.populate_projects_ongoing_table)
@@ -385,60 +386,84 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         task_thread.start()
         task_thread.join()
 
-        # run stats
-        self.display_stat_counts()
 
-    def display_stat_counts(self):
+
+    def display_project_stats(self):
+        # if user is admin then get all tasks
+        if self.activeUserIsAdmin:
+            projects = Project().get_projects(self.session)
+        else:
+            projects = Project().get_projects_user_member_of(self.session, user_pkey=self.activeUserInstance.user_pkey)
+
+        # calc metrics
+        total_projects = sum(1 for project in projects)
+        completed_projects = sum(1 for project in projects if project.status == 'Completed')
+        in_progress_projects = sum(1 for project in projects if project.status == 'In-Progress')
+        not_started_projects = sum(1 for project in projects if project.status == 'Not Started')
+
+        # set layout
+        layout = QVBoxLayout(self.projectStatsFrame)
+
+        # Add labels for counts
+        project_label = QLabel(f'No of Projects: {total_projects}')
+        layout.addWidget(project_label)
+        project_completed_label = QLabel(f'No of Projects Completed: {completed_projects}')
+        layout.addWidget(project_completed_label)
+        completed_label = QLabel(f'No of Projects In-Progress: {in_progress_projects}')
+        layout.addWidget(completed_label)
+        in_progress_label = QLabel(f'No of Projects Not Started: {not_started_projects}')
+        layout.addWidget(in_progress_label)
+
+        # Set size policy to automatically adjust size
+        self.projectStatsFrame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+    def display_task_stats(self):
         # if user is admin then get all tasks
         if self.activeUserIsAdmin:
             tasks = Task().get_tasks(self.session)
-            pts = Project().get_project_team(self.session)
         else:
             tasks = Task().get_assigned_tasks(self.session, self.activeUserInstance.user_pkey)
-            pts = Project().get_project_team(self.session, userPkey=self.activeUserInstance.user_pkey)
 
         # calc metrics
-        distinct_projects = set(pt.project_fkey for pt in pts if pt.project_fkey)
-        projects = len(distinct_projects)
         completed_tasks = sum(1 for task in tasks if task.status == 'Completed')
         in_progress_tasks = sum(1 for task in tasks if task.status == 'In-Progress')
         not_started_tasks = sum(1 for task in tasks if task.status == 'Not Started')
         pending_review_tasks = sum(1 for task in tasks if task.status == 'Pending Review')
 
         # set layout
-        layout = QVBoxLayout(self.statsFrame)
+        layout = QVBoxLayout(self.taskStatsFrame)
+        layout.setAlignment(self.taskStatsFrame, Qt.AlignmentFlag.AlignRight)
 
         # Add labels for counts
-        project_label = QLabel(f'No of Projects: {projects}')
-        layout.addWidget(project_label)
-
-        completed_label = QLabel(f'Tasks Completed: {completed_tasks}')
+        completed_label = QLabel(f'{completed_tasks} :Tasks Completed')
+        completed_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         layout.addWidget(completed_label)
-
-        in_progress_label = QLabel(f'Tasks In-Progress: {in_progress_tasks}')
+        in_progress_label = QLabel(f'{in_progress_tasks} :Tasks In-Progress')
+        in_progress_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         layout.addWidget(in_progress_label)
-
-        not_started_label = QLabel(f'Tasks Not Started: {not_started_tasks}')
+        not_started_label = QLabel(f'{not_started_tasks} :Tasks Not Started')
+        not_started_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         layout.addWidget(not_started_label)
-
-        pending_review_label = QLabel(f'Tasks Pending Review: {pending_review_tasks}')
+        pending_review_label = QLabel(f'{pending_review_tasks} :Tasks Pending Review')
+        pending_review_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         layout.addWidget(pending_review_label)
 
         # Set size policy to automatically adjust size
-        self.statsFrame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.taskStatsFrame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
     def populate_projects_ongoing_table(self):
+        # clear table
+        self.ProjectsOngoingTable.setRowCount(0)
         # if user is admin the get all ongoing projects
         if self.activeUserIsAdmin:
-            projects = Project().get_projects(self.session, completed=True)
+            projects = Project().get_projects(self.session, completed=False)
 
         # else display ongoing projects in which the user is a team member
         else:
-            projects = Project().get_projects(self.session, self.activeUserInstance.user_pkey, completed=True)
+            projects = Project().get_projects(self.session, self.activeUserInstance.user_pkey, completed=False)
 
         # Populate the projects table
         if projects:
-            self.ProjectsOngoingTable.setRowCount(0)
             for row, project in enumerate(projects):
                 self.ProjectsOngoingTable.insertRow(row)
                 self.ProjectsOngoingTable.setItem(row, 0, QtWidgets.QTableWidgetItem(str(project.project_pkey)))
@@ -454,11 +479,11 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
         # if user is admin then get all tasks
         if self.activeUserIsAdmin:
-            tasks = Task().get_tasks(self.session, project_not_completed=True)
+            tasks = Task().get_tasks(self.session, project_completed=False)
 
         # if user is admin and project pkey has been specified
         elif self.activeUserIsAdmin and projectPkey:
-            tasks = Task().get_tasks(self.session, project_pkey=projectPkey, project_not_completed=True)
+            tasks = Task().get_tasks(self.session, project_pkey=projectPkey, project_completed=False)
 
         # if project pkey specified then all tasks for that project and user
         elif projectPkey:
@@ -470,7 +495,6 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
 
         # Populate the tasks table
         if tasks:
-            self.TasksOngoingTable.setRowCount(0)
             for row, task in enumerate(tasks):
                 self.TasksOngoingTable.insertRow(row)
                 self.TasksOngoingTable.setItem(row, 0, QtWidgets.QTableWidgetItem(str(task.task_pkey)))
@@ -580,14 +604,15 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.populate_projects_all_table_thread()
 
     def populate_projects_all_table(self):
+        # clear projects table
+        self.ProjectsAllTable.setRowCount(0)
+
         # project instance
         p = Project()
         projects = p.get_projects(self.session)
 
         # Populate the projects table
         if projects:
-            # clear projects table
-            self.ProjectsAllTable.setRowCount(0)
             # load data into table
             for row, project in enumerate(sorted(projects, key=lambda x: x.name.lower())):
                 self.ProjectsAllTable.insertRow(row)
@@ -687,13 +712,14 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         self.populate_task_all_table_thread(project_pkey=-1)
 
     def populate_task_project_table(self):
+        # clear table
+        self.taskProjectTable.setRowCount(0)
         # project instance
         p = Project()
         projects = p.get_projects(self.session)
 
         # Populate the projects table
         if projects:
-            self.taskProjectTable.setRowCount(0)
             for row, project in enumerate(sorted(projects, key=lambda x: x.name.lower())):
                 self.taskProjectTable.insertRow(row)
                 self.taskProjectTable.setItem(row, 0, QtWidgets.QTableWidgetItem(str(project.project_pkey)))
@@ -706,13 +732,14 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         populate_task_project_thread.join()
 
     def populate_task_all_table(self, project_pkey):
+        # clear table
+        self.TaskAllTable.setRowCount(0)
         # get all tasks for project
         t = Task()
         tasks = t.get_tasks(self.session, project_pkey)
 
         # Populate the tasks table
         if tasks:
-            self.TaskAllTable.setRowCount(0)
             for row, task in enumerate(sorted(tasks, key=lambda x: x.name.lower())):
                 self.TaskAllTable.insertRow(row)
                 self.TaskAllTable.setItem(row, 0, QtWidgets.QTableWidgetItem(str(task.project_fkey)))
@@ -880,6 +907,7 @@ class AddProject(QDialog, Ui_AddProjectDialog):
         self.addProjectButton.setEnabled(False)
 
     def on_add_project_button(self):
+
         # input from window
         Pname = self.projectNameLE.text()
         Pdesc = self.projectDescTE.toPlainText()
@@ -890,19 +918,20 @@ class AddProject(QDialog, Ui_AddProjectDialog):
         dueDate = self.projectDueDE.date()
         dueDateDT = datetime.date(dueDate.year(), dueDate.month(), dueDate.day())
         Pdue = datetime.datetime.strptime(str(dueDateDT), '%Y-%m-%d')
-
-        # get owner fkey
         ownerfkey = self.activeUserInstance.user_pkey
 
         # Create a new project instance
         new_project = Project(name=Pname, desc=Pdesc, start_date=Pstart, due_date=Pdue, status=Pstatus,
                               owner_fkey=ownerfkey, is_removed=0)
 
-        # add project to db
-        addProject = new_project.add_project(self.session, ownerfkey)
+        # add project to database
+        addProject = new_project.add_project(self.session)
 
         if addProject == 'successful':
+            # update status label
             self.addProjectStatusLabel.setText(f'The project, {Pname}! has now been added.')
+
+            # update project table in home window
             self.home_window_instance.populate_projects_all_table_thread()
 
             # disable fields
@@ -948,31 +977,31 @@ class AddTask(QDialog, Ui_AddTaskDialog):
         self.dbCon = DatabaseConnection()
         self.session = self.dbCon.get_session()
 
-        #thread assign to field populate
-        populate_assign_to_thread = threading.Thread(target=self.populate_assign_to)
-        populate_assign_to_thread.start()
-        populate_assign_to_thread.join()
+        # load on start
+        self.on_load_defaults()
 
         # buttons
         self.addTaskButton.clicked.connect(self.on_add_task_button)
         self.exitTaskButton.clicked.connect(self.on_exit_without_save)
 
-        #set date defaults
-        self.taskStartDE.setDate(QDate.currentDate())
-        self.taskDueDE.setDate(QDate.currentDate())
-
-        #set project name
-        self.projectNameLE.setText(projectName)
-
-        #check if fields have changed
+        # check if fields have changed
         self.taskNameLE.textChanged.connect(self.on_field_changed)
         self.taskDescTE.textChanged.connect(self.on_field_changed)
         self.taskStatusCB.currentTextChanged.connect(self.on_field_changed)
         self.taskStartDE.dateChanged.connect(self.on_field_changed)
         self.taskDueDE.dateChanged.connect(self.on_field_changed)
 
+
+    def on_load_defaults(self):
+        # set date defaults
+        self.taskStartDE.setDate(QDate.currentDate())
+        self.taskDueDE.setDate(QDate.currentDate())
+        # set project name
+        self.projectNameLE.setText(self.projectName)
         # disable button
         self.addTaskButton.setEnabled(False)
+        # run thread on start
+        self.populate_assign_to_thread()
 
     def populate_assign_to(self):
         project = Project().get_project_team(self.session, self.projectPkey)
@@ -980,6 +1009,12 @@ class AddTask(QDialog, Ui_AddTaskDialog):
             item_text = f'{user.user.full_name} ({user.user.username})'
             item_data = user.user.user_pkey
             self.AssignToCB.addItem(item_text, item_data)
+
+    def populate_assign_to_thread(self):
+        #thread assign to field populate
+        populate_assign_to_thread = threading.Thread(target=self.populate_assign_to)
+        populate_assign_to_thread.start()
+        populate_assign_to_thread.join()
 
     def on_add_task_button(self):
         # get assignee fkey
@@ -1052,7 +1087,7 @@ class AddTask(QDialog, Ui_AddTaskDialog):
     def on_field_changed(self):
         self.field_changed = True
         self.addTaskButton.setEnabled(True)
-        self.exitTaskButton.setText('Exit (without saving')
+        self.exitTaskButton.setText('Exit (without saving)')
 
 
 
@@ -1178,6 +1213,7 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
             self.is_owner = True
             self.enable_view_project_fields()
 
+        # check if active user is admin
         if self.home_window_instance.activeUserIsAdmin is True:
             self.is_admin = True
             self.enable_view_project_fields()
@@ -1219,7 +1255,8 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         if self.exitWithoutSavingButton.text() == 'Exit':
             self.close()
         else:
-            confirmation = self.confirmation_box("Confirm exit", "Are you sure you want to exit without saving the changes?")
+            confirmation = self.confirmation_box("Confirm exit",
+                                                 "Are you sure you want to exit without saving the changes?")
             if confirmation == QMessageBox.StandardButton.Yes:
                 self.close()
 
@@ -1237,32 +1274,37 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
             return confirmation
 
     def on_delete_project(self):
+
+        # check if user is admin or owner of the project to delete
         if self.is_admin is True or self.is_owner is True:
 
+            # confirmation box to delete project
             confirmation = self.confirmation_box("Confirm Deletion", "Are you sure you want to delete this project?")
             if confirmation == QMessageBox.StandardButton.Yes:
 
                 # delete project
-                projectDelete = self.projectInstance.delete_project(self.session, self.projectInstance.project_pkey)
+                projectDelete = self.projectInstance.delete_project(self.session, self.activeUserInstance, self.projectInstance.project_pkey)
                 if projectDelete == 'Project deleted successfully':
+
+                    Task().delete_tasks_for_project(self.session, self.activeUserInstance, self.project_pkey)
+                    # update label
                     self.projectChangesLabel.setText(f'The project, {self.projectInstance.name}! has now been removed.')
 
-                    # refresh projects table to include the new project on dash tab home window
-                    if self.home_window_instance.stackedWidget.currentIndex() == 0:
+                    # refresh projects table to include the new project on dash tab/projects tab
+                    if self.home_window_instance.stackedWidget.currentIndex() == 0: # dash tab
                         self.home_window_instance.populate_projects_ongoing_table()
 
-                    if self.home_window_instance.stackedWidget.currentIndex() == 1:
+                    if self.home_window_instance.stackedWidget.currentIndex() == 1: # projects tab
                         self.home_window_instance.populate_projects_all_table()
 
-                    #disable fields after deletion
+                    # disable fields after deletion
                     self.disable_view_project_fields()
 
-                    # thread send email on project closure
+                    # thread send email on project deletion
                     emailSender = EmailSender()
                     emailSender.set_action_user(self.activeUserInstance.user_pkey)
                     emailSender.set_project(self.project_pkey)
-                    # Create thread for email
-                    email_thread = threading.Thread(target=emailSender.on_project_close)
+                    email_thread = threading.Thread(target=emailSender.on_project_delete)
                     email_thread.start()
 
                 else:
@@ -1302,7 +1344,7 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         if self.is_admin is True or self.is_owner is True:
             confirmation = self.confirmation_box("Confirm Project Closure", "Are you sure you want to close this project?")
             if confirmation == QMessageBox.StandardButton.Yes:
-                closeProject = self.projectInstance.close_project(self.session, self.projectInstance.project_pkey)
+                closeProject = self.projectInstance.close_project(self.session, self.activeUserInstance, self.projectInstance.project_pkey)
                 if closeProject == 'Project Closed':
                     self.projectChangesLabel.setText(f'The project, {self.projectInstance.name}! has now been closed.')
                     self.home_window_instance.populate_projects_all_table_thread()
@@ -1455,7 +1497,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         self.project_owner_permissions = False
         self.edit_permissions = False
         self.project_owner_fkey = False
-        self.assignee_fkey = False
+        self.assignee_fkey = None
         self.assignee_reassigned = False
         self.field_changed = False
 
@@ -1477,10 +1519,10 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         self.get_project_instance()
         self.get_task_instance()
         self.check_permissions()
-        self.check_task_status()
-        self.populate_task_assignee_thread()
         self.populate_task()
+        self.check_task_status()
         self.change_review_button_state()
+        self.populate_task_assignee_thread()
 
         # on buttons click
         self.deleteTaskButton.clicked.connect(self.on_delete_task)
@@ -1525,7 +1567,6 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
 
         self.taskAssignerLE.setText(f'{self.taskInstance.assigner.full_name} ({self.taskInstance.assigner.username})')
         self.taskAssigneeCB.setCurrentText(f'{self.taskInstance.assignee.full_name} ({self.taskInstance.assignee.username})')
-        self.assignee_fkey = self.taskInstance.assignee_fkey
         self.project_owner_fkey = self.taskInstance.project.owner_fkey
 
     def populate_task_assignee(self):
@@ -1538,14 +1579,17 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             self.taskAssigneeCB.addItem(item_text, item_data)
 
     def populate_task_assignee_thread(self):
-        populate_task_assignee_thread = threading.Thread(target=self.populate_task_assignee)
-        populate_task_assignee_thread.start()
+        #thread assign to field populate
+        populate_assign_to_thread = threading.Thread(target=self.populate_task_assignee)
+        populate_assign_to_thread.start()
+        populate_assign_to_thread.join()
+
 
     #permissions
     def no_permission_to_perform_action(self):
         if self.taskInstance.assignee_fkey != self.activeUserInstance.user_pkey:
             QMessageBox.critical(self, "Permission denied", "You do not have permissions to perform this action"
-                                                            "\n because you are not the assinged user.",
+                                                            "\n because you are not the assigned user.",
                                  QMessageBox.StandardButton.Close)
         else:
             QMessageBox.critical(self, "Permission denied", "You do not have permissions to perform this action"
@@ -1622,7 +1666,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             confirmation = self.confirmation_box('Confirm Deletion', 'Are you sure you want to delete this task?')
 
             if confirmation == QMessageBox.StandardButton.Yes:
-                delete_task = self.taskInstance.delete_task(self.session, self.task_pkey)
+                delete_task = self.taskInstance.delete_task(self.session, self.activeUserInstance, self.project_pkey, self.task_pkey)
 
                 if delete_task == 'Task deleted successfully':
                     # update table
@@ -1652,21 +1696,23 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             dueDateDT = datetime.date(currentDueDate.year(), currentDueDate.month(), currentDueDate.day())
             Pdue = datetime.datetime.strptime(str(dueDateDT), '%Y-%m-%d')
             taskProgress = int(self.taskProgressHS.value())
-            # get assignee fkey
-            AssignToCBIndex = self.taskAssigneeCB.currentIndex()
-            assignee_fkey = int(self.taskAssigneeCB.itemData(AssignToCBIndex))
 
-            # check if assignee has changed
-            if assignee_fkey != self.taskInstance.assignee_fkey:
+            # # check if assignee has been reassigned
+            AssignToCBIndex = self.taskAssigneeCB.currentIndex()
+            if self.taskAssigneeCB.itemData(AssignToCBIndex) is None or (str(self.taskAssigneeCB.itemData(AssignToCBIndex)) == str(self.taskInstance.assignee_fkey)):
+                self.assignee_fkey = self.taskInstance.assignee_fkey
+            else:
+                self.assignee_fkey = int(self.taskAssigneeCB.itemData(AssignToCBIndex))
                 self.assignee_reassigned = True
 
-            # pass variables to update
-            update_task = self.taskInstance.set_task(session=self.session, task_pkey=self.task_pkey,
+            #pass variables to update
+            update_task = self.taskInstance.set_task(session=self.session, userInstance=self.activeUserInstance,
+                                                     project_pkey=self.project_pkey, task_pkey=self.task_pkey,
                                                      setName=currentTaskName, setDesc=currentDesc,
                                                      taskProgress=taskProgress, setStatus=currentStatus,
-                                                     setStartDate=Pstart, setDueDate=Pdue, assigneeFkey=assignee_fkey)
+                                                     setStartDate=Pstart, setDueDate=Pdue, assigneeFkey=self.assignee_fkey)
             # if task has been updated
-            if update_task:
+            if update_task == 'Task updated':
                 self.taskChangesLabel.setText(f'The task, {currentTaskName}! has now been updated.')
                 self.home_window_instance.populate_task_all_table_thread(project_pkey=self.project_pkey)
                 self.exitWithoutSavingButton.setText('Exit')
@@ -1675,7 +1721,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
                 # send email if assignee as changed
                 if self.assignee_reassigned:
                     emailSender = EmailSender()
-                    emailSender.set_recipient(assignee_fkey)
+                    emailSender.set_recipient(self.assignee_fkey)
                     emailSender.set_action_user(self.activeUserInstance.user_pkey)
                     emailSender.set_project(self.project_pkey)
                     emailSender.set_task_name(currentTaskName)
@@ -1700,7 +1746,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             confirmation = self.confirmation_box('Confirm Task Closure', 'Are you sure you want to end and mark this task as complete?')
             if confirmation == QMessageBox.StandardButton.Yes:
                 # close task
-                close_task = self.taskInstance.close_task(self.session, self.task_pkey)
+                close_task = self.taskInstance.close_task(self.session, self.activeUserInstance, self.project_pkey, self.task_pkey)
 
                 # if task has been closed
                 if close_task == 'Task Closed':
@@ -1736,8 +1782,8 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         confirmation = self.confirmation_box('Confirm Fail Review', 'Are you sure you want to fail the review?')
         if confirmation == QMessageBox.StandardButton.Yes:
             currentTaskName = self.taskNameLE.text()
-            updateTask = self.taskInstance.set_task(self.session, self.task_pkey, setStatus='In-Progress')
-            if updateTask:
+            updateTask = self.taskInstance.set_task(self.session, self.activeUserInstance, self.project_pkey, self.task_pkey, setStatus='In-Progress')
+            if updateTask == 'Task updated':
                 self.taskStatusCB.setCurrentText('In-Progress')
                 self.taskChangesLabel.setText(f'The task, {currentTaskName}! has now been sent back.')
                 self.home_window_instance.populate_task_all_table_thread(project_pkey=self.project_pkey)
@@ -1751,8 +1797,8 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         confirmation = self.confirmation_box('Confirm Task Review', 'Are you sure you want to send this task for review?')
         if confirmation == QMessageBox.StandardButton.Yes:
             currentTaskName = self.taskNameLE.text()
-            updateTask = self.taskInstance.set_task(self.session, self.task_pkey, setStatus='Pending Review')
-            if updateTask:
+            updateTask = self.taskInstance.set_task(self.session, self.activeUserInstance, self.project_pkey, self.task_pkey, setStatus='Pending Review')
+            if updateTask == 'Task updated':
                 self.taskStatusCB.setCurrentText('Pending Review')
                 self.taskChangesLabel.setText(f'The task, {currentTaskName}! has now been sent for review.')
                 self.home_window_instance.populate_task_all_table_thread(project_pkey=self.project_pkey)

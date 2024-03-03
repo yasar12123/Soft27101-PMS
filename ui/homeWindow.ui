@@ -272,9 +272,22 @@
            <property name="title">
             <string>Stats</string>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_22">
+           <layout class="QHBoxLayout" name="horizontalLayout_10">
             <item>
-             <widget class="QFrame" name="statsFrame">
+             <widget class="QFrame" name="projectStatsFrame">
+              <property name="frameShape">
+               <enum>QFrame::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Raised</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QFrame" name="taskStatsFrame">
+              <property name="layoutDirection">
+               <enum>Qt::RightToLeft</enum>
+              </property>
               <property name="frameShape">
                <enum>QFrame::StyledPanel</enum>
               </property>

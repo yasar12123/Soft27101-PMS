@@ -1,10 +1,11 @@
 from src.ClassBase import Base
 from src.ClassUserRole import UserRole
 from sqlalchemy.orm import relationship, joinedload
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime
 from datetime import datetime
 from sqlalchemy.exc import SQLAlchemyError
 import bcrypt
+
 
 class User(Base):
     """Class to represent the User table in the database.
@@ -22,7 +23,6 @@ class User(Base):
         assigner_of_tasks: Relationship to the Task table
         user_roles: Relationship to the UserRole table
         communication_log: Relationship to the CommunicationLog table
-        timeline_events: Relationship to the TimelineEvent table
 
     Methods:
         hash_password: Hash a password using bcrypt
