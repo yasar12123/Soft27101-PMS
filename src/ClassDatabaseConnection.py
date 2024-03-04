@@ -20,15 +20,15 @@ class DatabaseConnection:
     def connection_string(self):
         server = os.getenv('AZURE_SQL_SERVER')
         database = os.getenv('AZURE_SQL_DB')
-        #driver = os.getenv('SQL_DRIVER', '{ODBC Driver 17 for SQL Server}')  ## test older version
-        driver = os.getenv('SQL_DRIVER', '{ODBC Driver 18 for SQL Server}') ##pc with driver
+        driver = os.getenv('SQL_DRIVER', '{ODBC Driver 17 for SQL Server}')  ## test older version
+        #driver = os.getenv('SQL_DRIVER', '{ODBC Driver 18 for SQL Server}') ##pc with driver
         #driver = os.getenv('SQL_DRIVER', '{SQL Server Native Client 11.0}') ##laptop with ssms
 
         user = os.getenv('AZURE_SQL_USER')
         password = os.getenv('AZURE_SQL_PASS')
         conStr = f'Driver={driver};Server=tcp:{server},1433;Database={database}' \
                  f';Uid={user};Pwd={password}' \
-                 f';Encrypt=yes;TrustServerCertificate=no; Connect Timeout=5;'
+                 f';Encrypt=yes;TrustServerCertificate=no; Connect Timeout=30;'
 
         params = urllib.parse.quote_plus(conStr)
         return 'mssql+pyodbc:///?autocommit=true&odbc_connect={}'.format(params)

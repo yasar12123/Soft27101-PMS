@@ -162,9 +162,13 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         check = self.activeUserInstance.is_user_admin(self.session, self.activeUserInstance.user_pkey)
         if check:
             self.activeUserIsAdmin = True
+            self.dashDescLabel.setText('This dashboard shows all ongoing projects and tasks associated with them')
             self.on_admin_profile_load_defaults()
         else:
             self.activeUserIsAdmin = False
+            self.dashDescLabel.setText('This Dashboard Displays: '
+                                       '\n1. All projects which you are a owner of along with the tasks that are associated with them.'
+                                       '\n2. All project which you are a member of along with tasks that have been assigned to you.')
             self.on_profile_load_defaults()
 
     def on_profile_load_defaults(self):
