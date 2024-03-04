@@ -30,13 +30,55 @@ class Task(Base):
     communication_log = relationship('CommunicationLog', back_populates='task')
 
     @classmethod
+    def get_user_ongoing_project_tasks(cls, session, user_pkey, project_pkey=None):
+        """
+        Get tasks assigned to a user for ongoing projects and tasks in their project
+        :param session: The session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param user_pkey: The user primary key
+        :type user_pkey: int
+        :return: A list of tasks assigned to the user for ongoing projects and or tasks in their project
+        :rtype: list
+        """
+        try:
+            with session() as session:
+
+                # Get tasks assigned to a user for ongoing projects and tasks in the project if specified
+                if project_pkey:
+                    query = (session.query(cls)
+                             .join(User, cls.assignee_fkey == User.user_pkey)
+                             .join(Project, cls.project_fkey == Project.project_pkey)
+                             .options(joinedload(cls.project))
+                             .filter(cls.is_removed == 0, cls.project_fkey == project_pkey, Project.status != 'Completed')
+                             .filter(or_(cls.assignee_fkey == user_pkey, Project.owner_fkey == user_pkey))
+                             .order_by(cls.due_date))
+
+                # Get tasks assigned to a user for ongoing projects and tasks in their project
+                else:
+                    query = (session.query(cls)
+                             .join(User, cls.assignee_fkey == User.user_pkey)
+                             .join(Project, cls.project_fkey == Project.project_pkey)
+                             .options(joinedload(cls.project))
+                             .filter(cls.is_removed == 0, Project.status != 'Completed')
+                             .filter(or_(cls.assignee_fkey == user_pkey, Project.owner_fkey == user_pkey))
+                             .order_by(cls.due_date))
+
+                return query.all()
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error retrieving data: {e}'
+
+    @classmethod
     def get_assigned_tasks(cls, session, user_pkey, project_pkey=None):
         """
         Get tasks assigned to a user (for a project if specified)
         :param session: The session to use
         :type session: sqlalchemy.orm.session.Session
         :param user_pkey: The user primary key
+        :type user_pkey: int
         :param project_pkey: The project primary key
+        :type project_pkey: int
         :return: A list of tasks assigned to the user (for the project if specified)
         :rtype: list
         """
@@ -281,13 +323,61 @@ class Task(Base):
                         for task in tasks:
                             task.is_removed = 1
                             session.commit()
-                            return 'Task(s) deleted successfully'
+                        return 'Task(s) deleted successfully'
                     else:
                         return 'No tasks found for the project'
 
                 # if the user does not have permission to delete the tasks
                 else:
                     return 'You do not have permission to delete the tasks'
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error deleting project: {e}'
+
+    @classmethod
+    def close_tasks_for_project(cls, session, userInstance, project_pkey):
+        """
+        close all tasks for a project
+        :param session: The session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param userInstance: The user instance
+        :type userInstance: src.ClassUser.User
+        :param project_pkey: The project primary key
+        :type project_pkey: int
+        :return: A message indicating the status of the operation
+        :rtype: str
+        """
+
+        # find if the user is an admin
+        is_admin = userInstance.is_user_admin(session, userInstance.user_pkey)
+        owner = Project.is_user_project_owner(session, userInstance.user_pkey, project_pkey)
+
+        try:
+            with session() as session:
+
+                # query db for the tasks in project
+                tasks = session.query(cls).filter_by(project_fkey=project_pkey).all()
+
+                # check if the user has permission to delete the tasks
+                if is_admin or owner:
+
+                    # if the tasks exist
+                    if tasks:
+                        # close the tasks
+                        for task in tasks:
+                            task.status = 'Completed'
+                            task.task_progress = 100
+                            task.end_date = datetime.utcnow()
+                            session.commit()
+                        return 'Task(s) Closed'
+
+                    else:
+                        return 'No tasks found for the project'
+
+                # if the user does not have permission to delete the tasks
+                else:
+                    return 'You do not have permission to close the tasks'
 
         except SQLAlchemyError as e:
             # Log or handle the exception

@@ -123,7 +123,7 @@ class Project(Base):
         :return: a string indicating the result of the operation
         :rtype: str
         """
-        pt = ProjectTeam(user_fkey=self.owner_fkey, project_fkey=self.project_pkey, team_fkey=-1)
+        pt = ProjectTeam(user_fkey=self.owner_fkey, project_fkey=self.project_pkey)
         projectUser = pt.add_team_member_to_project(session)
         if projectUser == 'successful':
             return 'owner has been added'
@@ -198,6 +198,16 @@ class Project(Base):
         :param setProjectProgress: the project progress
         :type setProjectProgress: int
         """
+        # check if fields are null
+        fields_to_check = {"Project Name": setName, "Project Description": setDesc, "Project Status": setStatus,
+                           "Project Stat Date": setStartDate, "Project Due Date": setDueDate}
+        for attribute, val in fields_to_check.items():
+            if val == '':
+                return f'the field {attribute} can not be empty'
+
+        # check if project due date is not greater than the start date
+        if setDueDate < setStartDate:
+            return 'Project due date can not be less than the start date'
 
         # find if user is admin
         is_admin = userInstance.is_user_admin(session, userInstance.user_pkey)
@@ -413,39 +423,6 @@ class Project(Base):
             return f'Error retrieving data: {e}'
 
     @staticmethod
-    def get_projects_user_member_of(session, user_pkey):
-        """
-        Get all projects that a user is a member of
-        :param session: the session to use
-        :type session: sqlalchemy.orm.session.Session
-        :param user_pkey: the user primary key
-        :type user_pkey: int
-        :return: a list of projects
-        :rtype: list
-        """
-        try:
-            with session() as session:
-                # query db for the projects that the user is a member of
-                query = (session.query(Project)
-                         .join(Project.owner)
-                         .join(Project.project_team_members)
-                         .options(joinedload(Project.owner))
-                         .filter(Project.is_removed == 0,
-                                 ProjectTeam.is_removed == 0,
-                                 ProjectTeam.user.has(User.user_pkey == user_pkey)))
-
-                # Order by due date
-                if query:
-                    query = query.order_by(Project.due_date)
-                    return query.all()
-                else:
-                    return 'No projects found'
-
-        except SQLAlchemyError as e:
-            # Log or handle the exception
-            return f'Error retrieving data: {e}'
-
-    @staticmethod
     def is_user_project_owner(session, user_pkey, project_pkey):
         """
         Check if a user is the owner of a project
@@ -485,3 +462,35 @@ class Project(Base):
             # Log or handle the exception
             return f'Error retrieving data: {e}'
 
+    @classmethod
+    def get_projects_user_member_of(cls, session, user_pkey):
+        """
+        Get all projects that a user is a member of that have not been completed
+        :param session: the session to use
+        :type session: sqlalchemy.orm.session.Session
+        :param user_pkey: the user primary key
+        :type user_pkey: int
+        :return: a list of projects
+        :rtype: list
+        """
+        try:
+            with session() as session:
+                # Query db for the projects that the user is a member of that have not been completed
+                query = (session.query(cls)
+                         .join(cls.owner)
+                         .join(cls.project_team_members)
+                         .options(joinedload(cls.owner))
+                         .filter(cls.is_removed == 0, cls.status != 'Completed',
+                                 cls.project_team_members.any(ProjectTeam.is_removed == 0),
+                                 cls.project_team_members.any(ProjectTeam.user_fkey == user_pkey)))
+
+                # Order by due date
+                if query:
+                    query = query.order_by(cls.due_date)
+                    return query.all()
+                else:
+                    return 'No projects found'
+
+        except SQLAlchemyError as e:
+            # Log or handle the exception
+            return f'Error retrieving data: {e}'

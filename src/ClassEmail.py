@@ -3,7 +3,6 @@ from src.ClassUser import User
 from src.ClassUserRole import UserRole
 from src.ClassProject import Project
 from src.ClassProjectTeam import ProjectTeam
-from src.ClassTeam import Team
 from src.ClassTask import Task
 from src.ClassCommunicationLog import CommunicationLog
 from src.ClassAttachment import Attachment
@@ -14,6 +13,7 @@ from email.mime.multipart import MIMEMultipart
 import os
 from dotenv import load_dotenv
 load_dotenv()
+
 
 class EmailSender:
     def __init__(self):

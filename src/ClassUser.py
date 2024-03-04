@@ -35,6 +35,7 @@ class User(Base):
         register_user: Register a new user
         set_user: Set user details
         delete_user: Delete a user from the database
+        get_roles: Get the user roles
     """
     # Define the table name
     __tablename__ = 'USER'

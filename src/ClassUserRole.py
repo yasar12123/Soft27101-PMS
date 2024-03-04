@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 
+
 class UserRole(Base):
     __tablename__ = 'USER_ROLE'
 

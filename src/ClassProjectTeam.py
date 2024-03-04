@@ -12,7 +12,6 @@ class ProjectTeam(Base):
     project_team_pkey = Column(Integer, primary_key=True, autoincrement=True)
     user_fkey = Column(Integer, ForeignKey('USER.user_pkey'), nullable=False)
     project_fkey = Column(Integer, ForeignKey('PROJECT.project_pkey'), nullable=False)
-    team_fkey = Column(Integer, ForeignKey('TEAM.team_pkey'), nullable=False)
     start_date = Column(DateTime, default=datetime.utcnow, nullable=False)
     end_date = Column(DateTime)
     is_removed = Column(Integer, default=0)
@@ -20,7 +19,6 @@ class ProjectTeam(Base):
     # Define the relationships
     user = relationship('User', back_populates='team_associations')
     project = relationship('Project', back_populates='project_team_members')
-    team = relationship('Team', back_populates='project_associations')
 
     def add_team_member_to_project(self, session):
         """
@@ -32,7 +30,7 @@ class ProjectTeam(Base):
         """
 
         # check if fields are null
-        field_to_check = {"Project": self.project_fkey, "User": self.user_fkey, "Team": self.team_fkey}
+        field_to_check = {"Project": self.project_fkey, "User": self.user_fkey}
         for attribute, val in field_to_check.items():
             if val == '':
                 return f'the field {attribute} can not be empty'
@@ -69,8 +67,8 @@ class ProjectTeam(Base):
         :type session: sqlalchemy.orm.session.Session
         :param user_pkey: the primary key of the user to remove
         :type user_pkey: int
-        :param proect_pkey: the primary key of the project to remove the user from
-        :type proect_pkey: int
+        :param project_pkey: the primary key of the project to remove the user from
+        :type project_pkey: int
         :return: a string indicating the result of the operation
         :rtype: str
         """

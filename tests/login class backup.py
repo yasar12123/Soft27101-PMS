@@ -3,7 +3,6 @@ from src.ClassUser import User
 from src.ClassUserRole import UserRole
 from src.ClassProject import Project
 from src.ClassProjectTeam import ProjectTeam
-from src.ClassTeam import Team
 from src.ClassTask import Task
 from src.ClassCommunicationLog import CommunicationLog
 from src.ClassAttachment import Attachment

@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import pyodbc
 import time
 
+
 class DatabaseConnection:
     def __init__(self):
         load_dotenv()

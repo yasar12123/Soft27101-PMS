@@ -5,6 +5,18 @@ from datetime import datetime
 
 
 class Attachment(Base):
+    """
+    Class to represent the ATTACHMENT table in the database.
+
+    Attributes:
+        attachment_pkey: int, primary key, autoincrement
+        communication_log_fkey: int, foreign key to COMMUNICATION_LOG
+        file_name: str, name of the file
+        data: bytes, binary data of the file
+        size: float, size of the file in KB
+        upload_datetime: datetime, date and time of the upload
+        communication_log: relationship to CommunicationLog
+    """
     __tablename__ = 'ATTACHMENT'
 
     attachment_pkey = Column(Integer, primary_key=True, autoincrement=True)
