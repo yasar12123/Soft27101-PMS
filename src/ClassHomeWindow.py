@@ -1187,7 +1187,6 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         self.projectOwnerLE.setReadOnly(True)
         self.projectProgressHS.setEnabled(False)
 
-
         # hide table columns
         self.TeamMembersTable.setColumnHidden(3, True)
 
@@ -1285,7 +1284,6 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
             self.is_admin = True
             self.enable_view_project_fields()
 
-
     # field states
     def disable_view_project_fields(self):
         self.projectNameLE.setEnabled(False)
@@ -1346,24 +1344,25 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         if self.is_admin is True or self.is_owner is True:
 
             # confirmation box to delete project
-            confirmation = self.confirmation_box("Confirm Deletion", "Are you sure you want to delete this project?")
+            confirmation = self.confirmation_box("Confirm Deletion",
+                                                 "Are you sure you want to delete this project?")
             if confirmation == QMessageBox.StandardButton.Yes:
 
                 # delete project
-                projectDelete = self.projectInstance.delete_project(self.session, self.activeUserInstance, self.projectInstance.project_pkey)
+                projectDelete = self.projectInstance.delete_project(self.session,
+                                                                    self.activeUserInstance,
+                                                                    self.projectInstance.project_pkey)
+                # if project deleted successfully
                 if projectDelete == 'Project deleted successfully':
 
+                    # delete associated tasks and update label and tables
                     Task().delete_tasks_for_project(self.session, self.activeUserInstance, self.project_pkey)
-                    # update label
                     self.projectChangesLabel.setText(f'The project, {self.projectInstance.name}! has now been removed.')
-
                     # refresh projects table to include the new project on dash tab/projects tab
                     if self.home_window_instance.stackedWidget.currentIndex() == 0: # dash tab
                         self.home_window_instance.populate_projects_ongoing_table()
-
                     if self.home_window_instance.stackedWidget.currentIndex() == 1: # projects tab
                         self.home_window_instance.populate_projects_all_table()
-
                     # disable fields after deletion
                     self.disable_view_project_fields()
 
@@ -1374,12 +1373,14 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
                     email_thread = threading.Thread(target=emailSender.on_project_delete)
                     email_thread.start()
 
+                # return error message
                 else:
-                    return projectDelete
+                    self.projectChangesLabel.setText(projectDelete)
         else:
             self.no_permission_to_perform_action()
 
     def on_save_changes(self):
+        # check if user is admin or owner of the project to update
         if self.is_admin is True or self.is_owner is True:
             # input from window
             currentName = self.projectNameLE.text()
@@ -1397,24 +1398,38 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
             updateProject = self.projectInstance.set_project(self.session, self.activeUserInstance, self.projectInstance.project_pkey,
                                                              currentName, currentDesc, currentStatus, Pstart, Pdue,
                                                              projectProgress)
+            # if project updated successfully
             if updateProject:
+                # update label and tables
                 self.projectChangesLabel.setText(f'The project, {currentName}! has now been updated.')
                 self.home_window_instance.populate_projects_all_table_thread()
                 self.exitWithoutSavingButton.setText('Exit')
                 self.saveChangesButton.setEnabled(False)
+            # return error message
             else:
                 self.projectChangesLabel.setText(updateProject)
         else:
             self.no_permission_to_perform_action()
 
     def on_close_project(self):
+        # check if user is admin or owner of the project to close
         if self.is_admin is True or self.is_owner is True:
-            confirmation = self.confirmation_box("Confirm Project Closure", "Are you sure you want to close this project?")
-            if confirmation == QMessageBox.StandardButton.Yes:
 
-                closeProject = self.projectInstance.close_project(self.session, self.activeUserInstance, self.projectInstance.project_pkey)
+            # confirmation box to close project
+            confirmation = self.confirmation_box("Confirm Project Closure",
+                                                 "Are you sure you want to close this project?")
+            if confirmation == QMessageBox.StandardButton.Yes:
+                # close project
+                closeProject = self.projectInstance.close_project(self.session,
+                                                                  self.activeUserInstance,
+                                                                   self.projectInstance.project_pkey)
+                # if project closed successfully
                 if closeProject == 'Project Closed':
-                    closeTasks = Task().close_tasks_for_project(self.session, self.activeUserInstance, self.projectInstance.project_pkey)
+
+                    # close associated tasks and update label and tables
+                    closeTasks = Task().close_tasks_for_project(self.session,
+                                                                self.activeUserInstance,
+                                                                self.projectInstance.project_pkey)
                     self.projectChangesLabel.setText(f'The project, {self.projectInstance.name}! has now been closed.')
                     self.home_window_instance.populate_projects_all_table_thread()
                     # disable fields after deletion
@@ -1424,11 +1439,12 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
                     emailSender = EmailSender()
                     emailSender.set_action_user(self.activeUserInstance.user_pkey)
                     emailSender.set_project(self.project_pkey)
-                    # Create thread for email
-                    email_thread = threading.Thread(target=emailSender.on_project_delete)
+                    email_thread = threading.Thread(target=emailSender.on_project_close)
                     email_thread.start()
+
+                # return error message
                 else:
-                    return closeProject
+                    self.projectChangesLabel.setText(closeProject)
         else:
             self.no_permission_to_perform_action()
 
@@ -1441,15 +1457,19 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
             self.no_permission_to_perform_action()
 
     def on_remove_member_button(self):
+        # check if user is admin or owner of the project to remove member
         if self.is_admin is True or self.is_owner is True:
             confirmation = self.confirmation_box("Confirm Team Member Removal",
                                                  "Are you sure you want to remove this user from the project?")
             if confirmation == QMessageBox.StandardButton.Yes:
                 # delete project team instance
-                deleteMember = ProjectTeam().delete_team_member_from_projects(self.session, self.selected_team_user_pkey,
+                deleteMember = ProjectTeam().delete_team_member_from_projects(self.session,
+                                                                              self.selected_team_user_pkey,
                                                                               self.projectInstance.project_pkey)
-
+                # if member removed successfully
                 if deleteMember == 'Deleted successfully from teams':
+                    # update label and tables
+                    self.projectChangesLabel.setText('The team member removed from the project.')
                     self.populate_team_members_table_thread()
                     self.projectChangesLabel.setText(deleteMember)
                     self.removeMemberButton.setEnabled(False)
@@ -1469,10 +1489,10 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
                     emailSender.set_action_user(self.activeUserInstance.user_pkey)
                     emailSender.set_project(self.projectInstance.project_pkey)
                     emailSender.set_recipient(self.selected_team_user_pkey)
-                    # Create thread for email
                     email_thread = threading.Thread(target=emailSender.on_remove_from_project)
                     email_thread.start()
 
+                # return error message
                 else:
                     self.projectChangesLabel.setText(deleteMember)
         else:
@@ -1482,8 +1502,6 @@ class ViewProject(QDialog, Ui_ViewProjectDialog):
         if item:
             self.selected_team_user_pkey = int(self.TeamMembersTable.item(item.row(), 3).text())
             self.removeMemberButton.setEnabled(True)
-
-
 
 
 class AddTeamMemberDialog(QDialog, Ui_ViewProjectAddTeamMemberDialog):
@@ -1527,11 +1545,14 @@ class AddTeamMemberDialog(QDialog, Ui_ViewProjectAddTeamMemberDialog):
         index = self.userCB.currentIndex()
         user_pkey = int(self.userCB.itemData(index))
 
-        #create project team instance
+        # create project team instance
         projectUser = ProjectTeam(user_fkey=user_pkey, project_fkey=self.projectInstance.project_pkey)
+        # add user to project
         addToPT = projectUser.add_team_member_to_project(self.session)
 
+        # if user added successfully
         if addToPT == 'successful':
+            # update label and tables
             self.addUserConfirmLE.setText(f'{self.userCB.itemText(index)}! has now been added to {self.projectInstance.name}.')
             self.view_project_instance.populate_team_members_table()
 
@@ -1540,14 +1561,16 @@ class AddTeamMemberDialog(QDialog, Ui_ViewProjectAddTeamMemberDialog):
             emailSender.set_action_user(self.activeUserInstance.user_pkey)
             emailSender.set_project(self.projectInstance.project_pkey)
             emailSender.set_recipient(user_pkey)
-            # Create thread for email
             email_thread = threading.Thread(target=emailSender.on_add_to_project)
             email_thread.start()
+
+        # return error message
         else:
             self.addUserConfirmLE.setText(addToPT)
 
     def on_exit_button(self):
         self.close()
+
 
 class ViewTask(QDialog, Ui_ViewTaskDialog):
     def __init__(self, home_window_instance, project_pkey, task_pkey, activeUserInstance):
@@ -1641,7 +1664,6 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         self.tpMinL.setText(str(self.taskInstance.task_progress))
         if self.taskInstance.end_date:
             self.taskEndLE.setText(self.taskInstance.end_date.strftime("%d/%m/%Y"))
-
         self.taskAssignerLE.setText(f'{self.taskInstance.assigner.full_name} ({self.taskInstance.assigner.username})')
         self.taskAssigneeCB.setCurrentText(f'{self.taskInstance.assignee.full_name} ({self.taskInstance.assignee.username})')
         self.project_owner_fkey = self.taskInstance.project.owner_fkey
@@ -1656,7 +1678,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             self.taskAssigneeCB.addItem(item_text, item_data)
 
     def populate_task_assignee_thread(self):
-        #thread assign to field populate
+        # thread task assignee combo box
         populate_assign_to_thread = threading.Thread(target=self.populate_task_assignee)
         populate_assign_to_thread.start()
         populate_assign_to_thread.join()
@@ -1728,19 +1750,26 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
     def on_delete_task(self):
         # check if user has permissions
         if self.admin_permissions is True or self.project_owner_permissions is True:
-            confirmation = self.confirmation_box('Confirm Deletion', 'Are you sure you want to delete this task?')
+            confirmation = self.confirmation_box('Confirm Deletion',
+                                                 'Are you sure you want to delete this task?')
 
             if confirmation == QMessageBox.StandardButton.Yes:
-                delete_task = self.taskInstance.delete_task(self.session, self.activeUserInstance, self.project_pkey, self.task_pkey)
-
+                # delete task
+                delete_task = self.taskInstance.delete_task(self.session,
+                                                            self.activeUserInstance,
+                                                            self.project_pkey,
+                                                            self.task_pkey)
+                # if task has been deleted
                 if delete_task == 'Task deleted successfully':
-                    # update table
+                    # update label and tables
                     self.taskChangesLabel.setText(f'The Task, {self.taskInstance.name}! has now been removed.')
                     self.home_window_instance.populate_task_all_table_thread(project_pkey=self.project_pkey)
                     # disable fields after deletion
                     self.disable_view_task_fields()
+                # return error message
                 else:
-                    return delete_task
+                    self.taskChangesLabel.setText(delete_task)
+
         else:
             self.no_permission_to_perform_action()
 
@@ -1748,6 +1777,7 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         # check if user has permissions
         if self.edit_permissions is False:
             self.no_permission_to_perform_action()
+
         else:
             # input from window
             currentProjectName = self.projectNameLE.text()
@@ -1761,16 +1791,18 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             dueDateDT = datetime.date(currentDueDate.year(), currentDueDate.month(), currentDueDate.day())
             Pdue = datetime.datetime.strptime(str(dueDateDT), '%Y-%m-%d')
             taskProgress = int(self.taskProgressHS.value())
-
-            # # check if assignee has been reassigned
             AssignToCBIndex = self.taskAssigneeCB.currentIndex()
+
+            # if assignee has not been reassigned or is the same then use the current assignee
             if self.taskAssigneeCB.itemData(AssignToCBIndex) is None or (str(self.taskAssigneeCB.itemData(AssignToCBIndex)) == str(self.taskInstance.assignee_fkey)):
                 self.assignee_fkey = self.taskInstance.assignee_fkey
+
+            # if assignee has been reassigned then use the new assignee
             else:
                 self.assignee_fkey = int(self.taskAssigneeCB.itemData(AssignToCBIndex))
                 self.assignee_reassigned = True
 
-            #pass variables to update
+            # update/set task
             update_task = self.taskInstance.set_task(session=self.session, userInstance=self.activeUserInstance,
                                                      project_pkey=self.project_pkey, task_pkey=self.task_pkey,
                                                      setName=currentTaskName, setDesc=currentDesc,
@@ -1779,22 +1811,22 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
 
             # if task has been updated
             if update_task == 'Task updated':
+                # update label and tables
                 self.taskChangesLabel.setText(f'The task, {currentTaskName}! has now been updated.')
                 self.home_window_instance.populate_task_all_table_thread(project_pkey=self.project_pkey)
                 self.exitWithoutSavingButton.setText('Exit')
                 self.saveChangesButton.setEnabled(False)
 
-                # send email if assignee as changed
+                # send email if assignee has been reassigned
                 if self.assignee_reassigned:
                     emailSender = EmailSender()
                     emailSender.set_recipient(self.assignee_fkey)
                     emailSender.set_action_user(self.activeUserInstance.user_pkey)
                     emailSender.set_project(self.project_pkey)
                     emailSender.set_task_name(currentTaskName)
-
-                    # Create thread for email
                     email_thread = threading.Thread(target=emailSender.on_task_assign)
                     email_thread.start()
+            # return error message
             else:
                 self.taskChangesLabel.setText(update_task)
 
@@ -1802,20 +1834,25 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
         if self.exitWithoutSavingButton.text() == 'Exit':
             self.close()
         else:
-            confirmation = self.confirmation_box('Confirm exit', 'Are you sure you want to exit without saving the changes?')
+            confirmation = self.confirmation_box('Confirm exit',
+                                                 'Are you sure you want to exit without saving the changes?')
             if confirmation == QMessageBox.StandardButton.Yes:
                 self.close()
 
     def on_close_task(self):
         # check if user has permissions
         if self.admin_permissions is True or self.project_owner_permissions is True:
-            confirmation = self.confirmation_box('Confirm Task Closure', 'Are you sure you want to end and mark this task as complete?')
+            confirmation = self.confirmation_box('Confirm Task Closure',
+                                                 'Are you sure you want to end and mark this task as complete?')
+
             if confirmation == QMessageBox.StandardButton.Yes:
                 # close task
-                close_task = self.taskInstance.close_task(self.session, self.activeUserInstance, self.project_pkey, self.task_pkey)
-
+                close_task = self.taskInstance.close_task(self.session,
+                                                          self.activeUserInstance,
+                                                          self.project_pkey, self.task_pkey)
                 # if task has been closed
                 if close_task == 'Task Closed':
+                    # update label and tables
                     self.taskChangesLabel.setText(f'The task, {self.taskInstance.name}! has now been closed.')
                     self.taskProgressHS.setValue(100)
                     self.tpMinL.setText(str(100))
@@ -1823,7 +1860,6 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
                     self.taskEndLE.setText(dt.utcnow().strftime('%d/%m/%Y %H:%M:%S'))
                     self.exitWithoutSavingButton.setText('Exit')
                     self.home_window_instance.populate_task_all_table_thread(project_pkey=self.project_pkey)
-
                     # disable fields after deletion
                     self.disable_view_task_fields()
 
@@ -1833,10 +1869,10 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
                     emailSender.set_action_user(self.activeUserInstance.user_pkey)
                     emailSender.set_project(self.project_pkey)
                     emailSender.set_task_name(self.taskInstance.name)
-                    # Create thread for email
                     email_thread = threading.Thread(target=emailSender.on_task_close)
                     email_thread.start()
 
+                # return error message
                 else:
                     self.taskChangesLabel.setText(f'{close_task}')
                     return close_task
@@ -1844,38 +1880,57 @@ class ViewTask(QDialog, Ui_ViewTaskDialog):
             self.no_permission_to_perform_action()
 
     def fail_review_confirmation(self):
-        """Fail review of task"""
-        confirmation = self.confirmation_box('Confirm Fail Review', 'Are you sure you want to fail the review?')
+
+        confirmation = self.confirmation_box('Confirm Fail Review',
+                                             'Are you sure you want to fail the review?')
         if confirmation == QMessageBox.StandardButton.Yes:
+
+            # update/set task
             currentTaskName = self.taskNameLE.text()
-            updateTask = self.taskInstance.set_task(self.session, self.activeUserInstance, self.project_pkey, self.task_pkey, setStatus='In-Progress')
+            updateTask = self.taskInstance.set_task(self.session,
+                                                    self.activeUserInstance,
+                                                    self.project_pkey,
+                                                    self.task_pkey,
+                                                    setStatus='In-Progress')
+            # if task has been updated
             if updateTask == 'Task updated':
+                # update label and tables
                 self.taskStatusCB.setCurrentText('In-Progress')
                 self.taskChangesLabel.setText(f'The task, {currentTaskName}! has now been sent back.')
                 self.home_window_instance.populate_task_all_table_thread(project_pkey=self.project_pkey)
                 self.sendReviewtButton.setEnabled(False)
                 self.saveChangesButton.setEnabled(False)
                 self.exitWithoutSavingButton.setText('Exit')
+            # return error message
             else:
                 self.taskChangesLabel.setText(updateTask)
 
     def send_for_review(self):
-        confirmation = self.confirmation_box('Confirm Task Review', 'Are you sure you want to send this task for review?')
+        confirmation = self.confirmation_box('Confirm Task Review',
+                                             'Are you sure you want to send this task for review?')
+
         if confirmation == QMessageBox.StandardButton.Yes:
+            # update/set task
             currentTaskName = self.taskNameLE.text()
-            updateTask = self.taskInstance.set_task(self.session, self.activeUserInstance, self.project_pkey, self.task_pkey, setStatus='Pending Review')
+            updateTask = self.taskInstance.set_task(self.session,
+                                                    self.activeUserInstance,
+                                                    self.project_pkey, self.task_pkey,
+                                                    setStatus='Pending Review')
+            # if task has been updated
             if updateTask == 'Task updated':
+                # update label and tables
                 self.taskStatusCB.setCurrentText('Pending Review')
                 self.taskChangesLabel.setText(f'The task, {currentTaskName}! has now been sent for review.')
                 self.home_window_instance.populate_task_all_table_thread(project_pkey=self.project_pkey)
                 self.sendReviewtButton.setEnabled(False)
                 self.saveChangesButton.setEnabled(False)
                 self.exitWithoutSavingButton.setText('Exit')
+            # return error message
             else:
                 self.taskChangesLabel.setText(updateTask)
 
     def on_send_for_review(self):
-        # check if user has permissions and task is in pending review
+        # check if user has permissions and task is pending review
         if (self.admin_permissions is True or self.project_owner_permissions is True) and self.taskInstance.status == 'Pending Review':
             self.fail_review_confirmation()
 

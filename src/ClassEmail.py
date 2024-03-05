@@ -74,20 +74,6 @@ class EmailSender:
         except Exception as e:
             return f"An error occurred while sending the email: {e}"
 
-    def on_project_creation(self, project_name):
-        to = self.recipient.email_address
-        subject = f'TT_CROP - Project: {project_name} has been created'
-        message = f'you have created a new project: {project_name}'
-        email = self.send_email(recipient_email=[to], subject=subject, message=message)
-        return email
-
-    def on_task_creation(self):
-        to = self.recipient.email_address
-        subject = f'TT_CROP - Task: {self.taskName} for Project: {self.project.name} has been created'
-        message = f'you have created a new task named {self.taskName} for the project {self.project.name}'
-        email = self.send_email(recipient_email=[to], subject=subject, message=message)
-        return email
-
     def on_task_assign(self):
         to = self.recipient.email_address
         subject = f'TT_CROP - Task: {self.taskName} for Project: {self.project.name} - ASSIGNED'
@@ -147,3 +133,17 @@ class EmailSender:
         message = f'you have been removed from the project: {self.project.name}, by {self.actionUser.full_name} ({self.actionUser.username})'
         sendEmail = self.send_email(recipient_email=[to], subject=subject, message=message)
         return sendEmail
+
+    def on_project_creation(self, project_name):
+        to = self.recipient.email_address
+        subject = f'TT_CROP - Project: {project_name} has been created'
+        message = f'you have created a new project: {project_name}'
+        email = self.send_email(recipient_email=[to], subject=subject, message=message)
+        return email
+
+    def on_task_creation(self):
+        to = self.recipient.email_address
+        subject = f'TT_CROP - Task: {self.taskName} for Project: {self.project.name} has been created'
+        message = f'you have created a new task named {self.taskName} for the project {self.project.name}'
+        email = self.send_email(recipient_email=[to], subject=subject, message=message)
+        return email

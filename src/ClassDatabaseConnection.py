@@ -8,20 +8,28 @@ import time
 
 
 class DatabaseConnection:
+    """
+    Class to handle database connection and session queries
+    Attributes:
+        engine: sqlalchemy engine object
+        Session: sqlalchemy session object
+    Methods:
+        create_engine: creates sqlalchemy engine object
+        connection_string: creates connection string for sqlalchemy engine
+        execute_query: executes a query and returns the result
+        get_session: returns a session object
+        test_connectivity: tests the connection to the database
+    """
     def __init__(self):
         load_dotenv()
         self.engine = self.create_engine()
         self.Session = sessionmaker(bind=self.engine)
 
-    def create_engine(self):
-        conn_str = self.connection_string()
-        return create_engine(conn_str, echo=False)
-
     def connection_string(self):
         server = os.getenv('AZURE_SQL_SERVER')
         database = os.getenv('AZURE_SQL_DB')
-        driver = os.getenv('SQL_DRIVER', '{ODBC Driver 17 for SQL Server}')  ## test older version
-        #driver = os.getenv('SQL_DRIVER', '{ODBC Driver 18 for SQL Server}') ##pc with driver
+        #driver = os.getenv('SQL_DRIVER', '{ODBC Driver 17 for SQL Server}')  ## test older version
+        driver = os.getenv('SQL_DRIVER', '{ODBC Driver 18 for SQL Server}') ##pc with driver
         #driver = os.getenv('SQL_DRIVER', '{SQL Server Native Client 11.0}') ##laptop with ssms
 
         user = os.getenv('AZURE_SQL_USER')
@@ -33,21 +41,9 @@ class DatabaseConnection:
         params = urllib.parse.quote_plus(conStr)
         return 'mssql+pyodbc:///?autocommit=true&odbc_connect={}'.format(params)
 
-    def execute_query(self, query, params=None):
-        try:
-            with self.engine.connect() as connection:
-                if isinstance(query, str):
-                    query = text(query)
-                result = connection.execute(query, params)
-                return result.fetchall()
-        except Exception as e:
-            raise RuntimeError(f"Error executing query: {e}")
-
-    def get_session(self):
-        try:
-            return self.Session
-        except pyodbc.OperationalError as e:
-            return RuntimeError("Error establishing connection: {}".format(str(e)))
+    def create_engine(self):
+        conn_str = self.connection_string()
+        return create_engine(conn_str, echo=False)
 
     def test_connectivity(self, max_attempts=3, delay_between_attempts=1):
         for attempt in range(max_attempts):
@@ -76,6 +72,24 @@ class DatabaseConnection:
                     continue
                 else:
                     return f"Failed to connect after {max_attempts} attempts: {str(e)}"
+
+    def execute_query(self, query, params=None):
+        try:
+            with self.engine.connect() as connection:
+                if isinstance(query, str):
+                    query = text(query)
+                result = connection.execute(query, params)
+                return result.fetchall()
+        except Exception as e:
+            raise RuntimeError(f"Error executing query: {e}")
+
+    def get_session(self):
+        try:
+            return self.Session
+        except pyodbc.OperationalError as e:
+            return RuntimeError("Error establishing connection: {}".format(str(e)))
+
+
 
 
 
