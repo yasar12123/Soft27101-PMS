@@ -433,7 +433,12 @@ class HomeWindow(QMainWindow, Ui_HomeWindow):
         task_thread = threading.Thread(target=self.populate_tasks_ongoing_table)
         task_thread.start()
         task_thread.join()
-
+        # project_stats_thread = threading.Thread(target=self.display_project_stats)
+        # project_stats_thread.start()
+        # project_stats_thread.join()
+        # task_stats_thread = threading.Thread(target=self.display_task_stats)
+        # task_stats_thread.start()
+        # task_stats_thread.join()
 
 
     def display_project_stats(self):
