@@ -25,17 +25,17 @@ class User(Base):
         communication_log: Relationship to the CommunicationLog table
 
     Methods:
-        hash_password: Hash a password using bcrypt
-        authenticate_user: Authenticate a user
-        get_user_instance: Get a user instance from the database
-        get_user_fkey: Get the user primary key
-        get_users: Get all users from the database
-        is_user_admin: Check if a user is an admin
-        verify_password: Verify a password against the hashed password
-        register_user: Register a new user
-        set_user: Set user details
-        delete_user: Delete a user from the database
-        get_roles: Get the user roles
+        hash_password(password: str): Hash a password using bcrypt
+        authenticate_user(session: Database session, username: str, password: str): Authenticate a user
+        get_user_instance(session: Database session, user_pkey: int): Get a user instance from the database
+        get_user_fkey(session: Database session, username: str): Get the user primary key
+        get_users(session: Database session): Get all users from the database
+        is_user_admin(session: Database session, user_pkey: int): Check if a user is an admin
+        verify_password(password_to_verify: str): Verify a password against the hashed password
+        register_user(session: Database session): Register a new user
+        set_user(session: Database session, user_to_set_pkey: int, setFullname: str, setEmailAddress: str, setPassword: str): Set user details
+        delete_user(session: Database session, user_to_delete_pkey: int): Delete a user from the database
+        get_roles(session: Database session): Get the roles of a user
     """
     # Define the table name
     __tablename__ = 'USER'

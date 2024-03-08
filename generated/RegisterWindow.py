@@ -105,8 +105,8 @@ class Ui_RegisterWindow(object):
         _translate = QtCore.QCoreApplication.translate
         RegisterWindow.setWindowTitle(_translate("RegisterWindow", "Registration Window"))
         self.label_5.setText(_translate("RegisterWindow", "<html><head/><body><p align=\"center\"><span style=\" font-size:20pt; font-weight:700;\">Registeration</span></p><p align=\"center\"><br/></p></body></html>"))
-        self.label.setText(_translate("RegisterWindow", "Fullname:  "))
-        self.label_3.setText(_translate("RegisterWindow", "Email:        "))
+        self.label.setText(_translate("RegisterWindow", "Full Name:  "))
+        self.label_3.setText(_translate("RegisterWindow", "Email Address:        "))
         self.label_2.setText(_translate("RegisterWindow", "Username "))
         self.label_4.setText(_translate("RegisterWindow", "Password: "))
         self.TermsAndCondTE.setHtml(_translate("RegisterWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
@@ -117,7 +117,7 @@ class Ui_RegisterWindow(object):
 "li.checked::marker { content: \"\\2612\"; }\n"
 "</style></head><body style=\" font-family:\'Segoe UI\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:700;\">Terms and Conditions</span></p>\n"
-"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">These Terms and Conditions (&quot;Terms&quot;) govern your access to and use of [Project Management App Name] (&quot;the App&quot;), provided by [Company Name] (&quot;the Company&quot;). By accessing or using the App, you agree to be bound by these Terms. If you do not agree to these Terms, you may not access or use the App.</p>\n"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">These Terms and Conditions (&quot;Terms&quot;) govern your access to and use of [Project Management App] (&quot;Project Managment App&quot;), provided by [TT Corp] (&quot;TT Corp&quot;). By accessing or using the App, you agree to be bound by these Terms. If you do not agree to these Terms, you may not access or use the App.</p>\n"
 "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:700;\">1. Account Registration</span></p>\n"
 "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">1.1 You must create an account to use certain features of the App. When creating an account, you agree to provide accurate, current, and complete information about yourself.</p>\n"
 "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">1.2 You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.</p>\n"
@@ -138,9 +138,9 @@ class Ui_RegisterWindow(object):
 "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:700;\">6. Changes to Terms</span></p>\n"
 "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">6.1 The Company reserves the right to modify or revise these Terms at any time. Your continued use of the App following the posting of any changes to these Terms constitutes acceptance of those changes.</p>\n"
 "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:700;\">7. Governing Law</span></p>\n"
-"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">7.1 These Terms shall be governed by and construed in accordance with the laws of [Jurisdiction], without regard to its conflict of law provisions.</p>\n"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">7.1 These Terms shall be governed by and construed in accordance with the laws of [United Kingdom], without regard to its conflict of law provisions.</p>\n"
 "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:700;\">8. Contact Us</span></p>\n"
-"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">8.1 If you have any questions about these Terms, please contact us at [Contact Email].</p></body></html>"))
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">8.1 If you have any questions about these Terms, please contact us.</p></body></html>"))
         self.AcceptRadioButton.setText(_translate("RegisterWindow", "Accept terms and conditions"))
         self.NotAcceptRadioButton.setText(_translate("RegisterWindow", "Do not accept terms and conditions"))
         self.RegisterButton.setText(_translate("RegisterWindow", "Register"))
