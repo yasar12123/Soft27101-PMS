@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module src.ClassCommunicationLog</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="src.html" class="white">src</a>.ClassCommunicationLog</strong></td>
+<td class="extra"><a href="..">index</a><br><a href="file:c%3A%5Cusers%5Cyh28%5Conedrive%20-%20nottinghamshire%20county%20council%5Cdocuments%5Cgithub%5Csoft27101-pms%5Csrc%5Cclasscommunicationlog.py">c:\users\yh28\onedrive - nottinghamshire county council\documents\github\soft27101-pms\src\classcommunicationlog.py</a></td></tr></table>
+    <p></p>
+<p>
+<table class="section">
+<tr class="decor index-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Classes</strong></td></tr>
+    
+<tr><td class="decor index-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl>
+<dt class="heading-text"><a href="src.ClassBase.html#Base">src.ClassBase.Base</a>(<a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>)
+</dt><dd>
+<dl>
+<dt class="heading-text"><a href="src.ClassCommunicationLog.html#CommunicationLog">CommunicationLog</a>
+</dt></dl>
+</dd>
+</dl>
+ <p>
+<table class="section">
+<tr class="decor title-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><a name="CommunicationLog">class <strong>CommunicationLog</strong></a>(<a href="src.ClassBase.html#Base">src.ClassBase.Base</a>)</td></tr>
+    
+<tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
+<td class="decor title-decor" colspan=2><span class="code"><a href="#CommunicationLog">CommunicationLog</a>(**kwargs)<br>
+&nbsp;<br>
+Class&nbsp;to&nbsp;represent&nbsp;the&nbsp;communication&nbsp;log&nbsp;table<br>
+&nbsp;<br>
+Attributes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;communication_log_pkey:&nbsp;int,&nbsp;primary&nbsp;key,&nbsp;autoincrement<br>
+&nbsp;&nbsp;&nbsp;&nbsp;user_fkey:&nbsp;int,&nbsp;foreign&nbsp;key&nbsp;to&nbsp;the&nbsp;user&nbsp;table<br>
+&nbsp;&nbsp;&nbsp;&nbsp;project_fkey:&nbsp;int,&nbsp;foreign&nbsp;key&nbsp;to&nbsp;the&nbsp;project&nbsp;table<br>
+&nbsp;&nbsp;&nbsp;&nbsp;task_fkey:&nbsp;int,&nbsp;foreign&nbsp;key&nbsp;to&nbsp;the&nbsp;task&nbsp;table<br>
+&nbsp;&nbsp;&nbsp;&nbsp;comment:&nbsp;str,&nbsp;comment<br>
+&nbsp;&nbsp;&nbsp;&nbsp;timestamp:&nbsp;datetime,&nbsp;date&nbsp;and&nbsp;time&nbsp;of&nbsp;the&nbsp;comment<br>
+&nbsp;&nbsp;&nbsp;&nbsp;user:&nbsp;relationship&nbsp;to&nbsp;User<br>
+&nbsp;&nbsp;&nbsp;&nbsp;project:&nbsp;relationship&nbsp;to&nbsp;Project<br>
+&nbsp;&nbsp;&nbsp;&nbsp;task:&nbsp;relationship&nbsp;to&nbsp;Task<br>
+&nbsp;&nbsp;&nbsp;&nbsp;attachments:&nbsp;relationship&nbsp;to&nbsp;Attachment<br>
+&nbsp;<br>
+Methods:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CommunicationLog-add_comment">add_comment</a>(session):&nbsp;add&nbsp;a&nbsp;new&nbsp;comment&nbsp;to&nbsp;the&nbsp;database<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CommunicationLog-get_project_communication_log">get_project_communication_log</a>(session,&nbsp;project_fkey):&nbsp;get&nbsp;all&nbsp;communication&nbsp;logs&nbsp;for&nbsp;a&nbsp;project<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CommunicationLog-get_task_communication_log">get_task_communication_log</a>(session,&nbsp;task_fkey):&nbsp;get&nbsp;all&nbsp;communication&nbsp;logs&nbsp;for&nbsp;a&nbsp;task<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CommunicationLog-get_user_communication_log">get_user_communication_log</a>(session,&nbsp;user_fkey):&nbsp;get&nbsp;all&nbsp;communication&nbsp;logs&nbsp;by&nbsp;a&nbsp;user<br>&nbsp;</span></td></tr>
+<tr><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt>Method resolution order:</dt>
+<dd><a href="src.ClassCommunicationLog.html#CommunicationLog">CommunicationLog</a></dd>
+<dd><a href="src.ClassBase.html#Base">src.ClassBase.Base</a></dd>
+<dd><a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a></dd>
+<dd><a href="sqlalchemy.inspection.html#Inspectable">sqlalchemy.inspection.Inspectable</a></dd>
+<dd><a href="typing.html#Generic">typing.Generic</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="CommunicationLog-__init__"><strong>__init__</strong></a>(self, **kwargs)</dt><dd><span class="code">A&nbsp;simple&nbsp;constructor&nbsp;that&nbsp;allows&nbsp;initialization&nbsp;from&nbsp;kwargs.<br>
+&nbsp;<br>
+Sets&nbsp;attributes&nbsp;on&nbsp;the&nbsp;constructed&nbsp;instance&nbsp;using&nbsp;the&nbsp;names&nbsp;and<br>
+values&nbsp;in&nbsp;``kwargs``.<br>
+&nbsp;<br>
+Only&nbsp;keys&nbsp;that&nbsp;are&nbsp;present&nbsp;as<br>
+attributes&nbsp;of&nbsp;the&nbsp;instance's&nbsp;class&nbsp;are&nbsp;allowed.&nbsp;These&nbsp;could&nbsp;be,<br>
+for&nbsp;example,&nbsp;any&nbsp;mapped&nbsp;columns&nbsp;or&nbsp;relationships.</span></dd></dl>
+
+<dl><dt><a name="CommunicationLog-add_comment"><strong>add_comment</strong></a>(self, session)</dt><dd><span class="code">Add&nbsp;a&nbsp;new&nbsp;comment&nbsp;to&nbsp;the&nbsp;database<br>
+:param&nbsp;session:&nbsp;session&nbsp;object<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:return:&nbsp;success&nbsp;message&nbsp;or&nbsp;error&nbsp;message<br>
+:rtype:&nbsp;str</span></dd></dl>
+
+<hr>
+Class methods defined here:<br>
+<dl><dt><a name="CommunicationLog-get_project_communication_log"><strong>get_project_communication_log</strong></a>(session, project_fkey)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Get&nbsp;all&nbsp;communication&nbsp;logs&nbsp;for&nbsp;a&nbsp;project<br>
+:param&nbsp;session:&nbsp;session&nbsp;object<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;project_fkey:&nbsp;project&nbsp;primary&nbsp;key<br>
+:type&nbsp;project_fkey:&nbsp;int<br>
+:return:&nbsp;list&nbsp;of&nbsp;communication&nbsp;logs&nbsp;for&nbsp;a&nbsp;project<br>
+:rtype:&nbsp;list</span></dd></dl>
+
+<dl><dt><a name="CommunicationLog-get_task_communication_log"><strong>get_task_communication_log</strong></a>(session, task_fkey)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Get&nbsp;all&nbsp;communication&nbsp;logs&nbsp;for&nbsp;a&nbsp;task<br>
+:param&nbsp;session:&nbsp;session&nbsp;object<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;task_fkey:&nbsp;task&nbsp;primary&nbsp;key<br>
+:type&nbsp;task_fkey:&nbsp;int<br>
+:return:&nbsp;list&nbsp;of&nbsp;communication&nbsp;logs&nbsp;for&nbsp;a&nbsp;task<br>
+:rtype:&nbsp;list</span></dd></dl>
+
+<dl><dt><a name="CommunicationLog-get_user_communication_log"><strong>get_user_communication_log</strong></a>(session, user_fkey)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Get&nbsp;all&nbsp;communication&nbsp;logs&nbsp;for&nbsp;a&nbsp;user<br>
+:param&nbsp;session:&nbsp;session&nbsp;object<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;user_fkey:&nbsp;user&nbsp;primary&nbsp;key<br>
+:type&nbsp;user_fkey:&nbsp;int<br>
+:return:&nbsp;list&nbsp;of&nbsp;communication&nbsp;logs&nbsp;by&nbsp;a&nbsp;user<br>
+:rtype:&nbsp;list</span></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>attachments</strong></dt>
+</dl>
+<dl><dt><strong>comment</strong></dt>
+</dl>
+<dl><dt><strong>communication_log_pkey</strong></dt>
+</dl>
+<dl><dt><strong>project</strong></dt>
+</dl>
+<dl><dt><strong>project_fkey</strong></dt>
+</dl>
+<dl><dt><strong>task</strong></dt>
+</dl>
+<dl><dt><strong>task_fkey</strong></dt>
+</dl>
+<dl><dt><strong>timestamp</strong></dt>
+</dl>
+<dl><dt><strong>user</strong></dt>
+</dl>
+<dl><dt><strong>user_fkey</strong></dt>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__annotations__</strong> = {}</dl>
+
+<dl><dt><strong>__mapper__</strong> = &lt;Mapper at 0x21f4d9ceb10; CommunicationLog&gt;</dl>
+
+<dl><dt><strong>__parameters__</strong> = ()</dl>
+
+<dl><dt><strong>__table__</strong> = Table('COMMUNICATION_LOG', MetaData(), Column('c...ime.utcnow at 0x0000021F4D9C96C0&gt;)), schema=None)</dl>
+
+<dl><dt><strong>__tablename__</strong> = 'COMMUNICATION_LOG'</dl>
+
+<hr>
+Data and other attributes inherited from <a href="src.ClassBase.html#Base">src.ClassBase.Base</a>:<br>
+<dl><dt><strong>metadata</strong> = MetaData()</dl>
+
+<dl><dt><strong>registry</strong> = &lt;sqlalchemy.orm.decl_api.registry object&gt;</dl>
+
+<hr>
+Class methods inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><a name="CommunicationLog-__init_subclass__"><strong>__init_subclass__</strong></a>(**kw: 'Any') -&gt; 'None'<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">This&nbsp;method&nbsp;is&nbsp;called&nbsp;when&nbsp;a&nbsp;class&nbsp;is&nbsp;subclassed.<br>
+&nbsp;<br>
+The&nbsp;default&nbsp;implementation&nbsp;does&nbsp;nothing.&nbsp;It&nbsp;may&nbsp;be<br>
+overridden&nbsp;to&nbsp;extend&nbsp;subclasses.</span></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><span class="code">dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><span class="code">list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+<hr>
+Data and other attributes inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><strong>__orig_bases__</strong> = (sqlalchemy.inspection.Inspectable[sqlalchemy.orm.state.InstanceState[typing.Any]],)</dl>
+
+<hr>
+Class methods inherited from <a href="typing.html#Generic">typing.Generic</a>:<br>
+<dl><dt><a name="CommunicationLog-__class_getitem__"><strong>__class_getitem__</strong></a>(params)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Parameterizes&nbsp;a&nbsp;generic&nbsp;class.<br>
+&nbsp;<br>
+At&nbsp;least,&nbsp;parameterizing&nbsp;a&nbsp;generic&nbsp;class&nbsp;is&nbsp;the&nbsp;*main*&nbsp;thing&nbsp;this&nbsp;method<br>
+does.&nbsp;For&nbsp;example,&nbsp;for&nbsp;some&nbsp;generic&nbsp;class&nbsp;`Foo`,&nbsp;this&nbsp;is&nbsp;called&nbsp;when&nbsp;we<br>
+do&nbsp;`Foo[int]`&nbsp;-&nbsp;there,&nbsp;with&nbsp;`cls=Foo`&nbsp;and&nbsp;`params=int`.<br>
+&nbsp;<br>
+However,&nbsp;note&nbsp;that&nbsp;this&nbsp;method&nbsp;is&nbsp;also&nbsp;called&nbsp;when&nbsp;defining&nbsp;generic<br>
+classes&nbsp;in&nbsp;the&nbsp;first&nbsp;place&nbsp;with&nbsp;`class&nbsp;Foo(Generic[T]):&nbsp;...`.</span></dd></dl>
+
+</td></tr></table></td></tr></table>
+</body></html>

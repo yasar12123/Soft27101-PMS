@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module src.ClassEmail</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="src.html" class="white">src</a>.ClassEmail</strong></td>
+<td class="extra"><a href="..">index</a><br><a href="file:c%3A%5Cusers%5Cyh28%5Conedrive%20-%20nottinghamshire%20county%20council%5Cdocuments%5Cgithub%5Csoft27101-pms%5Csrc%5Cclassemail.py">c:\users\yh28\onedrive - nottinghamshire county council\documents\github\soft27101-pms\src\classemail.py</a></td></tr></table>
+    <p></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Modules</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="os.html">os</a><br>
+</td><td class="multicolumn"><a href="smtplib.html">smtplib</a><br>
+</td><td class="multicolumn"></td><td class="multicolumn"></td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor index-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Classes</strong></td></tr>
+    
+<tr><td class="decor index-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl>
+<dt class="heading-text"><a href="builtins.html#object">builtins.object</a>
+</dt><dd>
+<dl>
+<dt class="heading-text"><a href="src.ClassEmail.html#EmailSender">EmailSender</a>
+</dt></dl>
+</dd>
+</dl>
+ <p>
+<table class="section">
+<tr class="decor title-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><a name="EmailSender">class <strong>EmailSender</strong></a>(<a href="builtins.html#object">builtins.object</a>)</td></tr>
+    
+<tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
+<td class="decor title-decor" colspan=2><span class="code">This&nbsp;class&nbsp;handles&nbsp;sending&nbsp;emails&nbsp;for&nbsp;various&nbsp;events&nbsp;within&nbsp;the&nbsp;system.<br>
+&nbsp;<br>
+Attributes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;email&nbsp;(str):&nbsp;The&nbsp;email&nbsp;address&nbsp;used&nbsp;for&nbsp;sending&nbsp;emails.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;password&nbsp;(str):&nbsp;The&nbsp;password&nbsp;for&nbsp;the&nbsp;email&nbsp;account.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;smtp_server&nbsp;(str):&nbsp;The&nbsp;SMTP&nbsp;server&nbsp;address.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;smtp_port&nbsp;(str):&nbsp;The&nbsp;SMTP&nbsp;server&nbsp;port.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;dbCon&nbsp;(DatabaseConnection):&nbsp;An&nbsp;instance&nbsp;of&nbsp;the&nbsp;DatabaseConnection&nbsp;class&nbsp;for&nbsp;database&nbsp;interaction.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;session&nbsp;(sqlalchemy.orm.session.Session):&nbsp;The&nbsp;database&nbsp;session.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;recipient&nbsp;(User):&nbsp;The&nbsp;recipient&nbsp;of&nbsp;the&nbsp;email.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;actionUser&nbsp;(User):&nbsp;The&nbsp;user&nbsp;performing&nbsp;the&nbsp;action.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;project&nbsp;(Project):&nbsp;The&nbsp;project&nbsp;related&nbsp;to&nbsp;the&nbsp;email&nbsp;event.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;task&nbsp;(Task):&nbsp;The&nbsp;task&nbsp;related&nbsp;to&nbsp;the&nbsp;email&nbsp;event.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;taskName&nbsp;(str):&nbsp;The&nbsp;name&nbsp;of&nbsp;the&nbsp;task.<br>
+&nbsp;<br>
+Methods:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#EmailSender-set_project">set_project</a>(project_pkey):&nbsp;Set&nbsp;the&nbsp;project&nbsp;for&nbsp;the&nbsp;email&nbsp;event.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#EmailSender-set_task">set_task</a>(task_pkey):&nbsp;Set&nbsp;the&nbsp;task&nbsp;for&nbsp;the&nbsp;email&nbsp;event.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#EmailSender-set_task_name">set_task_name</a>(task_name):&nbsp;Set&nbsp;the&nbsp;name&nbsp;of&nbsp;the&nbsp;task&nbsp;for&nbsp;the&nbsp;email&nbsp;event.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#EmailSender-set_recipient">set_recipient</a>(recipient_fkey):&nbsp;Set&nbsp;the&nbsp;recipient&nbsp;of&nbsp;the&nbsp;email.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#EmailSender-set_action_user">set_action_user</a>(action_user_fkey):&nbsp;Set&nbsp;the&nbsp;user&nbsp;performing&nbsp;the&nbsp;action&nbsp;for&nbsp;the&nbsp;email&nbsp;event.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#EmailSender-send_email">send_email</a>(recipient_email,&nbsp;subject,&nbsp;message):&nbsp;Send&nbsp;an&nbsp;email.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#EmailSender-on_task_assign">on_task_assign</a>():&nbsp;Send&nbsp;an&nbsp;email&nbsp;notification&nbsp;for&nbsp;task&nbsp;assignment.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#EmailSender-on_task_close">on_task_close</a>():&nbsp;Send&nbsp;an&nbsp;email&nbsp;notification&nbsp;for&nbsp;task&nbsp;closure.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#EmailSender-on_project_close">on_project_close</a>():&nbsp;Send&nbsp;an&nbsp;email&nbsp;notification&nbsp;for&nbsp;project&nbsp;closure.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#EmailSender-on_project_delete">on_project_delete</a>():&nbsp;Send&nbsp;an&nbsp;email&nbsp;notification&nbsp;for&nbsp;project&nbsp;deletion.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#EmailSender-on_add_to_project">on_add_to_project</a>():&nbsp;Send&nbsp;an&nbsp;email&nbsp;notification&nbsp;for&nbsp;adding&nbsp;a&nbsp;user&nbsp;to&nbsp;a&nbsp;project.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#EmailSender-on_remove_from_project">on_remove_from_project</a>():&nbsp;Send&nbsp;an&nbsp;email&nbsp;notification&nbsp;for&nbsp;removing&nbsp;a&nbsp;user&nbsp;from&nbsp;a&nbsp;project.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#EmailSender-on_project_creation">on_project_creation</a>(project_name):&nbsp;Send&nbsp;an&nbsp;email&nbsp;notification&nbsp;for&nbsp;project&nbsp;creation.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#EmailSender-on_task_creation">on_task_creation</a>():&nbsp;Send&nbsp;an&nbsp;email&nbsp;notification&nbsp;for&nbsp;task&nbsp;creation.<br>&nbsp;</span></td></tr>
+<tr><td>&nbsp;</td>
+<td class="singlecolumn">Methods defined here:<br>
+<dl><dt><a name="EmailSender-__init__"><strong>__init__</strong></a>(self)</dt><dd><span class="code">The&nbsp;constructor&nbsp;for&nbsp;the&nbsp;<a href="#EmailSender">EmailSender</a>&nbsp;class.<br>
+use&nbsp;the&nbsp;.env&nbsp;file&nbsp;to&nbsp;set&nbsp;the&nbsp;email,&nbsp;password,&nbsp;smtp&nbsp;server&nbsp;and&nbsp;smtp&nbsp;port.</span></dd></dl>
+
+<dl><dt><a name="EmailSender-on_add_to_project"><strong>on_add_to_project</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="EmailSender-on_project_close"><strong>on_project_close</strong></a>(self)</dt><dd><span class="code">Send&nbsp;an&nbsp;email&nbsp;notification&nbsp;for&nbsp;project&nbsp;closure.</span></dd></dl>
+
+<dl><dt><a name="EmailSender-on_project_creation"><strong>on_project_creation</strong></a>(self, project_name)</dt></dl>
+
+<dl><dt><a name="EmailSender-on_project_delete"><strong>on_project_delete</strong></a>(self)</dt><dd><span class="code">Send&nbsp;an&nbsp;email&nbsp;notification&nbsp;for&nbsp;project&nbsp;deletion.</span></dd></dl>
+
+<dl><dt><a name="EmailSender-on_remove_from_project"><strong>on_remove_from_project</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="EmailSender-on_task_assign"><strong>on_task_assign</strong></a>(self)</dt><dd><span class="code">Send&nbsp;an&nbsp;email&nbsp;notification&nbsp;for&nbsp;task&nbsp;assignment.</span></dd></dl>
+
+<dl><dt><a name="EmailSender-on_task_close"><strong>on_task_close</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="EmailSender-on_task_creation"><strong>on_task_creation</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="EmailSender-send_email"><strong>send_email</strong></a>(self, recipient_email, subject, message)</dt><dd><span class="code">Send&nbsp;an&nbsp;email.<br>
+:param&nbsp;recipient_email:&nbsp;The&nbsp;email&nbsp;address&nbsp;of&nbsp;the&nbsp;recipient.<br>
+:type&nbsp;recipient_email:&nbsp;list<br>
+:param&nbsp;subject:&nbsp;The&nbsp;subject&nbsp;of&nbsp;the&nbsp;email.<br>
+:type&nbsp;subject:&nbsp;str<br>
+:param&nbsp;message:&nbsp;The&nbsp;message&nbsp;of&nbsp;the&nbsp;email.<br>
+:type&nbsp;message:&nbsp;str<br>
+:return:&nbsp;str,&nbsp;success&nbsp;message&nbsp;or&nbsp;error&nbsp;message</span></dd></dl>
+
+<dl><dt><a name="EmailSender-set_action_user"><strong>set_action_user</strong></a>(self, action_user_fkey)</dt><dd><span class="code">Set&nbsp;the&nbsp;user&nbsp;performing&nbsp;the&nbsp;action&nbsp;for&nbsp;the&nbsp;email&nbsp;event.<br>
+:param&nbsp;action_user_fkey:&nbsp;The&nbsp;foreign&nbsp;key&nbsp;of&nbsp;the&nbsp;user&nbsp;performing&nbsp;the&nbsp;action.<br>
+:type&nbsp;action_user_fkey:&nbsp;int<br>
+:return:&nbsp;User.username</span></dd></dl>
+
+<dl><dt><a name="EmailSender-set_project"><strong>set_project</strong></a>(self, project_pkey)</dt><dd><span class="code">Set&nbsp;the&nbsp;project&nbsp;for&nbsp;the&nbsp;email&nbsp;event.<br>
+:param&nbsp;project_pkey:&nbsp;The&nbsp;primary&nbsp;key&nbsp;of&nbsp;the&nbsp;project.<br>
+:param&nbsp;project_pkey:<br>
+:return:&nbsp;None</span></dd></dl>
+
+<dl><dt><a name="EmailSender-set_recipient"><strong>set_recipient</strong></a>(self, recipient_fkey)</dt><dd><span class="code">Set&nbsp;the&nbsp;recipient&nbsp;of&nbsp;the&nbsp;email.<br>
+:param&nbsp;recipient_fkey:&nbsp;The&nbsp;foreign&nbsp;key&nbsp;of&nbsp;the&nbsp;recipient.<br>
+:type&nbsp;recipient_fkey:&nbsp;int<br>
+:return:&nbsp;User.email_address</span></dd></dl>
+
+<dl><dt><a name="EmailSender-set_task"><strong>set_task</strong></a>(self, task_pkey)</dt><dd><span class="code">Set&nbsp;the&nbsp;task&nbsp;for&nbsp;the&nbsp;email&nbsp;event.<br>
+:param&nbsp;task_pkey:&nbsp;The&nbsp;primary&nbsp;key&nbsp;of&nbsp;the&nbsp;task.<br>
+:type&nbsp;task_pkey:&nbsp;int<br>
+:return:&nbsp;None</span></dd></dl>
+
+<dl><dt><a name="EmailSender-set_task_name"><strong>set_task_name</strong></a>(self, task_name)</dt><dd><span class="code">Set&nbsp;the&nbsp;name&nbsp;of&nbsp;the&nbsp;task&nbsp;for&nbsp;the&nbsp;email&nbsp;event.<br>
+:param&nbsp;task_name:&nbsp;The&nbsp;name&nbsp;of&nbsp;the&nbsp;task.<br>
+:type&nbsp;task_name:&nbsp;str<br>
+:return:&nbsp;None</span></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><span class="code">dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><span class="code">list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+</td></tr></table></td></tr></table>
+</body></html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module src.ClassProjectTeam</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="src.html" class="white">src</a>.ClassProjectTeam</strong></td>
+<td class="extra"><a href="..">index</a><br><a href="file:c%3A%5Cusers%5Cyh28%5Conedrive%20-%20nottinghamshire%20county%20council%5Cdocuments%5Cgithub%5Csoft27101-pms%5Csrc%5Cclassprojectteam.py">c:\users\yh28\onedrive - nottinghamshire county council\documents\github\soft27101-pms\src\classprojectteam.py</a></td></tr></table>
+    <p></p>
+<p>
+<table class="section">
+<tr class="decor index-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Classes</strong></td></tr>
+    
+<tr><td class="decor index-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl>
+<dt class="heading-text"><a href="src.ClassBase.html#Base">src.ClassBase.Base</a>(<a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>)
+</dt><dd>
+<dl>
+<dt class="heading-text"><a href="src.ClassProjectTeam.html#ProjectTeam">ProjectTeam</a>
+</dt></dl>
+</dd>
+</dl>
+ <p>
+<table class="section">
+<tr class="decor title-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><a name="ProjectTeam">class <strong>ProjectTeam</strong></a>(<a href="src.ClassBase.html#Base">src.ClassBase.Base</a>)</td></tr>
+    
+<tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
+<td class="decor title-decor" colspan=2><span class="code"><a href="#ProjectTeam">ProjectTeam</a>(**kwargs)<br>
+&nbsp;<br>
+Class&nbsp;to&nbsp;represent&nbsp;the&nbsp;PROJECT_TEAM&nbsp;table&nbsp;in&nbsp;the&nbsp;database.<br>
+Attributes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;project_team_pkey:&nbsp;int,&nbsp;primary&nbsp;key,&nbsp;autoincrement<br>
+&nbsp;&nbsp;&nbsp;&nbsp;user_fkey:&nbsp;int,&nbsp;foreign&nbsp;key&nbsp;to&nbsp;USER<br>
+&nbsp;&nbsp;&nbsp;&nbsp;project_fkey:&nbsp;int,&nbsp;foreign&nbsp;key&nbsp;to&nbsp;PROJECT<br>
+&nbsp;&nbsp;&nbsp;&nbsp;start_date:&nbsp;datetime,&nbsp;date&nbsp;and&nbsp;time&nbsp;of&nbsp;the&nbsp;start&nbsp;of&nbsp;the&nbsp;project<br>
+&nbsp;&nbsp;&nbsp;&nbsp;end_date:&nbsp;datetime,&nbsp;date&nbsp;and&nbsp;time&nbsp;of&nbsp;the&nbsp;end&nbsp;of&nbsp;the&nbsp;project<br>
+&nbsp;&nbsp;&nbsp;&nbsp;is_removed:&nbsp;int,&nbsp;0&nbsp;if&nbsp;the&nbsp;team&nbsp;member&nbsp;is&nbsp;active,&nbsp;1&nbsp;if&nbsp;the&nbsp;team&nbsp;member&nbsp;is&nbsp;removed<br>
+&nbsp;&nbsp;&nbsp;&nbsp;user:&nbsp;relationship&nbsp;to&nbsp;User<br>
+&nbsp;&nbsp;&nbsp;&nbsp;project:&nbsp;relationship&nbsp;to&nbsp;Project<br>
+&nbsp;<br>
+Methods:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ProjectTeam-add_team_member_to_project">add_team_member_to_project</a>(session):&nbsp;add&nbsp;a&nbsp;team&nbsp;member&nbsp;to&nbsp;a&nbsp;project<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ProjectTeam-delete_team_member_from_projects">delete_team_member_from_projects</a>(session,&nbsp;user_pkey,&nbsp;project_pkey=None):&nbsp;remove&nbsp;a&nbsp;user&nbsp;from&nbsp;all&nbsp;project&nbsp;teams&nbsp;or&nbsp;a&nbsp;specific&nbsp;project&nbsp;team<br>&nbsp;</span></td></tr>
+<tr><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt>Method resolution order:</dt>
+<dd><a href="src.ClassProjectTeam.html#ProjectTeam">ProjectTeam</a></dd>
+<dd><a href="src.ClassBase.html#Base">src.ClassBase.Base</a></dd>
+<dd><a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a></dd>
+<dd><a href="sqlalchemy.inspection.html#Inspectable">sqlalchemy.inspection.Inspectable</a></dd>
+<dd><a href="typing.html#Generic">typing.Generic</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="ProjectTeam-__init__"><strong>__init__</strong></a>(self, **kwargs)</dt><dd><span class="code">A&nbsp;simple&nbsp;constructor&nbsp;that&nbsp;allows&nbsp;initialization&nbsp;from&nbsp;kwargs.<br>
+&nbsp;<br>
+Sets&nbsp;attributes&nbsp;on&nbsp;the&nbsp;constructed&nbsp;instance&nbsp;using&nbsp;the&nbsp;names&nbsp;and<br>
+values&nbsp;in&nbsp;``kwargs``.<br>
+&nbsp;<br>
+Only&nbsp;keys&nbsp;that&nbsp;are&nbsp;present&nbsp;as<br>
+attributes&nbsp;of&nbsp;the&nbsp;instance's&nbsp;class&nbsp;are&nbsp;allowed.&nbsp;These&nbsp;could&nbsp;be,<br>
+for&nbsp;example,&nbsp;any&nbsp;mapped&nbsp;columns&nbsp;or&nbsp;relationships.</span></dd></dl>
+
+<dl><dt><a name="ProjectTeam-add_team_member_to_project"><strong>add_team_member_to_project</strong></a>(self, session)</dt><dd><span class="code">Add&nbsp;a&nbsp;team&nbsp;member&nbsp;to&nbsp;a&nbsp;project<br>
+:param&nbsp;session:&nbsp;the&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:return:&nbsp;a&nbsp;string&nbsp;indicating&nbsp;the&nbsp;result&nbsp;of&nbsp;the&nbsp;operation<br>
+:rtype:&nbsp;str</span></dd></dl>
+
+<hr>
+Class methods defined here:<br>
+<dl><dt><a name="ProjectTeam-delete_team_member_from_projects"><strong>delete_team_member_from_projects</strong></a>(session, user_pkey, project_pkey=None)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Remove&nbsp;a&nbsp;user&nbsp;from&nbsp;all&nbsp;project&nbsp;teams&nbsp;or&nbsp;a&nbsp;specific&nbsp;project&nbsp;team<br>
+:param&nbsp;session:&nbsp;the&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;user_pkey:&nbsp;the&nbsp;primary&nbsp;key&nbsp;of&nbsp;the&nbsp;user&nbsp;to&nbsp;remove<br>
+:type&nbsp;user_pkey:&nbsp;int<br>
+:param&nbsp;project_pkey:&nbsp;the&nbsp;primary&nbsp;key&nbsp;of&nbsp;the&nbsp;project&nbsp;to&nbsp;remove&nbsp;the&nbsp;user&nbsp;from<br>
+:type&nbsp;project_pkey:&nbsp;int<br>
+:return:&nbsp;a&nbsp;string&nbsp;indicating&nbsp;the&nbsp;result&nbsp;of&nbsp;the&nbsp;operation<br>
+:rtype:&nbsp;str</span></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>end_date</strong></dt>
+</dl>
+<dl><dt><strong>is_removed</strong></dt>
+</dl>
+<dl><dt><strong>project</strong></dt>
+</dl>
+<dl><dt><strong>project_fkey</strong></dt>
+</dl>
+<dl><dt><strong>project_team_pkey</strong></dt>
+</dl>
+<dl><dt><strong>start_date</strong></dt>
+</dl>
+<dl><dt><strong>user</strong></dt>
+</dl>
+<dl><dt><strong>user_fkey</strong></dt>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__annotations__</strong> = {}</dl>
+
+<dl><dt><strong>__mapper__</strong> = &lt;Mapper at 0x1f466058b10; ProjectTeam&gt;</dl>
+
+<dl><dt><strong>__parameters__</strong> = ()</dl>
+
+<dl><dt><strong>__table__</strong> = Table('PROJECT_TEAM', MetaData(), Column('projec...ault=ScalarElementColumnDefault(0)), schema=None)</dl>
+
+<dl><dt><strong>__tablename__</strong> = 'PROJECT_TEAM'</dl>
+
+<hr>
+Data and other attributes inherited from <a href="src.ClassBase.html#Base">src.ClassBase.Base</a>:<br>
+<dl><dt><strong>metadata</strong> = MetaData()</dl>
+
+<dl><dt><strong>registry</strong> = &lt;sqlalchemy.orm.decl_api.registry object&gt;</dl>
+
+<hr>
+Class methods inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><a name="ProjectTeam-__init_subclass__"><strong>__init_subclass__</strong></a>(**kw: 'Any') -&gt; 'None'<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">This&nbsp;method&nbsp;is&nbsp;called&nbsp;when&nbsp;a&nbsp;class&nbsp;is&nbsp;subclassed.<br>
+&nbsp;<br>
+The&nbsp;default&nbsp;implementation&nbsp;does&nbsp;nothing.&nbsp;It&nbsp;may&nbsp;be<br>
+overridden&nbsp;to&nbsp;extend&nbsp;subclasses.</span></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><span class="code">dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><span class="code">list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+<hr>
+Data and other attributes inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><strong>__orig_bases__</strong> = (sqlalchemy.inspection.Inspectable[sqlalchemy.orm.state.InstanceState[typing.Any]],)</dl>
+
+<hr>
+Class methods inherited from <a href="typing.html#Generic">typing.Generic</a>:<br>
+<dl><dt><a name="ProjectTeam-__class_getitem__"><strong>__class_getitem__</strong></a>(params)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Parameterizes&nbsp;a&nbsp;generic&nbsp;class.<br>
+&nbsp;<br>
+At&nbsp;least,&nbsp;parameterizing&nbsp;a&nbsp;generic&nbsp;class&nbsp;is&nbsp;the&nbsp;*main*&nbsp;thing&nbsp;this&nbsp;method<br>
+does.&nbsp;For&nbsp;example,&nbsp;for&nbsp;some&nbsp;generic&nbsp;class&nbsp;`Foo`,&nbsp;this&nbsp;is&nbsp;called&nbsp;when&nbsp;we<br>
+do&nbsp;`Foo[int]`&nbsp;-&nbsp;there,&nbsp;with&nbsp;`cls=Foo`&nbsp;and&nbsp;`params=int`.<br>
+&nbsp;<br>
+However,&nbsp;note&nbsp;that&nbsp;this&nbsp;method&nbsp;is&nbsp;also&nbsp;called&nbsp;when&nbsp;defining&nbsp;generic<br>
+classes&nbsp;in&nbsp;the&nbsp;first&nbsp;place&nbsp;with&nbsp;`class&nbsp;Foo(Generic[T]):&nbsp;...`.</span></dd></dl>
+
+</td></tr></table></td></tr></table>
+</body></html>

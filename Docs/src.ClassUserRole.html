@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module src.ClassUserRole</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="src.html" class="white">src</a>.ClassUserRole</strong></td>
+<td class="extra"><a href="..">index</a><br><a href="file:c%3A%5Cusers%5Cyh28%5Conedrive%20-%20nottinghamshire%20county%20council%5Cdocuments%5Cgithub%5Csoft27101-pms%5Csrc%5Cclassuserrole.py">c:\users\yh28\onedrive - nottinghamshire county council\documents\github\soft27101-pms\src\classuserrole.py</a></td></tr></table>
+    <p></p>
+<p>
+<table class="section">
+<tr class="decor index-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Classes</strong></td></tr>
+    
+<tr><td class="decor index-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl>
+<dt class="heading-text"><a href="src.ClassBase.html#Base">src.ClassBase.Base</a>(<a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>)
+</dt><dd>
+<dl>
+<dt class="heading-text"><a href="src.ClassUserRole.html#UserRole">UserRole</a>
+</dt></dl>
+</dd>
+</dl>
+ <p>
+<table class="section">
+<tr class="decor title-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><a name="UserRole">class <strong>UserRole</strong></a>(<a href="src.ClassBase.html#Base">src.ClassBase.Base</a>)</td></tr>
+    
+<tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
+<td class="decor title-decor" colspan=2><span class="code"><a href="#UserRole">UserRole</a>(**kwargs)<br>
+&nbsp;<br>
+A&nbsp;class&nbsp;to&nbsp;represent&nbsp;a&nbsp;user&nbsp;role&nbsp;in&nbsp;the&nbsp;database<br>
+Attributes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;user_role_pkey:&nbsp;The&nbsp;primary&nbsp;key&nbsp;of&nbsp;the&nbsp;user&nbsp;role<br>
+&nbsp;&nbsp;&nbsp;&nbsp;user_fkey:&nbsp;The&nbsp;foreign&nbsp;key&nbsp;of&nbsp;the&nbsp;user&nbsp;associated&nbsp;with&nbsp;the&nbsp;role<br>
+&nbsp;&nbsp;&nbsp;&nbsp;role_type:&nbsp;The&nbsp;type&nbsp;of&nbsp;role<br>
+&nbsp;&nbsp;&nbsp;&nbsp;role_desc:&nbsp;A&nbsp;description&nbsp;of&nbsp;the&nbsp;role<br>
+&nbsp;&nbsp;&nbsp;&nbsp;start_date:&nbsp;The&nbsp;date&nbsp;the&nbsp;role&nbsp;was&nbsp;assigned<br>
+&nbsp;&nbsp;&nbsp;&nbsp;end_date:&nbsp;The&nbsp;date&nbsp;the&nbsp;role&nbsp;was&nbsp;removed<br>
+&nbsp;&nbsp;&nbsp;&nbsp;is_active:&nbsp;A&nbsp;flag&nbsp;indicating&nbsp;if&nbsp;the&nbsp;role&nbsp;is&nbsp;currently&nbsp;active<br>
+&nbsp;&nbsp;&nbsp;&nbsp;user:&nbsp;The&nbsp;user&nbsp;associated&nbsp;with&nbsp;the&nbsp;role<br>
+&nbsp;<br>
+Methods:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#UserRole-add_user_role">add_user_role</a>(session,&nbsp;user_fkey,&nbsp;role_type_specified):&nbsp;Add&nbsp;a&nbsp;new&nbsp;user&nbsp;role&nbsp;to&nbsp;the&nbsp;database<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#UserRole-delete_user_role">delete_user_role</a>(session,&nbsp;user_fkey,&nbsp;role_type=None):&nbsp;Delete&nbsp;a&nbsp;user&nbsp;role&nbsp;from&nbsp;the&nbsp;database<br>&nbsp;</span></td></tr>
+<tr><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt>Method resolution order:</dt>
+<dd><a href="src.ClassUserRole.html#UserRole">UserRole</a></dd>
+<dd><a href="src.ClassBase.html#Base">src.ClassBase.Base</a></dd>
+<dd><a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a></dd>
+<dd><a href="sqlalchemy.inspection.html#Inspectable">sqlalchemy.inspection.Inspectable</a></dd>
+<dd><a href="typing.html#Generic">typing.Generic</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="UserRole-__init__"><strong>__init__</strong></a>(self, **kwargs)</dt><dd><span class="code">A&nbsp;simple&nbsp;constructor&nbsp;that&nbsp;allows&nbsp;initialization&nbsp;from&nbsp;kwargs.<br>
+&nbsp;<br>
+Sets&nbsp;attributes&nbsp;on&nbsp;the&nbsp;constructed&nbsp;instance&nbsp;using&nbsp;the&nbsp;names&nbsp;and<br>
+values&nbsp;in&nbsp;``kwargs``.<br>
+&nbsp;<br>
+Only&nbsp;keys&nbsp;that&nbsp;are&nbsp;present&nbsp;as<br>
+attributes&nbsp;of&nbsp;the&nbsp;instance's&nbsp;class&nbsp;are&nbsp;allowed.&nbsp;These&nbsp;could&nbsp;be,<br>
+for&nbsp;example,&nbsp;any&nbsp;mapped&nbsp;columns&nbsp;or&nbsp;relationships.</span></dd></dl>
+
+<hr>
+Class methods defined here:<br>
+<dl><dt><a name="UserRole-add_user_role"><strong>add_user_role</strong></a>(session, user_fkey, role_type_specified)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Add&nbsp;a&nbsp;new&nbsp;user&nbsp;role&nbsp;to&nbsp;the&nbsp;database<br>
+:param&nbsp;session:&nbsp;The&nbsp;session&nbsp;to&nbsp;use&nbsp;for&nbsp;the&nbsp;database&nbsp;interaction<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;user_fkey:&nbsp;The&nbsp;foreign&nbsp;key&nbsp;of&nbsp;the&nbsp;user&nbsp;to&nbsp;add&nbsp;the&nbsp;role&nbsp;to<br>
+:type&nbsp;user_fkey:&nbsp;int<br>
+:param&nbsp;role_type_specified:&nbsp;The&nbsp;type&nbsp;of&nbsp;role&nbsp;to&nbsp;add<br>
+:type&nbsp;role_type_specified:&nbsp;str<br>
+:return:&nbsp;A&nbsp;message&nbsp;indicating&nbsp;the&nbsp;success&nbsp;or&nbsp;failure&nbsp;of&nbsp;the&nbsp;operation</span></dd></dl>
+
+<dl><dt><a name="UserRole-delete_user_role"><strong>delete_user_role</strong></a>(session, user_fkey, role_type=None)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Delete&nbsp;a&nbsp;user&nbsp;role&nbsp;from&nbsp;the&nbsp;database<br>
+:param&nbsp;session:&nbsp;The&nbsp;session&nbsp;to&nbsp;use&nbsp;for&nbsp;the&nbsp;database&nbsp;interaction<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;user_fkey:&nbsp;The&nbsp;foreign&nbsp;key&nbsp;of&nbsp;the&nbsp;user&nbsp;to&nbsp;delete&nbsp;the&nbsp;role&nbsp;from<br>
+:type&nbsp;user_fkey:&nbsp;int<br>
+:param&nbsp;role_type:&nbsp;The&nbsp;type&nbsp;of&nbsp;role&nbsp;to&nbsp;delete.&nbsp;If&nbsp;None,&nbsp;all&nbsp;roles&nbsp;for&nbsp;the&nbsp;user&nbsp;will&nbsp;be&nbsp;deleted<br>
+:type&nbsp;role_type:&nbsp;str<br>
+&nbsp;<br>
+:return:&nbsp;A&nbsp;message&nbsp;indicating&nbsp;the&nbsp;success&nbsp;or&nbsp;failure&nbsp;of&nbsp;the&nbsp;operation</span></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>end_date</strong></dt>
+</dl>
+<dl><dt><strong>is_active</strong></dt>
+</dl>
+<dl><dt><strong>role_desc</strong></dt>
+</dl>
+<dl><dt><strong>role_type</strong></dt>
+</dl>
+<dl><dt><strong>start_date</strong></dt>
+</dl>
+<dl><dt><strong>user</strong></dt>
+</dl>
+<dl><dt><strong>user_fkey</strong></dt>
+</dl>
+<dl><dt><strong>user_role_pkey</strong></dt>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__annotations__</strong> = {}</dl>
+
+<dl><dt><strong>__mapper__</strong> = &lt;Mapper at 0x2d8434b8310; UserRole&gt;</dl>
+
+<dl><dt><strong>__parameters__</strong> = ()</dl>
+
+<dl><dt><strong>__table__</strong> = Table('USER_ROLE', MetaData(), Column('user_role...ault=ScalarElementColumnDefault(1)), schema=None)</dl>
+
+<dl><dt><strong>__tablename__</strong> = 'USER_ROLE'</dl>
+
+<hr>
+Data and other attributes inherited from <a href="src.ClassBase.html#Base">src.ClassBase.Base</a>:<br>
+<dl><dt><strong>metadata</strong> = MetaData()</dl>
+
+<dl><dt><strong>registry</strong> = &lt;sqlalchemy.orm.decl_api.registry object&gt;</dl>
+
+<hr>
+Class methods inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><a name="UserRole-__init_subclass__"><strong>__init_subclass__</strong></a>(**kw: 'Any') -&gt; 'None'<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">This&nbsp;method&nbsp;is&nbsp;called&nbsp;when&nbsp;a&nbsp;class&nbsp;is&nbsp;subclassed.<br>
+&nbsp;<br>
+The&nbsp;default&nbsp;implementation&nbsp;does&nbsp;nothing.&nbsp;It&nbsp;may&nbsp;be<br>
+overridden&nbsp;to&nbsp;extend&nbsp;subclasses.</span></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><span class="code">dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><span class="code">list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+<hr>
+Data and other attributes inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><strong>__orig_bases__</strong> = (sqlalchemy.inspection.Inspectable[sqlalchemy.orm.state.InstanceState[typing.Any]],)</dl>
+
+<hr>
+Class methods inherited from <a href="typing.html#Generic">typing.Generic</a>:<br>
+<dl><dt><a name="UserRole-__class_getitem__"><strong>__class_getitem__</strong></a>(params)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Parameterizes&nbsp;a&nbsp;generic&nbsp;class.<br>
+&nbsp;<br>
+At&nbsp;least,&nbsp;parameterizing&nbsp;a&nbsp;generic&nbsp;class&nbsp;is&nbsp;the&nbsp;*main*&nbsp;thing&nbsp;this&nbsp;method<br>
+does.&nbsp;For&nbsp;example,&nbsp;for&nbsp;some&nbsp;generic&nbsp;class&nbsp;`Foo`,&nbsp;this&nbsp;is&nbsp;called&nbsp;when&nbsp;we<br>
+do&nbsp;`Foo[int]`&nbsp;-&nbsp;there,&nbsp;with&nbsp;`cls=Foo`&nbsp;and&nbsp;`params=int`.<br>
+&nbsp;<br>
+However,&nbsp;note&nbsp;that&nbsp;this&nbsp;method&nbsp;is&nbsp;also&nbsp;called&nbsp;when&nbsp;defining&nbsp;generic<br>
+classes&nbsp;in&nbsp;the&nbsp;first&nbsp;place&nbsp;with&nbsp;`class&nbsp;Foo(Generic[T]):&nbsp;...`.</span></dd></dl>
+
+</td></tr></table></td></tr></table>
+</body></html>

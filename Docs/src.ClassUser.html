@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module src.ClassUser</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="src.html" class="white">src</a>.ClassUser</strong></td>
+<td class="extra"><a href="..">index</a><br><a href="file:c%3A%5Cusers%5Cyh28%5Conedrive%20-%20nottinghamshire%20county%20council%5Cdocuments%5Cgithub%5Csoft27101-pms%5Csrc%5Cclassuser.py">c:\users\yh28\onedrive - nottinghamshire county council\documents\github\soft27101-pms\src\classuser.py</a></td></tr></table>
+    <p></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Modules</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="bcrypt.html">bcrypt</a><br>
+</td><td class="multicolumn"></td><td class="multicolumn"></td><td class="multicolumn"></td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor index-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Classes</strong></td></tr>
+    
+<tr><td class="decor index-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl>
+<dt class="heading-text"><a href="src.ClassBase.html#Base">src.ClassBase.Base</a>(<a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>)
+</dt><dd>
+<dl>
+<dt class="heading-text"><a href="src.ClassUser.html#User">User</a>
+</dt></dl>
+</dd>
+</dl>
+ <p>
+<table class="section">
+<tr class="decor title-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><a name="User">class <strong>User</strong></a>(<a href="src.ClassBase.html#Base">src.ClassBase.Base</a>)</td></tr>
+    
+<tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
+<td class="decor title-decor" colspan=2><span class="code"><a href="#User">User</a>(**kwargs)<br>
+&nbsp;<br>
+Class&nbsp;to&nbsp;represent&nbsp;the&nbsp;<a href="#User">User</a>&nbsp;table&nbsp;in&nbsp;the&nbsp;database.<br>
+Attributes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;user_pkey:&nbsp;Primary&nbsp;key&nbsp;for&nbsp;the&nbsp;user&nbsp;table<br>
+&nbsp;&nbsp;&nbsp;&nbsp;username:&nbsp;Username&nbsp;of&nbsp;the&nbsp;user<br>
+&nbsp;&nbsp;&nbsp;&nbsp;full_name:&nbsp;Full&nbsp;name&nbsp;of&nbsp;the&nbsp;user<br>
+&nbsp;&nbsp;&nbsp;&nbsp;email_address:&nbsp;Email&nbsp;address&nbsp;of&nbsp;the&nbsp;user<br>
+&nbsp;&nbsp;&nbsp;&nbsp;password_hashed:&nbsp;Hashed&nbsp;password&nbsp;of&nbsp;the&nbsp;user<br>
+&nbsp;&nbsp;&nbsp;&nbsp;date_registered:&nbsp;Date&nbsp;the&nbsp;user&nbsp;was&nbsp;registered<br>
+&nbsp;&nbsp;&nbsp;&nbsp;is_active:&nbsp;Flag&nbsp;indicating&nbsp;if&nbsp;the&nbsp;user&nbsp;is&nbsp;active&nbsp;or&nbsp;not<br>
+&nbsp;&nbsp;&nbsp;&nbsp;owner_of_projects:&nbsp;Relationship&nbsp;to&nbsp;the&nbsp;Project&nbsp;table<br>
+&nbsp;&nbsp;&nbsp;&nbsp;team_associations:&nbsp;Relationship&nbsp;to&nbsp;the&nbsp;ProjectTeam&nbsp;table<br>
+&nbsp;&nbsp;&nbsp;&nbsp;assigned_tasks:&nbsp;Relationship&nbsp;to&nbsp;the&nbsp;Task&nbsp;table<br>
+&nbsp;&nbsp;&nbsp;&nbsp;assigner_of_tasks:&nbsp;Relationship&nbsp;to&nbsp;the&nbsp;Task&nbsp;table<br>
+&nbsp;&nbsp;&nbsp;&nbsp;user_roles:&nbsp;Relationship&nbsp;to&nbsp;the&nbsp;UserRole&nbsp;table<br>
+&nbsp;&nbsp;&nbsp;&nbsp;communication_log:&nbsp;Relationship&nbsp;to&nbsp;the&nbsp;CommunicationLog&nbsp;table<br>
+&nbsp;<br>
+Methods:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#User-hash_password">hash_password</a>(password):&nbsp;Hash&nbsp;a&nbsp;password&nbsp;using&nbsp;bcrypt<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#User-authenticate_user">authenticate_user</a>(session,&nbsp;username,&nbsp;password):&nbsp;Authenticate&nbsp;a&nbsp;user<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#User-get_user_instance">get_user_instance</a>(session,&nbsp;user_pkey):&nbsp;Get&nbsp;a&nbsp;user&nbsp;instance&nbsp;from&nbsp;the&nbsp;database<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#User-get_user_fkey">get_user_fkey</a>(session,&nbsp;username):&nbsp;Get&nbsp;the&nbsp;user&nbsp;primary&nbsp;key<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#User-get_users">get_users</a>(session):&nbsp;Get&nbsp;all&nbsp;users&nbsp;from&nbsp;the&nbsp;database<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#User-is_user_admin">is_user_admin</a>(session,&nbsp;user_pkey):&nbsp;Check&nbsp;if&nbsp;a&nbsp;user&nbsp;is&nbsp;an&nbsp;admin<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#User-verify_password">verify_password</a>(password_to_verify):&nbsp;Verify&nbsp;a&nbsp;password&nbsp;against&nbsp;the&nbsp;hashed&nbsp;password<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#User-register_user">register_user</a>(session):&nbsp;Register&nbsp;a&nbsp;new&nbsp;user<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#User-set_user">set_user</a>(session,&nbsp;user_to_set_pkey,&nbsp;setFullname,&nbsp;setEmailAddress,&nbsp;setPassword):&nbsp;Set&nbsp;user&nbsp;details<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#User-delete_user">delete_user</a>(session,&nbsp;user_to_delete_pkey):&nbsp;Delete&nbsp;a&nbsp;user&nbsp;from&nbsp;the&nbsp;database<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#User-get_roles">get_roles</a>(session):&nbsp;Get&nbsp;the&nbsp;user&nbsp;roles<br>&nbsp;</span></td></tr>
+<tr><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt>Method resolution order:</dt>
+<dd><a href="src.ClassUser.html#User">User</a></dd>
+<dd><a href="src.ClassBase.html#Base">src.ClassBase.Base</a></dd>
+<dd><a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a></dd>
+<dd><a href="sqlalchemy.inspection.html#Inspectable">sqlalchemy.inspection.Inspectable</a></dd>
+<dd><a href="typing.html#Generic">typing.Generic</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="User-__init__"><strong>__init__</strong></a>(self, **kwargs)</dt><dd><span class="code">A&nbsp;simple&nbsp;constructor&nbsp;that&nbsp;allows&nbsp;initialization&nbsp;from&nbsp;kwargs.<br>
+&nbsp;<br>
+Sets&nbsp;attributes&nbsp;on&nbsp;the&nbsp;constructed&nbsp;instance&nbsp;using&nbsp;the&nbsp;names&nbsp;and<br>
+values&nbsp;in&nbsp;``kwargs``.<br>
+&nbsp;<br>
+Only&nbsp;keys&nbsp;that&nbsp;are&nbsp;present&nbsp;as<br>
+attributes&nbsp;of&nbsp;the&nbsp;instance's&nbsp;class&nbsp;are&nbsp;allowed.&nbsp;These&nbsp;could&nbsp;be,<br>
+for&nbsp;example,&nbsp;any&nbsp;mapped&nbsp;columns&nbsp;or&nbsp;relationships.</span></dd></dl>
+
+<dl><dt><a name="User-delete_user"><strong>delete_user</strong></a>(self, session, user_to_delete_pkey)</dt><dd><span class="code">Delete&nbsp;a&nbsp;user&nbsp;from&nbsp;the&nbsp;database.<br>
+:param&nbsp;session:&nbsp;Database&nbsp;session<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;user_to_delete_pkey:&nbsp;<a href="#User">User</a>&nbsp;primary&nbsp;key<br>
+:type&nbsp;user_to_delete_pkey:&nbsp;int<br>
+:return:&nbsp;Message&nbsp;indicating&nbsp;the&nbsp;result&nbsp;of&nbsp;the&nbsp;deletion&nbsp;attempt.</span></dd></dl>
+
+<dl><dt><a name="User-get_roles"><strong>get_roles</strong></a>(self, session)</dt></dl>
+
+<dl><dt><a name="User-register_user"><strong>register_user</strong></a>(self, session)</dt><dd><span class="code">Register&nbsp;a&nbsp;new&nbsp;user.<br>
+:param&nbsp;session:&nbsp;Database&nbsp;session<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:return:&nbsp;Message&nbsp;indicating&nbsp;the&nbsp;result&nbsp;of&nbsp;the&nbsp;registration&nbsp;attempt.</span></dd></dl>
+
+<dl><dt><a name="User-set_user"><strong>set_user</strong></a>(self, session, user_to_set_pkey, setFullname, setEmailAddress, setPassword=None)</dt><dd><span class="code">Set&nbsp;user&nbsp;details.<br>
+:param&nbsp;session:&nbsp;Database&nbsp;session<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;user_to_set_pkey:&nbsp;<a href="#User">User</a>&nbsp;primary&nbsp;key<br>
+:type&nbsp;user_to_set_pkey:&nbsp;int<br>
+:param&nbsp;setFullname:&nbsp;Full&nbsp;name&nbsp;to&nbsp;set<br>
+:type&nbsp;setFullname:&nbsp;str<br>
+:param&nbsp;setEmailAddress:&nbsp;Email&nbsp;address&nbsp;to&nbsp;set<br>
+:type&nbsp;setEmailAddress:&nbsp;str<br>
+:param&nbsp;setPassword:&nbsp;Password&nbsp;to&nbsp;set<br>
+:type&nbsp;setPassword:&nbsp;str<br>
+:return:&nbsp;Message&nbsp;indicating&nbsp;the&nbsp;result&nbsp;of&nbsp;the&nbsp;update&nbsp;attempt.</span></dd></dl>
+
+<dl><dt><a name="User-verify_password"><strong>verify_password</strong></a>(self, password_to_verify)</dt><dd><span class="code">Verify&nbsp;a&nbsp;password&nbsp;against&nbsp;the&nbsp;hashed&nbsp;password.<br>
+:param&nbsp;password_to_verify:&nbsp;Password&nbsp;to&nbsp;verify<br>
+:type&nbsp;password_to_verify:&nbsp;str<br>
+:return:&nbsp;True&nbsp;if&nbsp;the&nbsp;password&nbsp;matches,&nbsp;False&nbsp;otherwise<br>
+:rtype:&nbsp;bool</span></dd></dl>
+
+<hr>
+Static methods defined here:<br>
+<dl><dt><a name="User-authenticate_user"><strong>authenticate_user</strong></a>(session, username, password)</dt><dd><span class="code">Authenticate&nbsp;a&nbsp;user.<br>
+:param&nbsp;session:&nbsp;Database&nbsp;session<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;username:&nbsp;Username<br>
+:type&nbsp;username:&nbsp;str<br>
+:param&nbsp;password:&nbsp;Password<br>
+:type&nbsp;password:&nbsp;str<br>
+:return:&nbsp;Tuple&nbsp;with&nbsp;a&nbsp;message&nbsp;and&nbsp;the&nbsp;(user&nbsp;instance&nbsp;-&nbsp;if&nbsp;successful)&nbsp;or&nbsp;(None&nbsp;-&nbsp;if&nbsp;unsuccessful)</span></dd></dl>
+
+<dl><dt><a name="User-get_user_fkey"><strong>get_user_fkey</strong></a>(session, username)</dt><dd><span class="code">Get&nbsp;the&nbsp;user&nbsp;primary&nbsp;key.<br>
+:param&nbsp;session:&nbsp;Database&nbsp;session<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;username:&nbsp;Username<br>
+:type&nbsp;username:&nbsp;str<br>
+:return:&nbsp;<a href="#User">User</a>&nbsp;primary&nbsp;key&nbsp;as&nbsp;an&nbsp;integer<br>
+:rtype:&nbsp;int</span></dd></dl>
+
+<dl><dt><a name="User-get_user_instance"><strong>get_user_instance</strong></a>(session, user_pkey)</dt><dd><span class="code">Get&nbsp;a&nbsp;user&nbsp;instance&nbsp;from&nbsp;the&nbsp;database.<br>
+:param&nbsp;session:&nbsp;Database&nbsp;session<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;user_pkey:&nbsp;<a href="#User">User</a>&nbsp;primary&nbsp;key<br>
+:type&nbsp;user_pkey:&nbsp;int<br>
+:return:&nbsp;<a href="#User">User</a>&nbsp;instance<br>
+:rtype:&nbsp;<a href="#User">User</a>&nbsp;instance</span></dd></dl>
+
+<dl><dt><a name="User-get_users"><strong>get_users</strong></a>(session)</dt><dd><span class="code">Get&nbsp;all&nbsp;users&nbsp;from&nbsp;the&nbsp;database.<br>
+:param&nbsp;session:&nbsp;Database&nbsp;session<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:return:&nbsp;List&nbsp;of&nbsp;<a href="#User">User</a>&nbsp;instances<br>
+:rtype:&nbsp;list&nbsp;of&nbsp;<a href="#User">User</a>&nbsp;instances</span></dd></dl>
+
+<dl><dt><a name="User-hash_password"><strong>hash_password</strong></a>(password)</dt><dd><span class="code">Hash&nbsp;a&nbsp;password&nbsp;using&nbsp;bcrypt.<br>
+:param&nbsp;password:&nbsp;Password&nbsp;to&nbsp;hash<br>
+:type&nbsp;password:&nbsp;str<br>
+:return:&nbsp;Hashed&nbsp;password&nbsp;as&nbsp;a&nbsp;string<br>
+:rtype:&nbsp;str</span></dd></dl>
+
+<dl><dt><a name="User-is_user_admin"><strong>is_user_admin</strong></a>(session, user_pkey)</dt><dd><span class="code">Check&nbsp;if&nbsp;a&nbsp;user&nbsp;is&nbsp;an&nbsp;admin.<br>
+:param&nbsp;session:&nbsp;Database&nbsp;session<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;user_pkey:&nbsp;<a href="#User">User</a>&nbsp;primary&nbsp;key<br>
+:type&nbsp;user_pkey:&nbsp;int<br>
+:return:&nbsp;True&nbsp;if&nbsp;the&nbsp;user&nbsp;is&nbsp;an&nbsp;admin,&nbsp;False&nbsp;otherwise<br>
+:rtype:&nbsp;bool</span></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>assigned_tasks</strong></dt>
+</dl>
+<dl><dt><strong>assigner_of_tasks</strong></dt>
+</dl>
+<dl><dt><strong>communication_log</strong></dt>
+</dl>
+<dl><dt><strong>date_registered</strong></dt>
+</dl>
+<dl><dt><strong>email_address</strong></dt>
+</dl>
+<dl><dt><strong>full_name</strong></dt>
+</dl>
+<dl><dt><strong>is_active</strong></dt>
+</dl>
+<dl><dt><strong>owner_of_projects</strong></dt>
+</dl>
+<dl><dt><strong>password_hashed</strong></dt>
+</dl>
+<dl><dt><strong>team_associations</strong></dt>
+</dl>
+<dl><dt><strong>user_pkey</strong></dt>
+</dl>
+<dl><dt><strong>user_roles</strong></dt>
+</dl>
+<dl><dt><strong>username</strong></dt>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__annotations__</strong> = {}</dl>
+
+<dl><dt><strong>__mapper__</strong> = &lt;Mapper at 0x233a516f810; User&gt;</dl>
+
+<dl><dt><strong>__parameters__</strong> = ()</dl>
+
+<dl><dt><strong>__table__</strong> = Table('USER', MetaData(), Column('user_pkey', In...ault=ScalarElementColumnDefault(1)), schema=None)</dl>
+
+<dl><dt><strong>__tablename__</strong> = 'USER'</dl>
+
+<hr>
+Data and other attributes inherited from <a href="src.ClassBase.html#Base">src.ClassBase.Base</a>:<br>
+<dl><dt><strong>metadata</strong> = MetaData()</dl>
+
+<dl><dt><strong>registry</strong> = &lt;sqlalchemy.orm.decl_api.registry object&gt;</dl>
+
+<hr>
+Class methods inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><a name="User-__init_subclass__"><strong>__init_subclass__</strong></a>(**kw: 'Any') -&gt; 'None'<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">This&nbsp;method&nbsp;is&nbsp;called&nbsp;when&nbsp;a&nbsp;class&nbsp;is&nbsp;subclassed.<br>
+&nbsp;<br>
+The&nbsp;default&nbsp;implementation&nbsp;does&nbsp;nothing.&nbsp;It&nbsp;may&nbsp;be<br>
+overridden&nbsp;to&nbsp;extend&nbsp;subclasses.</span></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><span class="code">dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><span class="code">list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+<hr>
+Data and other attributes inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><strong>__orig_bases__</strong> = (sqlalchemy.inspection.Inspectable[sqlalchemy.orm.state.InstanceState[typing.Any]],)</dl>
+
+<hr>
+Class methods inherited from <a href="typing.html#Generic">typing.Generic</a>:<br>
+<dl><dt><a name="User-__class_getitem__"><strong>__class_getitem__</strong></a>(params)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Parameterizes&nbsp;a&nbsp;generic&nbsp;class.<br>
+&nbsp;<br>
+At&nbsp;least,&nbsp;parameterizing&nbsp;a&nbsp;generic&nbsp;class&nbsp;is&nbsp;the&nbsp;*main*&nbsp;thing&nbsp;this&nbsp;method<br>
+does.&nbsp;For&nbsp;example,&nbsp;for&nbsp;some&nbsp;generic&nbsp;class&nbsp;`Foo`,&nbsp;this&nbsp;is&nbsp;called&nbsp;when&nbsp;we<br>
+do&nbsp;`Foo[int]`&nbsp;-&nbsp;there,&nbsp;with&nbsp;`cls=Foo`&nbsp;and&nbsp;`params=int`.<br>
+&nbsp;<br>
+However,&nbsp;note&nbsp;that&nbsp;this&nbsp;method&nbsp;is&nbsp;also&nbsp;called&nbsp;when&nbsp;defining&nbsp;generic<br>
+classes&nbsp;in&nbsp;the&nbsp;first&nbsp;place&nbsp;with&nbsp;`class&nbsp;Foo(Generic[T]):&nbsp;...`.</span></dd></dl>
+
+</td></tr></table></td></tr></table>
+</body></html>

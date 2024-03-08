@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module src.ClassAttachment</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="src.html" class="white">src</a>.ClassAttachment</strong></td>
+<td class="extra"><a href="..">index</a><br><a href="file:c%3A%5Cusers%5Cyh28%5Conedrive%20-%20nottinghamshire%20county%20council%5Cdocuments%5Cgithub%5Csoft27101-pms%5Csrc%5Cclassattachment.py">c:\users\yh28\onedrive - nottinghamshire county council\documents\github\soft27101-pms\src\classattachment.py</a></td></tr></table>
+    <p></p>
+<p>
+<table class="section">
+<tr class="decor index-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Classes</strong></td></tr>
+    
+<tr><td class="decor index-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl>
+<dt class="heading-text"><a href="src.ClassBase.html#Base">src.ClassBase.Base</a>(<a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>)
+</dt><dd>
+<dl>
+<dt class="heading-text"><a href="src.ClassAttachment.html#Attachment">Attachment</a>
+</dt></dl>
+</dd>
+</dl>
+ <p>
+<table class="section">
+<tr class="decor title-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><a name="Attachment">class <strong>Attachment</strong></a>(<a href="src.ClassBase.html#Base">src.ClassBase.Base</a>)</td></tr>
+    
+<tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
+<td class="decor title-decor" colspan=2><span class="code"><a href="#Attachment">Attachment</a>(**kwargs)<br>
+&nbsp;<br>
+Class&nbsp;to&nbsp;represent&nbsp;the&nbsp;ATTACHMENT&nbsp;table&nbsp;in&nbsp;the&nbsp;database.<br>
+&nbsp;<br>
+Attributes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;attachment_pkey:&nbsp;int,&nbsp;primary&nbsp;key,&nbsp;autoincrement<br>
+&nbsp;&nbsp;&nbsp;&nbsp;communication_log_fkey:&nbsp;int,&nbsp;foreign&nbsp;key&nbsp;to&nbsp;COMMUNICATION_LOG<br>
+&nbsp;&nbsp;&nbsp;&nbsp;file_name:&nbsp;str,&nbsp;name&nbsp;of&nbsp;the&nbsp;file<br>
+&nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;bytes,&nbsp;binary&nbsp;data&nbsp;of&nbsp;the&nbsp;file<br>
+&nbsp;&nbsp;&nbsp;&nbsp;size:&nbsp;float,&nbsp;size&nbsp;of&nbsp;the&nbsp;file&nbsp;in&nbsp;KB<br>
+&nbsp;&nbsp;&nbsp;&nbsp;upload_datetime:&nbsp;datetime,&nbsp;date&nbsp;and&nbsp;time&nbsp;of&nbsp;the&nbsp;upload<br>
+&nbsp;&nbsp;&nbsp;&nbsp;communication_log:&nbsp;relationship&nbsp;to&nbsp;CommunicationLog<br>&nbsp;</span></td></tr>
+<tr><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt>Method resolution order:</dt>
+<dd><a href="src.ClassAttachment.html#Attachment">Attachment</a></dd>
+<dd><a href="src.ClassBase.html#Base">src.ClassBase.Base</a></dd>
+<dd><a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a></dd>
+<dd><a href="sqlalchemy.inspection.html#Inspectable">sqlalchemy.inspection.Inspectable</a></dd>
+<dd><a href="typing.html#Generic">typing.Generic</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="Attachment-__init__"><strong>__init__</strong></a>(self, **kwargs)</dt><dd><span class="code">A&nbsp;simple&nbsp;constructor&nbsp;that&nbsp;allows&nbsp;initialization&nbsp;from&nbsp;kwargs.<br>
+&nbsp;<br>
+Sets&nbsp;attributes&nbsp;on&nbsp;the&nbsp;constructed&nbsp;instance&nbsp;using&nbsp;the&nbsp;names&nbsp;and<br>
+values&nbsp;in&nbsp;``kwargs``.<br>
+&nbsp;<br>
+Only&nbsp;keys&nbsp;that&nbsp;are&nbsp;present&nbsp;as<br>
+attributes&nbsp;of&nbsp;the&nbsp;instance's&nbsp;class&nbsp;are&nbsp;allowed.&nbsp;These&nbsp;could&nbsp;be,<br>
+for&nbsp;example,&nbsp;any&nbsp;mapped&nbsp;columns&nbsp;or&nbsp;relationships.</span></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>attachment_pkey</strong></dt>
+</dl>
+<dl><dt><strong>communication_log</strong></dt>
+</dl>
+<dl><dt><strong>communication_log_fkey</strong></dt>
+</dl>
+<dl><dt><strong>data</strong></dt>
+</dl>
+<dl><dt><strong>file_name</strong></dt>
+</dl>
+<dl><dt><strong>size</strong></dt>
+</dl>
+<dl><dt><strong>upload_datetime</strong></dt>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__annotations__</strong> = {}</dl>
+
+<dl><dt><strong>__mapper__</strong> = &lt;Mapper at 0x217ccf87bd0; Attachment&gt;</dl>
+
+<dl><dt><strong>__parameters__</strong> = ()</dl>
+
+<dl><dt><strong>__table__</strong> = Table('ATTACHMENT', MetaData(), Column('attachme...ime.utcnow at 0x00000217CCF7FD80&gt;)), schema=None)</dl>
+
+<dl><dt><strong>__tablename__</strong> = 'ATTACHMENT'</dl>
+
+<hr>
+Data and other attributes inherited from <a href="src.ClassBase.html#Base">src.ClassBase.Base</a>:<br>
+<dl><dt><strong>metadata</strong> = MetaData()</dl>
+
+<dl><dt><strong>registry</strong> = &lt;sqlalchemy.orm.decl_api.registry object&gt;</dl>
+
+<hr>
+Class methods inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><a name="Attachment-__init_subclass__"><strong>__init_subclass__</strong></a>(**kw: 'Any') -&gt; 'None'<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">This&nbsp;method&nbsp;is&nbsp;called&nbsp;when&nbsp;a&nbsp;class&nbsp;is&nbsp;subclassed.<br>
+&nbsp;<br>
+The&nbsp;default&nbsp;implementation&nbsp;does&nbsp;nothing.&nbsp;It&nbsp;may&nbsp;be<br>
+overridden&nbsp;to&nbsp;extend&nbsp;subclasses.</span></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><span class="code">dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><span class="code">list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+<hr>
+Data and other attributes inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><strong>__orig_bases__</strong> = (sqlalchemy.inspection.Inspectable[sqlalchemy.orm.state.InstanceState[typing.Any]],)</dl>
+
+<hr>
+Class methods inherited from <a href="typing.html#Generic">typing.Generic</a>:<br>
+<dl><dt><a name="Attachment-__class_getitem__"><strong>__class_getitem__</strong></a>(params)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Parameterizes&nbsp;a&nbsp;generic&nbsp;class.<br>
+&nbsp;<br>
+At&nbsp;least,&nbsp;parameterizing&nbsp;a&nbsp;generic&nbsp;class&nbsp;is&nbsp;the&nbsp;*main*&nbsp;thing&nbsp;this&nbsp;method<br>
+does.&nbsp;For&nbsp;example,&nbsp;for&nbsp;some&nbsp;generic&nbsp;class&nbsp;`Foo`,&nbsp;this&nbsp;is&nbsp;called&nbsp;when&nbsp;we<br>
+do&nbsp;`Foo[int]`&nbsp;-&nbsp;there,&nbsp;with&nbsp;`cls=Foo`&nbsp;and&nbsp;`params=int`.<br>
+&nbsp;<br>
+However,&nbsp;note&nbsp;that&nbsp;this&nbsp;method&nbsp;is&nbsp;also&nbsp;called&nbsp;when&nbsp;defining&nbsp;generic<br>
+classes&nbsp;in&nbsp;the&nbsp;first&nbsp;place&nbsp;with&nbsp;`class&nbsp;Foo(Generic[T]):&nbsp;...`.</span></dd></dl>
+
+</td></tr></table></td></tr></table>
+</body></html>

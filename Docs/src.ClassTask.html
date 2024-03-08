@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module src.ClassTask</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="src.html" class="white">src</a>.ClassTask</strong></td>
+<td class="extra"><a href="..">index</a><br><a href="file:c%3A%5Cusers%5Cyh28%5Conedrive%20-%20nottinghamshire%20county%20council%5Cdocuments%5Cgithub%5Csoft27101-pms%5Csrc%5Cclasstask.py">c:\users\yh28\onedrive - nottinghamshire county council\documents\github\soft27101-pms\src\classtask.py</a></td></tr></table>
+    <p></p>
+<p>
+<table class="section">
+<tr class="decor index-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Classes</strong></td></tr>
+    
+<tr><td class="decor index-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl>
+<dt class="heading-text"><a href="src.ClassBase.html#Base">src.ClassBase.Base</a>(<a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>)
+</dt><dd>
+<dl>
+<dt class="heading-text"><a href="src.ClassTask.html#Task">Task</a>
+</dt></dl>
+</dd>
+</dl>
+ <p>
+<table class="section">
+<tr class="decor title-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><a name="Task">class <strong>Task</strong></a>(<a href="src.ClassBase.html#Base">src.ClassBase.Base</a>)</td></tr>
+    
+<tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
+<td class="decor title-decor" colspan=2><span class="code"><a href="#Task">Task</a>(**kwargs)<br>
+&nbsp;<br>
+The&nbsp;<a href="#Task">Task</a>&nbsp;class<br>
+&nbsp;<br>
+Attributes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;task_pkey&nbsp;(int):&nbsp;The&nbsp;primary&nbsp;key<br>
+&nbsp;&nbsp;&nbsp;&nbsp;project_fkey&nbsp;(int):&nbsp;The&nbsp;project&nbsp;primary&nbsp;key<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name&nbsp;(str):&nbsp;The&nbsp;name&nbsp;of&nbsp;the&nbsp;task<br>
+&nbsp;&nbsp;&nbsp;&nbsp;desc&nbsp;(str):&nbsp;The&nbsp;description&nbsp;of&nbsp;the&nbsp;task<br>
+&nbsp;&nbsp;&nbsp;&nbsp;status&nbsp;(str):&nbsp;The&nbsp;status&nbsp;of&nbsp;the&nbsp;task&nbsp;(&nbsp;'Not&nbsp;Started',&nbsp;'In&nbsp;Progress',&nbsp;'Completed',&nbsp;'Pending&nbsp;Review').<br>
+&nbsp;&nbsp;&nbsp;&nbsp;start_date&nbsp;(datetime):&nbsp;The&nbsp;start&nbsp;date&nbsp;of&nbsp;the&nbsp;task<br>
+&nbsp;&nbsp;&nbsp;&nbsp;end_date&nbsp;(datetime):&nbsp;The&nbsp;end&nbsp;date&nbsp;of&nbsp;the&nbsp;task<br>
+&nbsp;&nbsp;&nbsp;&nbsp;due_date&nbsp;(datetime):&nbsp;The&nbsp;due&nbsp;date&nbsp;of&nbsp;the&nbsp;task<br>
+&nbsp;&nbsp;&nbsp;&nbsp;assignee_fkey&nbsp;(int):&nbsp;The&nbsp;assignee&nbsp;primary&nbsp;key<br>
+&nbsp;&nbsp;&nbsp;&nbsp;assigner_fkey&nbsp;(int):&nbsp;The&nbsp;assigner&nbsp;primary&nbsp;key<br>
+&nbsp;&nbsp;&nbsp;&nbsp;task_progress&nbsp;(int):&nbsp;The&nbsp;progress&nbsp;of&nbsp;the&nbsp;task&nbsp;(0-100)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;is_removed&nbsp;(int):&nbsp;A&nbsp;flag&nbsp;indicating&nbsp;if&nbsp;the&nbsp;task&nbsp;has&nbsp;been&nbsp;removed<br>
+&nbsp;&nbsp;&nbsp;&nbsp;project&nbsp;(src.ClassProject.Project):&nbsp;The&nbsp;project&nbsp;the&nbsp;task&nbsp;belongs&nbsp;to<br>
+&nbsp;&nbsp;&nbsp;&nbsp;assignee&nbsp;(src.ClassUser.User):&nbsp;The&nbsp;user&nbsp;assigned&nbsp;the&nbsp;task<br>
+&nbsp;&nbsp;&nbsp;&nbsp;assigner&nbsp;(src.ClassUser.User):&nbsp;The&nbsp;user&nbsp;who&nbsp;assigned&nbsp;the&nbsp;task<br>
+&nbsp;&nbsp;&nbsp;&nbsp;communication_log&nbsp;(src.ClassCommunicationLog.CommunicationLog):&nbsp;The&nbsp;communication&nbsp;log&nbsp;for&nbsp;the&nbsp;task<br>
+&nbsp;<br>
+Methods:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Task-get_user_ongoing_project_tasks">get_user_ongoing_project_tasks</a>(session,&nbsp;user_pkey,&nbsp;project_pkey=None):&nbsp;Get&nbsp;tasks&nbsp;assigned&nbsp;to&nbsp;a&nbsp;user&nbsp;for&nbsp;ongoing&nbsp;projects&nbsp;and&nbsp;tasks&nbsp;in&nbsp;their&nbsp;project<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Task-get_assigned_tasks">get_assigned_tasks</a>(session,&nbsp;user_pkey,&nbsp;project_pkey=None):&nbsp;Get&nbsp;tasks&nbsp;assigned&nbsp;to&nbsp;a&nbsp;user&nbsp;(for&nbsp;a&nbsp;project&nbsp;if&nbsp;specified)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Task-get_tasks">get_tasks</a>(session,&nbsp;project_pkey=None,&nbsp;project_completed=None):&nbsp;Get&nbsp;tasks&nbsp;(for&nbsp;a&nbsp;project&nbsp;if&nbsp;specified)&nbsp;and&nbsp;or&nbsp;(completed&nbsp;or&nbsp;uncompleted&nbsp;if&nbsp;specified)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Task-set_task">set_task</a>(session,&nbsp;userInstance,&nbsp;project_pkey,&nbsp;task_pkey,&nbsp;setName=None,&nbsp;setDesc=None,&nbsp;setStatus=None,&nbsp;setStartDate=None,&nbsp;setDueDate=None,&nbsp;setAssigneeFkey=None,&nbsp;setAssignerFkey&nbsp;=&nbsp;None,&nbsp;setTaskProgress=None):&nbsp;Update&nbsp;a&nbsp;task<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Task-delete_task">delete_task</a>(session,&nbsp;userInstance,&nbsp;project_pkey,&nbsp;task_pkey):&nbsp;Delete&nbsp;a&nbsp;task<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Task-delete_tasks_for_project">delete_tasks_for_project</a>(session,&nbsp;userInstance,&nbsp;project_pkey):&nbsp;Delete&nbsp;tasks&nbsp;for&nbsp;a&nbsp;project<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Task-close_tasks_for_project">close_tasks_for_project</a>(session,&nbsp;userInstance,&nbsp;project_pkey):&nbsp;Close&nbsp;all&nbsp;tasks&nbsp;for&nbsp;a&nbsp;project<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Task-close_task">close_task</a>(session,&nbsp;userInstance,&nbsp;project_pkey,&nbsp;task_pkey):&nbsp;Close&nbsp;a&nbsp;task<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Task-add_task">add_task</a>(session,&nbsp;userInstance,&nbsp;project_pkey):&nbsp;Add&nbsp;a&nbsp;task&nbsp;to&nbsp;a&nbsp;project<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Task-get_task">get_task</a>(session,&nbsp;task_pkey):&nbsp;Get&nbsp;a&nbsp;task<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Task-unassign_tasks">unassign_tasks</a>(session,&nbsp;user_pkey):&nbsp;Un-assign&nbsp;tasks&nbsp;from&nbsp;a&nbsp;user<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Task-unassign_tasks_from_project">unassign_tasks_from_project</a>(session,&nbsp;user_pkey,&nbsp;project_pkey):&nbsp;Un-assign&nbsp;tasks&nbsp;from&nbsp;a&nbsp;user&nbsp;for&nbsp;a&nbsp;project<br>&nbsp;</span></td></tr>
+<tr><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt>Method resolution order:</dt>
+<dd><a href="src.ClassTask.html#Task">Task</a></dd>
+<dd><a href="src.ClassBase.html#Base">src.ClassBase.Base</a></dd>
+<dd><a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a></dd>
+<dd><a href="sqlalchemy.inspection.html#Inspectable">sqlalchemy.inspection.Inspectable</a></dd>
+<dd><a href="typing.html#Generic">typing.Generic</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="Task-__init__"><strong>__init__</strong></a>(self, **kwargs)</dt><dd><span class="code">A&nbsp;simple&nbsp;constructor&nbsp;that&nbsp;allows&nbsp;initialization&nbsp;from&nbsp;kwargs.<br>
+&nbsp;<br>
+Sets&nbsp;attributes&nbsp;on&nbsp;the&nbsp;constructed&nbsp;instance&nbsp;using&nbsp;the&nbsp;names&nbsp;and<br>
+values&nbsp;in&nbsp;``kwargs``.<br>
+&nbsp;<br>
+Only&nbsp;keys&nbsp;that&nbsp;are&nbsp;present&nbsp;as<br>
+attributes&nbsp;of&nbsp;the&nbsp;instance's&nbsp;class&nbsp;are&nbsp;allowed.&nbsp;These&nbsp;could&nbsp;be,<br>
+for&nbsp;example,&nbsp;any&nbsp;mapped&nbsp;columns&nbsp;or&nbsp;relationships.</span></dd></dl>
+
+<dl><dt><a name="Task-add_task"><strong>add_task</strong></a>(self, session, userInstance, project_pkey)</dt><dd><span class="code">Add&nbsp;a&nbsp;task&nbsp;to&nbsp;a&nbsp;project<br>
+:param&nbsp;userInstance:&nbsp;The&nbsp;user&nbsp;instance<br>
+:type&nbsp;userInstance:&nbsp;src.ClassUser.User<br>
+:param&nbsp;project_pkey:&nbsp;The&nbsp;project&nbsp;primary&nbsp;key<br>
+:type&nbsp;project_pkey:&nbsp;int<br>
+:param&nbsp;session:&nbsp;The&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:return:&nbsp;A&nbsp;message&nbsp;indicating&nbsp;the&nbsp;status&nbsp;of&nbsp;the&nbsp;operation<br>
+:rtype:&nbsp;str</span></dd></dl>
+
+<hr>
+Class methods defined here:<br>
+<dl><dt><a name="Task-close_task"><strong>close_task</strong></a>(session, userInstance, project_pkey, task_pkey)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Close&nbsp;a&nbsp;task<br>
+:param&nbsp;session:&nbsp;The&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;userInstance:&nbsp;The&nbsp;user&nbsp;instance<br>
+:type&nbsp;userInstance:&nbsp;src.ClassUser.User<br>
+:param&nbsp;project_pkey:&nbsp;The&nbsp;project&nbsp;primary&nbsp;key<br>
+:type&nbsp;project_pkey:&nbsp;int<br>
+:param&nbsp;task_pkey:&nbsp;The&nbsp;task&nbsp;primary&nbsp;key<br>
+:type&nbsp;task_pkey:&nbsp;int<br>
+:return:&nbsp;A&nbsp;message&nbsp;indicating&nbsp;the&nbsp;status&nbsp;of&nbsp;the&nbsp;operation<br>
+:rtype:&nbsp;str</span></dd></dl>
+
+<dl><dt><a name="Task-close_tasks_for_project"><strong>close_tasks_for_project</strong></a>(session, userInstance, project_pkey)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">close&nbsp;all&nbsp;tasks&nbsp;for&nbsp;a&nbsp;project<br>
+:param&nbsp;session:&nbsp;The&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;userInstance:&nbsp;The&nbsp;user&nbsp;instance<br>
+:type&nbsp;userInstance:&nbsp;src.ClassUser.User<br>
+:param&nbsp;project_pkey:&nbsp;The&nbsp;project&nbsp;primary&nbsp;key<br>
+:type&nbsp;project_pkey:&nbsp;int<br>
+:return:&nbsp;A&nbsp;message&nbsp;indicating&nbsp;the&nbsp;status&nbsp;of&nbsp;the&nbsp;operation<br>
+:rtype:&nbsp;str</span></dd></dl>
+
+<dl><dt><a name="Task-delete_task"><strong>delete_task</strong></a>(session, userInstance, project_pkey, task_pkey)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Delete&nbsp;a&nbsp;task<br>
+:param&nbsp;session:&nbsp;The&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;userInstance:&nbsp;The&nbsp;user&nbsp;instance<br>
+:type&nbsp;userInstance:&nbsp;src.ClassUser.User<br>
+:param&nbsp;project_pkey:&nbsp;The&nbsp;project&nbsp;primary&nbsp;key<br>
+:type&nbsp;project_pkey:&nbsp;int<br>
+:param&nbsp;task_pkey:&nbsp;The&nbsp;task&nbsp;primary&nbsp;key<br>
+:type&nbsp;task_pkey:&nbsp;int<br>
+:return:&nbsp;A&nbsp;message&nbsp;indicating&nbsp;the&nbsp;status&nbsp;of&nbsp;the&nbsp;operation<br>
+:rtype:&nbsp;str</span></dd></dl>
+
+<dl><dt><a name="Task-delete_tasks_for_project"><strong>delete_tasks_for_project</strong></a>(session, userInstance, project_pkey)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Delete&nbsp;tasks&nbsp;for&nbsp;a&nbsp;project<br>
+:param&nbsp;session:&nbsp;The&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;userInstance:&nbsp;The&nbsp;user&nbsp;instance<br>
+:type&nbsp;userInstance:&nbsp;src.ClassUser.User<br>
+:param&nbsp;project_pkey:&nbsp;The&nbsp;project&nbsp;primary&nbsp;key<br>
+:type&nbsp;project_pkey:&nbsp;int<br>
+:return:&nbsp;A&nbsp;message&nbsp;indicating&nbsp;the&nbsp;status&nbsp;of&nbsp;the&nbsp;operation<br>
+:rtype:&nbsp;str</span></dd></dl>
+
+<dl><dt><a name="Task-get_assigned_tasks"><strong>get_assigned_tasks</strong></a>(session, user_pkey, project_pkey=None)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Get&nbsp;tasks&nbsp;assigned&nbsp;to&nbsp;a&nbsp;user&nbsp;(for&nbsp;a&nbsp;project&nbsp;if&nbsp;specified)<br>
+:param&nbsp;session:&nbsp;The&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;user_pkey:&nbsp;The&nbsp;user&nbsp;primary&nbsp;key<br>
+:type&nbsp;user_pkey:&nbsp;int<br>
+:param&nbsp;project_pkey:&nbsp;The&nbsp;project&nbsp;primary&nbsp;key<br>
+:type&nbsp;project_pkey:&nbsp;int<br>
+:return:&nbsp;A&nbsp;list&nbsp;of&nbsp;tasks&nbsp;assigned&nbsp;to&nbsp;the&nbsp;user&nbsp;(for&nbsp;the&nbsp;project&nbsp;if&nbsp;specified)<br>
+:rtype:&nbsp;list</span></dd></dl>
+
+<dl><dt><a name="Task-get_task"><strong>get_task</strong></a>(session, task_pkey)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Get&nbsp;a&nbsp;task<br>
+:param&nbsp;session:&nbsp;The&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;task_pkey:&nbsp;The&nbsp;task&nbsp;primary&nbsp;key<br>
+:type&nbsp;task_pkey:&nbsp;int<br>
+:return:&nbsp;The&nbsp;task<br>
+:rtype:&nbsp;src.ClassTask.<a href="#Task">Task</a></span></dd></dl>
+
+<dl><dt><a name="Task-get_tasks"><strong>get_tasks</strong></a>(session, project_pkey=None, project_completed=None)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Get&nbsp;tasks&nbsp;(for&nbsp;a&nbsp;project&nbsp;if&nbsp;specified)&nbsp;and&nbsp;or&nbsp;(completed&nbsp;or&nbsp;uncompleted&nbsp;if&nbsp;specified)<br>
+:param&nbsp;session:&nbsp;The&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;project_pkey:&nbsp;The&nbsp;project&nbsp;primary&nbsp;key<br>
+:type&nbsp;project_pkey:&nbsp;int<br>
+:param&nbsp;project_completed:&nbsp;The&nbsp;project&nbsp;status<br>
+:type&nbsp;project_completed:&nbsp;bool<br>
+:return:&nbsp;A&nbsp;list&nbsp;of&nbsp;tasks&nbsp;(for&nbsp;the&nbsp;project&nbsp;if&nbsp;specified)&nbsp;and&nbsp;or&nbsp;(completed&nbsp;or&nbsp;uncompleted&nbsp;if&nbsp;specified)<br>
+:rtype:&nbsp;list</span></dd></dl>
+
+<dl><dt><a name="Task-get_user_ongoing_project_tasks"><strong>get_user_ongoing_project_tasks</strong></a>(session, user_pkey, project_pkey=None)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Get&nbsp;tasks&nbsp;assigned&nbsp;to&nbsp;a&nbsp;user&nbsp;for&nbsp;ongoing&nbsp;projects&nbsp;and&nbsp;tasks&nbsp;in&nbsp;their&nbsp;project<br>
+:param&nbsp;session:&nbsp;The&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;user_pkey:&nbsp;The&nbsp;user&nbsp;primary&nbsp;key<br>
+:type&nbsp;user_pkey:&nbsp;int<br>
+:return:&nbsp;A&nbsp;list&nbsp;of&nbsp;tasks&nbsp;assigned&nbsp;to&nbsp;the&nbsp;user&nbsp;for&nbsp;ongoing&nbsp;projects&nbsp;and&nbsp;or&nbsp;tasks&nbsp;in&nbsp;their&nbsp;project<br>
+:rtype:&nbsp;list</span></dd></dl>
+
+<dl><dt><a name="Task-set_task"><strong>set_task</strong></a>(session, userInstance, project_pkey, task_pkey, setName=None, setDesc=None, setStatus=None, setStartDate=None, setDueDate=None, setAssigneeFkey=None, setAssignerFkey=None, setTaskProgress=None)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Update&nbsp;a&nbsp;task<br>
+:param&nbsp;session:&nbsp;The&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;userInstance:&nbsp;The&nbsp;user&nbsp;instance<br>
+:type&nbsp;userInstance:&nbsp;src.ClassUser.User<br>
+:param&nbsp;project_pkey:&nbsp;The&nbsp;project&nbsp;primary&nbsp;key<br>
+:type&nbsp;project_pkey:&nbsp;int<br>
+:param&nbsp;task_pkey:&nbsp;The&nbsp;task&nbsp;primary&nbsp;key<br>
+:type&nbsp;task_pkey:&nbsp;int<br>
+:param&nbsp;setName:&nbsp;The&nbsp;name&nbsp;of&nbsp;the&nbsp;task<br>
+:type&nbsp;setName:&nbsp;str<br>
+:param&nbsp;setDesc:&nbsp;The&nbsp;description&nbsp;of&nbsp;the&nbsp;task<br>
+:type&nbsp;setDesc:&nbsp;str<br>
+:param&nbsp;setStatus:&nbsp;The&nbsp;status&nbsp;of&nbsp;the&nbsp;task&nbsp;(&nbsp;'Not&nbsp;Started',&nbsp;'In&nbsp;Progress',&nbsp;'Completed',&nbsp;'Pending&nbsp;Review').<br>
+:type&nbsp;setStatus:&nbsp;str<br>
+:param&nbsp;setStartDate:&nbsp;The&nbsp;start&nbsp;date&nbsp;of&nbsp;the&nbsp;task<br>
+:type&nbsp;setStartDate:&nbsp;datetime<br>
+:param&nbsp;setDueDate:&nbsp;The&nbsp;due&nbsp;date&nbsp;of&nbsp;the&nbsp;task<br>
+:type&nbsp;setDueDate:&nbsp;datetime<br>
+:param&nbsp;setAssigneeFkey:&nbsp;The&nbsp;assignee&nbsp;primary&nbsp;key<br>
+:type&nbsp;setAssigneeFkey:&nbsp;int<br>
+:param&nbsp;setAssignerFkey:&nbsp;The&nbsp;assigner&nbsp;primary&nbsp;key<br>
+:type&nbsp;setAssignerFkey:&nbsp;int<br>
+:param&nbsp;setTaskProgress:&nbsp;The&nbsp;progress&nbsp;of&nbsp;the&nbsp;task&nbsp;(0-100)<br>
+:type&nbsp;setTaskProgress:&nbsp;int<br>
+:return:&nbsp;A&nbsp;message&nbsp;indicating&nbsp;the&nbsp;status&nbsp;of&nbsp;the&nbsp;operation<br>
+:rtype:&nbsp;str</span></dd></dl>
+
+<dl><dt><a name="Task-unassign_tasks"><strong>unassign_tasks</strong></a>(session, user_pkey)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Un-assign&nbsp;tasks&nbsp;from&nbsp;a&nbsp;user<br>
+:param&nbsp;session:&nbsp;The&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;user_pkey:&nbsp;The&nbsp;user&nbsp;primary&nbsp;key<br>
+:type&nbsp;user_pkey:&nbsp;int<br>
+:return:&nbsp;A&nbsp;message&nbsp;indicating&nbsp;the&nbsp;status&nbsp;of&nbsp;the&nbsp;operation<br>
+:rtype:&nbsp;str</span></dd></dl>
+
+<dl><dt><a name="Task-unassign_tasks_from_project"><strong>unassign_tasks_from_project</strong></a>(session, user_pkey, project_pkey)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Un-assign&nbsp;tasks&nbsp;from&nbsp;a&nbsp;user&nbsp;for&nbsp;a&nbsp;project<br>
+:param&nbsp;session:&nbsp;The&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;user_pkey:&nbsp;The&nbsp;user&nbsp;primary&nbsp;key<br>
+:type&nbsp;user_pkey:&nbsp;int<br>
+:param&nbsp;project_pkey:&nbsp;The&nbsp;project&nbsp;primary&nbsp;key<br>
+:type&nbsp;project_pkey:&nbsp;int<br>
+:return:&nbsp;A&nbsp;message&nbsp;indicating&nbsp;the&nbsp;status&nbsp;of&nbsp;the&nbsp;operation<br>
+:rtype:&nbsp;str</span></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>assignee</strong></dt>
+</dl>
+<dl><dt><strong>assignee_fkey</strong></dt>
+</dl>
+<dl><dt><strong>assigner</strong></dt>
+</dl>
+<dl><dt><strong>assigner_fkey</strong></dt>
+</dl>
+<dl><dt><strong>communication_log</strong></dt>
+</dl>
+<dl><dt><strong>desc</strong></dt>
+</dl>
+<dl><dt><strong>due_date</strong></dt>
+</dl>
+<dl><dt><strong>end_date</strong></dt>
+</dl>
+<dl><dt><strong>is_removed</strong></dt>
+</dl>
+<dl><dt><strong>name</strong></dt>
+</dl>
+<dl><dt><strong>project</strong></dt>
+</dl>
+<dl><dt><strong>project_fkey</strong></dt>
+</dl>
+<dl><dt><strong>start_date</strong></dt>
+</dl>
+<dl><dt><strong>status</strong></dt>
+</dl>
+<dl><dt><strong>task_pkey</strong></dt>
+</dl>
+<dl><dt><strong>task_progress</strong></dt>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__annotations__</strong> = {}</dl>
+
+<dl><dt><strong>__mapper__</strong> = &lt;Mapper at 0x198dbc2d450; Task&gt;</dl>
+
+<dl><dt><strong>__parameters__</strong> = ()</dl>
+
+<dl><dt><strong>__table__</strong> = Table('TASK', MetaData(), Column('task_pkey', In...ault=ScalarElementColumnDefault(0)), schema=None)</dl>
+
+<dl><dt><strong>__tablename__</strong> = 'TASK'</dl>
+
+<hr>
+Data and other attributes inherited from <a href="src.ClassBase.html#Base">src.ClassBase.Base</a>:<br>
+<dl><dt><strong>metadata</strong> = MetaData()</dl>
+
+<dl><dt><strong>registry</strong> = &lt;sqlalchemy.orm.decl_api.registry object&gt;</dl>
+
+<hr>
+Class methods inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><a name="Task-__init_subclass__"><strong>__init_subclass__</strong></a>(**kw: 'Any') -&gt; 'None'<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">This&nbsp;method&nbsp;is&nbsp;called&nbsp;when&nbsp;a&nbsp;class&nbsp;is&nbsp;subclassed.<br>
+&nbsp;<br>
+The&nbsp;default&nbsp;implementation&nbsp;does&nbsp;nothing.&nbsp;It&nbsp;may&nbsp;be<br>
+overridden&nbsp;to&nbsp;extend&nbsp;subclasses.</span></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><span class="code">dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><span class="code">list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+<hr>
+Data and other attributes inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><strong>__orig_bases__</strong> = (sqlalchemy.inspection.Inspectable[sqlalchemy.orm.state.InstanceState[typing.Any]],)</dl>
+
+<hr>
+Class methods inherited from <a href="typing.html#Generic">typing.Generic</a>:<br>
+<dl><dt><a name="Task-__class_getitem__"><strong>__class_getitem__</strong></a>(params)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Parameterizes&nbsp;a&nbsp;generic&nbsp;class.<br>
+&nbsp;<br>
+At&nbsp;least,&nbsp;parameterizing&nbsp;a&nbsp;generic&nbsp;class&nbsp;is&nbsp;the&nbsp;*main*&nbsp;thing&nbsp;this&nbsp;method<br>
+does.&nbsp;For&nbsp;example,&nbsp;for&nbsp;some&nbsp;generic&nbsp;class&nbsp;`Foo`,&nbsp;this&nbsp;is&nbsp;called&nbsp;when&nbsp;we<br>
+do&nbsp;`Foo[int]`&nbsp;-&nbsp;there,&nbsp;with&nbsp;`cls=Foo`&nbsp;and&nbsp;`params=int`.<br>
+&nbsp;<br>
+However,&nbsp;note&nbsp;that&nbsp;this&nbsp;method&nbsp;is&nbsp;also&nbsp;called&nbsp;when&nbsp;defining&nbsp;generic<br>
+classes&nbsp;in&nbsp;the&nbsp;first&nbsp;place&nbsp;with&nbsp;`class&nbsp;Foo(Generic[T]):&nbsp;...`.</span></dd></dl>
+
+</td></tr></table></td></tr></table>
+</body></html>

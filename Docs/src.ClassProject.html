@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module src.ClassProject</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="src.html" class="white">src</a>.ClassProject</strong></td>
+<td class="extra"><a href="..">index</a><br><a href="file:c%3A%5Cusers%5Cyh28%5Conedrive%20-%20nottinghamshire%20county%20council%5Cdocuments%5Cgithub%5Csoft27101-pms%5Csrc%5Cclassproject.py">c:\users\yh28\onedrive - nottinghamshire county council\documents\github\soft27101-pms\src\classproject.py</a></td></tr></table>
+    <p></p>
+<p>
+<table class="section">
+<tr class="decor index-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Classes</strong></td></tr>
+    
+<tr><td class="decor index-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl>
+<dt class="heading-text"><a href="src.ClassBase.html#Base">src.ClassBase.Base</a>(<a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>)
+</dt><dd>
+<dl>
+<dt class="heading-text"><a href="src.ClassProject.html#Project">Project</a>
+</dt></dl>
+</dd>
+</dl>
+ <p>
+<table class="section">
+<tr class="decor title-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><a name="Project">class <strong>Project</strong></a>(<a href="src.ClassBase.html#Base">src.ClassBase.Base</a>)</td></tr>
+    
+<tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
+<td class="decor title-decor" colspan=2><span class="code"><a href="#Project">Project</a>(**kwargs)<br>
+&nbsp;<br>
+Class&nbsp;to&nbsp;represent&nbsp;the&nbsp;<a href="#Project">Project</a>&nbsp;table&nbsp;in&nbsp;the&nbsp;database.<br>
+&nbsp;<br>
+Attributes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;project_pkey:&nbsp;int,&nbsp;primary&nbsp;key,&nbsp;autoincrement<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;str,&nbsp;not&nbsp;null<br>
+&nbsp;&nbsp;&nbsp;&nbsp;desc:&nbsp;str,&nbsp;not&nbsp;null<br>
+&nbsp;&nbsp;&nbsp;&nbsp;status:&nbsp;str,&nbsp;not&nbsp;null<br>
+&nbsp;&nbsp;&nbsp;&nbsp;start_date:&nbsp;datetime,&nbsp;not&nbsp;null<br>
+&nbsp;&nbsp;&nbsp;&nbsp;end_date:&nbsp;datetime<br>
+&nbsp;&nbsp;&nbsp;&nbsp;due_date:&nbsp;datetime<br>
+&nbsp;&nbsp;&nbsp;&nbsp;owner_fkey:&nbsp;int,&nbsp;foreign&nbsp;key,&nbsp;not&nbsp;null<br>
+&nbsp;&nbsp;&nbsp;&nbsp;project_progress:&nbsp;int,&nbsp;default&nbsp;0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;is_removed:&nbsp;int,&nbsp;default&nbsp;0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;owner:&nbsp;relationship,&nbsp;back_populates='owner_of_projects'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;tasks:&nbsp;relationship,&nbsp;back_populates='project'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;project_team_members:&nbsp;relationship,&nbsp;back_populates='project'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;communication_log:&nbsp;relationship,&nbsp;back_populates='project'<br>
+&nbsp;<br>
+Methods:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Project-get_projects">get_projects</a>(session,&nbsp;team_member_user_pkey=None,&nbsp;completed=None):&nbsp;Get&nbsp;all&nbsp;projects&nbsp;from&nbsp;the&nbsp;database<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Project-add_owner_to_project_team">add_owner_to_project_team</a>(session):&nbsp;Add&nbsp;the&nbsp;owner&nbsp;to&nbsp;the&nbsp;project&nbsp;team<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Project-add_project">add_project</a>(session):&nbsp;Add&nbsp;a&nbsp;project&nbsp;to&nbsp;the&nbsp;database&nbsp;and&nbsp;add&nbsp;the&nbsp;owner&nbsp;to&nbsp;the&nbsp;project&nbsp;team<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Project-set_project">set_project</a>(session,&nbsp;userInstance,&nbsp;projectPkey,&nbsp;setName,&nbsp;setDesc,&nbsp;setStatus,&nbsp;setStartDate,&nbsp;setDueDate,&nbsp;setProjectProgress):&nbsp;Set&nbsp;the&nbsp;project&nbsp;details<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Project-delete_project">delete_project</a>(session,&nbsp;user_instance,&nbsp;project_pkey):&nbsp;Delete&nbsp;a&nbsp;project&nbsp;from&nbsp;the&nbsp;database<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Project-close_project">close_project</a>(session,&nbsp;user_instance,&nbsp;project_pkey):&nbsp;Close&nbsp;a&nbsp;project<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Project-unassign_projects">unassign_projects</a>(session,&nbsp;user_pkey):&nbsp;Un-assign&nbsp;projects&nbsp;from&nbsp;a&nbsp;user<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Project-get_project">get_project</a>(session,&nbsp;project_pkey):&nbsp;Get&nbsp;a&nbsp;project&nbsp;from&nbsp;the&nbsp;database<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Project-get_project_team">get_project_team</a>(session,&nbsp;project_pkey=None):&nbsp;Get&nbsp;all&nbsp;users&nbsp;assigned&nbsp;to&nbsp;a&nbsp;project<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Project-is_user_project_owner">is_user_project_owner</a>(session,&nbsp;user_pkey,&nbsp;project_pkey):&nbsp;Check&nbsp;if&nbsp;a&nbsp;user&nbsp;is&nbsp;the&nbsp;owner&nbsp;of&nbsp;a&nbsp;project<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Project-get_projects_user_member_of">get_projects_user_member_of</a>(session,&nbsp;user_pkey):&nbsp;Get&nbsp;all&nbsp;projects&nbsp;that&nbsp;a&nbsp;user&nbsp;is&nbsp;a&nbsp;member&nbsp;of&nbsp;that&nbsp;have&nbsp;not&nbsp;been&nbsp;completed<br>&nbsp;</span></td></tr>
+<tr><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt>Method resolution order:</dt>
+<dd><a href="src.ClassProject.html#Project">Project</a></dd>
+<dd><a href="src.ClassBase.html#Base">src.ClassBase.Base</a></dd>
+<dd><a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a></dd>
+<dd><a href="sqlalchemy.inspection.html#Inspectable">sqlalchemy.inspection.Inspectable</a></dd>
+<dd><a href="typing.html#Generic">typing.Generic</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="Project-__init__"><strong>__init__</strong></a>(self, **kwargs)</dt><dd><span class="code">A&nbsp;simple&nbsp;constructor&nbsp;that&nbsp;allows&nbsp;initialization&nbsp;from&nbsp;kwargs.<br>
+&nbsp;<br>
+Sets&nbsp;attributes&nbsp;on&nbsp;the&nbsp;constructed&nbsp;instance&nbsp;using&nbsp;the&nbsp;names&nbsp;and<br>
+values&nbsp;in&nbsp;``kwargs``.<br>
+&nbsp;<br>
+Only&nbsp;keys&nbsp;that&nbsp;are&nbsp;present&nbsp;as<br>
+attributes&nbsp;of&nbsp;the&nbsp;instance's&nbsp;class&nbsp;are&nbsp;allowed.&nbsp;These&nbsp;could&nbsp;be,<br>
+for&nbsp;example,&nbsp;any&nbsp;mapped&nbsp;columns&nbsp;or&nbsp;relationships.</span></dd></dl>
+
+<dl><dt><a name="Project-add_owner_to_project_team"><strong>add_owner_to_project_team</strong></a>(self, session)</dt><dd><span class="code">Add&nbsp;the&nbsp;owner&nbsp;to&nbsp;the&nbsp;project&nbsp;team<br>
+:param&nbsp;session:&nbsp;the&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:return:&nbsp;a&nbsp;string&nbsp;indicating&nbsp;the&nbsp;result&nbsp;of&nbsp;the&nbsp;operation<br>
+:rtype:&nbsp;str</span></dd></dl>
+
+<dl><dt><a name="Project-add_project"><strong>add_project</strong></a>(self, session)</dt><dd><span class="code">Add&nbsp;a&nbsp;project&nbsp;to&nbsp;the&nbsp;database&nbsp;and&nbsp;add&nbsp;the&nbsp;owner&nbsp;to&nbsp;the&nbsp;project&nbsp;team<br>
+:param&nbsp;session:&nbsp;the&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;owner_fkey:&nbsp;the&nbsp;owner's&nbsp;user&nbsp;primary&nbsp;key<br>
+:type&nbsp;owner_fkey:&nbsp;int<br>
+:return:&nbsp;a&nbsp;string&nbsp;indicating&nbsp;the&nbsp;result&nbsp;of&nbsp;the&nbsp;operation<br>
+:rtype:&nbsp;str</span></dd></dl>
+
+<hr>
+Class methods defined here:<br>
+<dl><dt><a name="Project-close_project"><strong>close_project</strong></a>(session, user_instance, project_pkey)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Close&nbsp;a&nbsp;project<br>
+:param&nbsp;session:&nbsp;the&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;user_instance:&nbsp;the&nbsp;user&nbsp;instance<br>
+:type&nbsp;user_instance:&nbsp;src.ClassUser.User<br>
+:param&nbsp;project_pkey:&nbsp;the&nbsp;project&nbsp;primary&nbsp;key<br>
+:type&nbsp;project_pkey:&nbsp;int<br>
+:return:&nbsp;a&nbsp;string&nbsp;indicating&nbsp;the&nbsp;result&nbsp;of&nbsp;the&nbsp;operation<br>
+:rtype:&nbsp;str</span></dd></dl>
+
+<dl><dt><a name="Project-delete_project"><strong>delete_project</strong></a>(session, user_instance, project_pkey)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Delete&nbsp;a&nbsp;project&nbsp;from&nbsp;the&nbsp;database<br>
+:param&nbsp;session:&nbsp;the&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;user_instance:&nbsp;the&nbsp;user&nbsp;instance<br>
+:type&nbsp;user_instance:&nbsp;src.ClassUser.User<br>
+:param&nbsp;project_pkey:&nbsp;the&nbsp;project&nbsp;primary&nbsp;key<br>
+:type&nbsp;project_pkey:&nbsp;int<br>
+:return:&nbsp;a&nbsp;string&nbsp;indicating&nbsp;the&nbsp;result&nbsp;of&nbsp;the&nbsp;operation<br>
+:rtype:&nbsp;str</span></dd></dl>
+
+<dl><dt><a name="Project-get_projects"><strong>get_projects</strong></a>(session, team_member_user_pkey=None, completed=None)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Get&nbsp;all&nbsp;projects&nbsp;from&nbsp;the&nbsp;database<br>
+if&nbsp;task_member_user_pkey&nbsp;is&nbsp;not&nbsp;None,&nbsp;then&nbsp;query&nbsp;for&nbsp;projects&nbsp;assigned&nbsp;to&nbsp;the&nbsp;team&nbsp;member<br>
+if&nbsp;task_member_user_pkey&nbsp;is&nbsp;None,&nbsp;then&nbsp;query&nbsp;for&nbsp;all&nbsp;projects<br>
+if&nbsp;completed&nbsp;is&nbsp;True,&nbsp;then&nbsp;filter&nbsp;by&nbsp;project&nbsp;status&nbsp;for&nbsp;completed&nbsp;projects<br>
+if&nbsp;completed&nbsp;is&nbsp;False,&nbsp;then&nbsp;filter&nbsp;by&nbsp;project&nbsp;status&nbsp;for&nbsp;non-completed&nbsp;projects<br>
+&nbsp;<br>
+:param&nbsp;session:&nbsp;the&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;team_member_user_pkey:&nbsp;the&nbsp;team&nbsp;members&nbsp;user&nbsp;primary&nbsp;key<br>
+:type&nbsp;team_member_user_pkey:&nbsp;int<br>
+:param&nbsp;completed:&nbsp;the&nbsp;project&nbsp;status&nbsp;(true&nbsp;or&nbsp;false)<br>
+:type&nbsp;completed:&nbsp;bool<br>
+:return:&nbsp;a&nbsp;list&nbsp;of&nbsp;projects<br>
+:rtype:&nbsp;list</span></dd></dl>
+
+<dl><dt><a name="Project-get_projects_user_member_of"><strong>get_projects_user_member_of</strong></a>(session, user_pkey)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Get&nbsp;all&nbsp;projects&nbsp;that&nbsp;a&nbsp;user&nbsp;is&nbsp;a&nbsp;member&nbsp;of&nbsp;that&nbsp;have&nbsp;not&nbsp;been&nbsp;completed<br>
+:param&nbsp;session:&nbsp;the&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;user_pkey:&nbsp;the&nbsp;user&nbsp;primary&nbsp;key<br>
+:type&nbsp;user_pkey:&nbsp;int<br>
+:return:&nbsp;a&nbsp;list&nbsp;of&nbsp;projects<br>
+:rtype:&nbsp;list</span></dd></dl>
+
+<dl><dt><a name="Project-set_project"><strong>set_project</strong></a>(session, userInstance, projectPkey, setName, setDesc, setStatus, setStartDate, setDueDate, setProjectProgress)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Set&nbsp;the&nbsp;project&nbsp;details<br>
+:param&nbsp;session:&nbsp;the&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;userInstance:&nbsp;the&nbsp;user&nbsp;instance<br>
+:type&nbsp;userInstance:&nbsp;src.ClassUser.User<br>
+:param&nbsp;projectPkey:&nbsp;the&nbsp;project&nbsp;primary&nbsp;key<br>
+:type&nbsp;projectPkey:&nbsp;int<br>
+:param&nbsp;setName:&nbsp;the&nbsp;project&nbsp;name<br>
+:type&nbsp;setName:&nbsp;str<br>
+:param&nbsp;setDesc:&nbsp;the&nbsp;project&nbsp;description<br>
+:type&nbsp;setDesc:&nbsp;str<br>
+:param&nbsp;setStatus:&nbsp;the&nbsp;project&nbsp;status<br>
+:type&nbsp;setStatus:&nbsp;str<br>
+:param&nbsp;setStartDate:&nbsp;the&nbsp;project&nbsp;start&nbsp;date<br>
+:type&nbsp;setStartDate:&nbsp;datetime<br>
+:param&nbsp;setDueDate:&nbsp;the&nbsp;project&nbsp;due&nbsp;date<br>
+:type&nbsp;setDueDate:&nbsp;datetime<br>
+:param&nbsp;setProjectProgress:&nbsp;the&nbsp;project&nbsp;progress<br>
+:type&nbsp;setProjectProgress:&nbsp;int</span></dd></dl>
+
+<dl><dt><a name="Project-unassign_projects"><strong>unassign_projects</strong></a>(session, user_pkey)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Un-assign&nbsp;projects&nbsp;from&nbsp;a&nbsp;user<br>
+:param&nbsp;session:&nbsp;the&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;user_pkey:&nbsp;the&nbsp;user&nbsp;primary&nbsp;key<br>
+:type&nbsp;user_pkey:&nbsp;int<br>
+:return:&nbsp;a&nbsp;string&nbsp;indicating&nbsp;the&nbsp;result&nbsp;of&nbsp;the&nbsp;operation<br>
+:rtype:&nbsp;str</span></dd></dl>
+
+<hr>
+Static methods defined here:<br>
+<dl><dt><a name="Project-get_project"><strong>get_project</strong></a>(session, project_pkey)</dt><dd><span class="code">Get&nbsp;a&nbsp;project&nbsp;from&nbsp;the&nbsp;database<br>
+:param&nbsp;session:&nbsp;the&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;project_pkey:&nbsp;the&nbsp;project&nbsp;primary&nbsp;key<br>
+:type&nbsp;project_pkey:&nbsp;int<br>
+:return:&nbsp;the&nbsp;project<br>
+:rtype:&nbsp;src.ClassProject.<a href="#Project">Project</a></span></dd></dl>
+
+<dl><dt><a name="Project-get_project_team"><strong>get_project_team</strong></a>(session, project_pkey=None)</dt><dd><span class="code">Get&nbsp;all&nbsp;users&nbsp;assigned&nbsp;to&nbsp;a&nbsp;project<br>
+:param&nbsp;session:&nbsp;the&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;project_pkey:&nbsp;the&nbsp;project&nbsp;primary&nbsp;key<br>
+:type&nbsp;project_pkey:&nbsp;int<br>
+:return:&nbsp;a&nbsp;list&nbsp;of&nbsp;project&nbsp;team&nbsp;members<br>
+:rtype:&nbsp;list</span></dd></dl>
+
+<dl><dt><a name="Project-is_user_project_owner"><strong>is_user_project_owner</strong></a>(session, user_pkey, project_pkey)</dt><dd><span class="code">Check&nbsp;if&nbsp;a&nbsp;user&nbsp;is&nbsp;the&nbsp;owner&nbsp;of&nbsp;a&nbsp;project<br>
+:param&nbsp;session:&nbsp;the&nbsp;session&nbsp;to&nbsp;use<br>
+:type&nbsp;session:&nbsp;sqlalchemy.orm.session.Session<br>
+:param&nbsp;user_pkey:&nbsp;the&nbsp;user&nbsp;primary&nbsp;key<br>
+:type&nbsp;user_pkey:&nbsp;int<br>
+:param&nbsp;project_pkey:&nbsp;the&nbsp;project&nbsp;primary&nbsp;key<br>
+:type&nbsp;project_pkey:&nbsp;int<br>
+:return:&nbsp;a&nbsp;boolean&nbsp;indicating&nbsp;if&nbsp;the&nbsp;user&nbsp;is&nbsp;the&nbsp;owner&nbsp;of&nbsp;the&nbsp;project<br>
+:rtype:&nbsp;bool</span></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>communication_log</strong></dt>
+</dl>
+<dl><dt><strong>desc</strong></dt>
+</dl>
+<dl><dt><strong>due_date</strong></dt>
+</dl>
+<dl><dt><strong>end_date</strong></dt>
+</dl>
+<dl><dt><strong>is_removed</strong></dt>
+</dl>
+<dl><dt><strong>name</strong></dt>
+</dl>
+<dl><dt><strong>owner</strong></dt>
+</dl>
+<dl><dt><strong>owner_fkey</strong></dt>
+</dl>
+<dl><dt><strong>project_pkey</strong></dt>
+</dl>
+<dl><dt><strong>project_progress</strong></dt>
+</dl>
+<dl><dt><strong>project_team_members</strong></dt>
+</dl>
+<dl><dt><strong>start_date</strong></dt>
+</dl>
+<dl><dt><strong>status</strong></dt>
+</dl>
+<dl><dt><strong>tasks</strong></dt>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__annotations__</strong> = {}</dl>
+
+<dl><dt><strong>__mapper__</strong> = &lt;Mapper at 0x1d92db6b750; Project&gt;</dl>
+
+<dl><dt><strong>__parameters__</strong> = ()</dl>
+
+<dl><dt><strong>__table__</strong> = Table('PROJECT', MetaData(), Column('project_pke...ault=ScalarElementColumnDefault(0)), schema=None)</dl>
+
+<dl><dt><strong>__tablename__</strong> = 'PROJECT'</dl>
+
+<hr>
+Data and other attributes inherited from <a href="src.ClassBase.html#Base">src.ClassBase.Base</a>:<br>
+<dl><dt><strong>metadata</strong> = MetaData()</dl>
+
+<dl><dt><strong>registry</strong> = &lt;sqlalchemy.orm.decl_api.registry object&gt;</dl>
+
+<hr>
+Class methods inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><a name="Project-__init_subclass__"><strong>__init_subclass__</strong></a>(**kw: 'Any') -&gt; 'None'<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">This&nbsp;method&nbsp;is&nbsp;called&nbsp;when&nbsp;a&nbsp;class&nbsp;is&nbsp;subclassed.<br>
+&nbsp;<br>
+The&nbsp;default&nbsp;implementation&nbsp;does&nbsp;nothing.&nbsp;It&nbsp;may&nbsp;be<br>
+overridden&nbsp;to&nbsp;extend&nbsp;subclasses.</span></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><span class="code">dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><span class="code">list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+<hr>
+Data and other attributes inherited from <a href="sqlalchemy.orm.decl_api.html#DeclarativeBase">sqlalchemy.orm.decl_api.DeclarativeBase</a>:<br>
+<dl><dt><strong>__orig_bases__</strong> = (sqlalchemy.inspection.Inspectable[sqlalchemy.orm.state.InstanceState[typing.Any]],)</dl>
+
+<hr>
+Class methods inherited from <a href="typing.html#Generic">typing.Generic</a>:<br>
+<dl><dt><a name="Project-__class_getitem__"><strong>__class_getitem__</strong></a>(params)<span class="grey"><span class="heading-text"> from <a href="sqlalchemy.orm.decl_api.html#DeclarativeAttributeIntercept">sqlalchemy.orm.decl_api.DeclarativeAttributeIntercept</a></span></span></dt><dd><span class="code">Parameterizes&nbsp;a&nbsp;generic&nbsp;class.<br>
+&nbsp;<br>
+At&nbsp;least,&nbsp;parameterizing&nbsp;a&nbsp;generic&nbsp;class&nbsp;is&nbsp;the&nbsp;*main*&nbsp;thing&nbsp;this&nbsp;method<br>
+does.&nbsp;For&nbsp;example,&nbsp;for&nbsp;some&nbsp;generic&nbsp;class&nbsp;`Foo`,&nbsp;this&nbsp;is&nbsp;called&nbsp;when&nbsp;we<br>
+do&nbsp;`Foo[int]`&nbsp;-&nbsp;there,&nbsp;with&nbsp;`cls=Foo`&nbsp;and&nbsp;`params=int`.<br>
+&nbsp;<br>
+However,&nbsp;note&nbsp;that&nbsp;this&nbsp;method&nbsp;is&nbsp;also&nbsp;called&nbsp;when&nbsp;defining&nbsp;generic<br>
+classes&nbsp;in&nbsp;the&nbsp;first&nbsp;place&nbsp;with&nbsp;`class&nbsp;Foo(Generic[T]):&nbsp;...`.</span></dd></dl>
+
+</td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor data-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Data</strong></td></tr>
+    
+<tr><td class="decor data-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><strong>func</strong> = &lt;sqlalchemy.sql.functions._FunctionGenerator object&gt;</td></tr></table>
+</body></html>
