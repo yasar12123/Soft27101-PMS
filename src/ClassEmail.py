@@ -77,14 +77,20 @@ class EmailSender:
     def on_task_assign(self):
         to = self.recipient.email_address
         subject = f'TT_CROP - Task: {self.taskName} for Project: {self.project.name} - ASSIGNED'
-        message = f'you have been assigned a task named: {self.taskName} for the project: {self.project.name}, by {self.actionUser.full_name} ({self.actionUser.username})'
+        message = f'You have been assigned ' \
+                  f'\nTask: {self.taskName}' \
+                  f'\nProject: {self.project.name}, ' \
+                  f'\nby {self.actionUser.full_name} ({self.actionUser.username})'
         sendEmail = self.send_email(recipient_email=[to], subject=subject, message=message)
         return sendEmail
 
     def on_task_close(self):
         to = self.recipient.email_address
         subject = f'TT_CROP - Task: {self.taskName} for Project: {self.project.name} - CLOSED'
-        message = f'The task named: {self.taskName} for the project: {self.project.name} has now been closed, by {self.actionUser.full_name} ({self.actionUser.username})'
+        message = f'Task: {self.taskName}' \
+                  f'\nProject: {self.project.name} ' \
+                  f'\nHas now been closed, ' \
+                  f'\nby {self.actionUser.full_name} ({self.actionUser.username})'
         sendEmail = self.send_email(recipient_email=[to], subject=subject, message=message)
         return sendEmail
 
@@ -100,7 +106,9 @@ class EmailSender:
 
         # message
         subject = f'TT_CROP - Project: {self.project.name} - CLOSED'
-        message = f'The project named: {self.project.name} has now been closed by {self.actionUser.full_name} ({self.actionUser.username})'
+        message = f'Project: {self.project.name}' \
+                  f'\nHas now been closed ' \
+                  f'\nby {self.actionUser.full_name} ({self.actionUser.username})'
         sendEmail = self.send_email(recipient_email=sendList, subject=subject, message=message)
         return sendEmail
 
@@ -116,34 +124,41 @@ class EmailSender:
 
         # message
         subject = f'TT_CROP - Project: {self.project.name} - DELETED'
-        message = f'The project named: {self.project.name} has now been deleted by {self.actionUser.full_name} ({self.actionUser.username})'
+        message = f'Project: {self.project.name} ' \
+                  f'\nHas now been deleted' \
+                  f'\nBy {self.actionUser.full_name} ({self.actionUser.username})'
         sendEmail = self.send_email(recipient_email=sendList, subject=subject, message=message)
         return sendEmail
 
     def on_add_to_project(self):
         to = self.recipient.email_address
         subject = f'TT_CROP - Project: {self.project.name} - You have been added'
-        message = f'you have been added to the project: {self.project.name}, by {self.actionUser.full_name} ({self.actionUser.username})'
+        message = f'You have been added to ' \
+                  f'\nProject: {self.project.name} ' \
+                  f'\nby {self.actionUser.full_name} ({self.actionUser.username})'
         sendEmail = self.send_email(recipient_email=[to], subject=subject, message=message)
         return sendEmail
 
     def on_remove_from_project(self):
         to = self.recipient.email_address
         subject = f'TT_CROP - Project: {self.project.name} - You have been removed'
-        message = f'you have been removed from the project: {self.project.name}, by {self.actionUser.full_name} ({self.actionUser.username})'
+        message = f'You have been removed from' \
+                  f'\nProject: {self.project.name}' \
+                  f'\nby {self.actionUser.full_name} ({self.actionUser.username})'
         sendEmail = self.send_email(recipient_email=[to], subject=subject, message=message)
         return sendEmail
 
     def on_project_creation(self, project_name):
         to = self.recipient.email_address
         subject = f'TT_CROP - Project: {project_name} has been created'
-        message = f'you have created a new project: {project_name}'
+        message = f'You have created a new project: {project_name}'
         email = self.send_email(recipient_email=[to], subject=subject, message=message)
         return email
 
     def on_task_creation(self):
         to = self.recipient.email_address
         subject = f'TT_CROP - Task: {self.taskName} for Project: {self.project.name} has been created'
-        message = f'you have created a new task named {self.taskName} for the project {self.project.name}'
+        message = f'You have created a new task: {self.taskName} for the project: {self.project.name}'
         email = self.send_email(recipient_email=[to], subject=subject, message=message)
         return email
+
