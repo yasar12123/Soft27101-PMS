@@ -49,6 +49,10 @@ class EmailSender:
            on_task_creation(): Send an email notification for task creation.
     """
     def __init__(self):
+        """
+        The constructor for the EmailSender class.
+        use the .env file to set the email, password, smtp server and smtp port.
+        """
         self.email = os.getenv('OUTLOOK_USER')
         self.password = os.getenv('OUTLOOK_PASS')
         self.smtp_server = os.getenv('OUTLOOK_SMTP_SERVER')
@@ -62,31 +66,70 @@ class EmailSender:
         self.taskName = None
 
     def set_project(self, project_pkey):
+        """
+        Set the project for the email event.
+        :param project_pkey: The primary key of the project.
+        :param project_pkey:
+        :return: None
+        """
         p = Project()
         project = p.get_project(self.session, project_pkey)
         self.project = project
 
     def set_task(self, task_pkey):
+        """
+        Set the task for the email event.
+        :param task_pkey: The primary key of the task.
+        :type task_pkey: int
+        :return: None
+        """
         t = Task()
         task = t.get_task(self.session, task_pkey)
         self.task = task
 
     def set_task_name(self, task_name):
+        """
+        Set the name of the task for the email event.
+        :param task_name: The name of the task.
+        :type task_name: str
+        :return: None
+        """
         self.taskName = task_name
 
     def set_recipient(self, recipient_fkey):
+        """
+        Set the recipient of the email.
+        :param recipient_fkey: The foreign key of the recipient.
+        :type recipient_fkey: int
+        :return: User.email_address
+        """
         u = User()
         recipient = u.get_user_instance(self.session, recipient_fkey)
         self.recipient = recipient
         return self.recipient.email_address
 
     def set_action_user(self, action_user_fkey):
+        """
+        Set the user performing the action for the email event.
+        :param action_user_fkey: The foreign key of the user performing the action.
+        :type action_user_fkey: int
+        :return: User.username
+        """
         u = User()
         actionUser = u.get_user_instance(self.session, action_user_fkey)
         self.actionUser = actionUser
         return self.actionUser.username
 
     def send_email(self, recipient_email, subject, message):
+        """
+        Send an email.
+        :param recipient_email: The email address of the recipient.
+        :type recipient_email: list
+        :param subject: The subject of the email.
+        :type subject: str
+        :param message: The message of the email.
+        :type message: str
+        :return: str, success message or error message"""
         try:
             # Create email
             msg = MIMEMultipart()
@@ -107,6 +150,9 @@ class EmailSender:
             return f"An error occurred while sending the email: {e}"
 
     def on_task_assign(self):
+        """
+        Send an email notification for task assignment.
+        """
         to = self.recipient.email_address
         subject = f'TT_CROP - Task: {self.taskName} for Project: {self.project.name} - ASSIGNED'
         message = f'You have been assigned ' \
@@ -127,6 +173,9 @@ class EmailSender:
         return sendEmail
 
     def on_project_close(self):
+        """
+        Send an email notification for project closure.
+        """
         #send to list
         sendList = []
 
@@ -145,6 +194,9 @@ class EmailSender:
         return sendEmail
 
     def on_project_delete(self):
+        """
+        Send an email notification for project deletion.
+        """
         #send to list
         sendList = []
 

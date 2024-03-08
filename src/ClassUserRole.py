@@ -6,6 +6,22 @@ from datetime import datetime
 
 
 class UserRole(Base):
+    """
+    A class to represent a user role in the database
+    Attributes:
+        user_role_pkey: The primary key of the user role
+        user_fkey: The foreign key of the user associated with the role
+        role_type: The type of role
+        role_desc: A description of the role
+        start_date: The date the role was assigned
+        end_date: The date the role was removed
+        is_active: A flag indicating if the role is currently active
+        user: The user associated with the role
+
+    Methods:
+        add_user_role(session, user_fkey, role_type_specified): Add a new user role to the database
+        delete_user_role(session, user_fkey, role_type=None): Delete a user role from the database
+    """
     __tablename__ = 'USER_ROLE'
 
     user_role_pkey = Column(Integer, primary_key=True, autoincrement=True)
@@ -21,6 +37,17 @@ class UserRole(Base):
 
     @classmethod
     def add_user_role(cls, session, user_fkey, role_type_specified):
+        """
+        Add a new user role to the database
+        :param session: The session to use for the database interaction
+        :type session: sqlalchemy.orm.session.Session
+        :param user_fkey: The foreign key of the user to add the role to
+        :type user_fkey: int
+        :param role_type_specified: The type of role to add
+        :type role_type_specified: str
+        :return: A message indicating the success or failure of the operation
+
+        """
         # check if the mentioned role can be used
         add_role = False
         if role_type_specified == 'Admin':
@@ -51,6 +78,17 @@ class UserRole(Base):
 
     @classmethod
     def delete_user_role(cls, session, user_fkey, role_type=None):
+        """
+        Delete a user role from the database
+        :param session: The session to use for the database interaction
+        :type session: sqlalchemy.orm.session.Session
+        :param user_fkey: The foreign key of the user to delete the role from
+        :type user_fkey: int
+        :param role_type: The type of role to delete. If None, all roles for the user will be deleted
+        :type role_type: str
+
+        :return: A message indicating the success or failure of the operation
+        """
         try:
             with session() as session:
                 user_roles_query = session.query(cls).filter(cls.user_fkey == user_fkey)

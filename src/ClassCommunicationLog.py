@@ -14,22 +14,22 @@ class CommunicationLog(Base):
     Class to represent the communication log table
 
     Attributes:
-        communication_log_pkey: primary key
-        user_fkey: foreign key to the user table
-        project_fkey: foreign key to the project table
-        task_fkey: foreign key to the task table
-        comment: text field for the comment
-        timestamp: timestamp for the comment
-        user: relationship to the user table
-        project: relationship to the project table
-        task: relationship to the task table
-        attachments: relationship to the attachment table
+        communication_log_pkey: int, primary key, autoincrement
+        user_fkey: int, foreign key to the user table
+        project_fkey: int, foreign key to the project table
+        task_fkey: int, foreign key to the task table
+        comment: str, comment
+        timestamp: datetime, date and time of the comment
+        user: relationship to User
+        project: relationship to Project
+        task: relationship to Task
+        attachments: relationship to Attachment
 
     Methods:
-        get_project_communication_log: get all communication logs for a project
-        add_comment: add a new comment to the database
-        get_task_communication_log: get all communication logs for a task
-        get_user_communication_log: get all communication logs by a user
+        add_comment(session): add a new comment to the database
+        get_project_communication_log(session, project_fkey): get all communication logs for a project
+        get_task_communication_log(session, task_fkey): get all communication logs for a task
+        get_user_communication_log(session, user_fkey): get all communication logs by a user
     """
     __tablename__ = 'COMMUNICATION_LOG'
 

@@ -8,6 +8,41 @@ from datetime import datetime
 
 
 class Task(Base):
+    """
+    The Task class
+
+    Attributes:
+        task_pkey (int): The primary key
+        project_fkey (int): The project primary key
+        name (str): The name of the task
+        desc (str): The description of the task
+        status (str): The status of the task ( 'Not Started', 'In Progress', 'Completed', 'Pending Review').
+        start_date (datetime): The start date of the task
+        end_date (datetime): The end date of the task
+        due_date (datetime): The due date of the task
+        assignee_fkey (int): The assignee primary key
+        assigner_fkey (int): The assigner primary key
+        task_progress (int): The progress of the task (0-100)
+        is_removed (int): A flag indicating if the task has been removed
+        project (src.ClassProject.Project): The project the task belongs to
+        assignee (src.ClassUser.User): The user assigned the task
+        assigner (src.ClassUser.User): The user who assigned the task
+        communication_log (src.ClassCommunicationLog.CommunicationLog): The communication log for the task
+
+    Methods:
+        get_user_ongoing_project_tasks(session, user_pkey, project_pkey=None): Get tasks assigned to a user for ongoing projects and tasks in their project
+        get_assigned_tasks(session, user_pkey, project_pkey=None): Get tasks assigned to a user (for a project if specified)
+        get_tasks(session, project_pkey=None, project_completed=None): Get tasks (for a project if specified) and or (completed or uncompleted if specified)
+        set_task(session, userInstance, project_pkey, task_pkey, setName=None, setDesc=None, setStatus=None, setStartDate=None, setDueDate=None, setAssigneeFkey=None, setAssignerFkey = None, setTaskProgress=None): Update a task
+        delete_task(session, userInstance, project_pkey, task_pkey): Delete a task
+        delete_tasks_for_project(session, userInstance, project_pkey): Delete tasks for a project
+        close_tasks_for_project(session, userInstance, project_pkey): Close all tasks for a project
+        close_task(session, userInstance, project_pkey, task_pkey): Close a task
+        add_task(session, userInstance, project_pkey): Add a task to a project
+        get_task(session, task_pkey): Get a task
+        unassign_tasks(session, user_pkey): Un-assign tasks from a user
+        unassign_tasks_from_project(session, user_pkey, project_pkey): Un-assign tasks from a user for a project
+    """
     __tablename__ = 'TASK'  # Adjusted table name
 
     task_pkey = Column(Integer, primary_key=True, autoincrement=True)

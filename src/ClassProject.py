@@ -28,16 +28,18 @@ class Project(Base):
         communication_log: relationship, back_populates='project'
 
     Methods:
-        get_projects: Get all projects from the database
-        add_owner_to_project_team: Add the owner to the project team
-        add_project: Add a project to the database and add the owner to the project team
-        set_project: Set the project details
-        delete_project: Delete a project from the database
-        close_project: Close a project
-        unassign_projects: Un-assign projects from a user
-        get_project: Get a project from the database
-        get_project_team: Get all users assigned to a project
-        get_projects_user_member_of: Get all projects that a user is a member of
+        get_projects(session, team_member_user_pkey=None, completed=None): Get all projects from the database
+        add_owner_to_project_team(session): Add the owner to the project team
+        add_project(session): Add a project to the database and add the owner to the project team
+        set_project(session, userInstance, projectPkey, setName, setDesc, setStatus, setStartDate, setDueDate, setProjectProgress): Set the project details
+        delete_project(session, user_instance, project_pkey): Delete a project from the database
+        close_project(session, user_instance, project_pkey): Close a project
+        unassign_projects(session, user_pkey): Un-assign projects from a user
+        get_project(session, project_pkey): Get a project from the database
+        get_project_team(session, project_pkey=None): Get all users assigned to a project
+        is_user_project_owner(session, user_pkey, project_pkey): Check if a user is the owner of a project
+        get_projects_user_member_of(session, user_pkey): Get all projects that a user is a member of that have not been completed
+
     """
     # Define the table name
     __tablename__ = 'PROJECT'

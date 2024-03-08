@@ -7,6 +7,22 @@ from datetime import datetime
 
 
 class ProjectTeam(Base):
+    """
+    Class to represent the PROJECT_TEAM table in the database.
+    Attributes:
+        project_team_pkey: int, primary key, autoincrement
+        user_fkey: int, foreign key to USER
+        project_fkey: int, foreign key to PROJECT
+        start_date: datetime, date and time of the start of the project
+        end_date: datetime, date and time of the end of the project
+        is_removed: int, 0 if the team member is active, 1 if the team member is removed
+        user: relationship to User
+        project: relationship to Project
+
+    Methods:
+        add_team_member_to_project(session): add a team member to a project
+        delete_team_member_from_projects(session, user_pkey, project_pkey=None): remove a user from all project teams or a specific project team
+    """
     __tablename__ = 'PROJECT_TEAM'
 
     project_team_pkey = Column(Integer, primary_key=True, autoincrement=True)

@@ -14,18 +14,26 @@ class DatabaseConnection:
         engine: sqlalchemy engine object
         Session: sqlalchemy session object
     Methods:
-        create_engine: creates sqlalchemy engine object
-        connection_string: creates connection string for sqlalchemy engine
-        execute_query: executes a query and returns the result
-        get_session: returns a session object
-        test_connectivity: tests the connection to the database
+        connection_string(): returns the connection string for the database
+        create_engine(): creates a sqlalchemy engine object
+        test_connectivity(max_attempts=3, delay_between_attempts=1): tests the connection to the database
+        execute_query(query, params=None): executes a query on the database
+        get_session(): returns a sqlalchemy session object
     """
     def __init__(self):
+        """
+        Initializes the DatabaseConnection class
+        """
         load_dotenv()
         self.engine = self.create_engine()
         self.Session = sessionmaker(bind=self.engine)
 
     def connection_string(self):
+        """
+        Returns the connection string for the database
+        requirements: AZURE_SQL_SERVER, AZURE_SQL_DB, AZURE_SQL_USER, AZURE_SQL_PASS
+        :return: str
+        """
         server = os.getenv('AZURE_SQL_SERVER')
         database = os.getenv('AZURE_SQL_DB')
         #driver = os.getenv('SQL_DRIVER', '{ODBC Driver 17 for SQL Server}')  ## test older version
@@ -42,10 +50,22 @@ class DatabaseConnection:
         return 'mssql+pyodbc:///?autocommit=true&odbc_connect={}'.format(params)
 
     def create_engine(self):
+        """
+        Creates a sqlalchemy engine object
+        :return: sqlalchemy engine object
+        """
         conn_str = self.connection_string()
         return create_engine(conn_str, echo=False)
 
     def test_connectivity(self, max_attempts=3, delay_between_attempts=1):
+        """
+        Tests the connection to the database
+        :param max_attempts: int, maximum number of attempts to connect to the database
+        :type max_attempts: int
+        :param delay_between_attempts: int, number of seconds to wait between attempts
+        :type delay_between_attempts: int
+        :return: str, success message or error message
+        """
         for attempt in range(max_attempts):
             try:
                 # Attempt to create a connection without opening it
@@ -74,6 +94,14 @@ class DatabaseConnection:
                     return f"Failed to connect after {max_attempts} attempts: {str(e)}"
 
     def execute_query(self, query, params=None):
+        """ Executes a query on the database
+        :param query: str, query to execute
+        :type query: str
+        :param params: dict, parameters to pass to the query
+        :type params: dict
+        :return: list, list of query results
+        """
+
         try:
             with self.engine.connect() as connection:
                 if isinstance(query, str):
@@ -84,6 +112,9 @@ class DatabaseConnection:
             raise RuntimeError(f"Error executing query: {e}")
 
     def get_session(self):
+        """ Returns a sqlalchemy session object
+        :return: sqlalchemy session object
+        """
         try:
             return self.Session
         except pyodbc.OperationalError as e:
