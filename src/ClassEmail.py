@@ -16,6 +16,38 @@ load_dotenv()
 
 
 class EmailSender:
+    """
+       This class handles sending emails for various events within the system.
+
+       Attributes:
+           email (str): The email address used for sending emails.
+           password (str): The password for the email account.
+           smtp_server (str): The SMTP server address.
+           smtp_port (str): The SMTP server port.
+           dbCon (DatabaseConnection): An instance of the DatabaseConnection class for database interaction.
+           session (sqlalchemy.orm.session.Session): The database session.
+           recipient (User): The recipient of the email.
+           actionUser (User): The user performing the action.
+           project (Project): The project related to the email event.
+           task (Task): The task related to the email event.
+           taskName (str): The name of the task.
+
+       Methods:
+           set_project(project_pkey): Set the project for the email event.
+           set_task(task_pkey): Set the task for the email event.
+           set_task_name(task_name): Set the name of the task for the email event.
+           set_recipient(recipient_fkey): Set the recipient of the email.
+           set_action_user(action_user_fkey): Set the user performing the action for the email event.
+           send_email(recipient_email, subject, message): Send an email.
+           on_task_assign(): Send an email notification for task assignment.
+           on_task_close(): Send an email notification for task closure.
+           on_project_close(): Send an email notification for project closure.
+           on_project_delete(): Send an email notification for project deletion.
+           on_add_to_project(): Send an email notification for adding a user to a project.
+           on_remove_from_project(): Send an email notification for removing a user from a project.
+           on_project_creation(project_name): Send an email notification for project creation.
+           on_task_creation(): Send an email notification for task creation.
+    """
     def __init__(self):
         self.email = os.getenv('OUTLOOK_USER')
         self.password = os.getenv('OUTLOOK_PASS')
